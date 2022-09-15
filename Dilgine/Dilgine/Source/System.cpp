@@ -37,8 +37,8 @@ void gpr460::System::LogToErrorFile(const gpr460::string& message)
 		//errorFile = CreateFileW(ERROR_FILENAME.c_str(), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 	}
 
-	SetFilePointer(errorFile, 0, 0, FILE_END);
 	OVERLAPPED overlap = OVERLAPPED();
+	overlap.Offset = SetFilePointer(errorFile, 0, 0, FILE_END);;
 	bool success = WriteFileEx(errorFile, (message + L"\n").c_str(), (message + L"\n").size() * sizeof(wchar_t), &overlap, OverlapComplete);
 	
 	//DWORD bytesWritten = 0;
