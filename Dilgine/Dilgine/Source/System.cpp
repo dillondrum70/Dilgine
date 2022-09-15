@@ -19,7 +19,7 @@ void gpr460::System::Shutdown()
 {
 	if (errorFile != INVALID_HANDLE_VALUE)
 	{
-		//CloseHandle(errorFile);
+		CloseHandle(errorFile);
 	}
 	
 }
@@ -33,19 +33,24 @@ void gpr460::System::LogToErrorFile(const gpr460::string& message)
 {
 	if (errorFile == INVALID_HANDLE_VALUE)
 	{
-		errorFile = CreateFileW(ERROR_FILENAME.c_str(), GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_FLAG_OVERLAPPED, NULL);
+		errorFile = CreateFileW(ERROR_FILENAME.c_str(), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_FLAG_OVERLAPPED, NULL);
+		//errorFile = CreateFileW(ERROR_FILENAME.c_str(), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 	}
 
+	SetFilePointer(errorFile, 0, 0, FILE_END);
+	OVERLAPPED overlap = OVERLAPPED();
+	bool success = WriteFileEx(errorFile, (message + L"\n").c_str(), (message + L"\n").size() * sizeof(wchar_t), &overlap, OverlapComplete);
 	
-	//LPOVERLAPPED overlap = LPOVERLAPPED();
-	//LPOVERLAPPED_COMPLETION_ROUTINE routine = LPOVERLAPPED_COMPLETION_ROUTINE();
-	//bool success = WriteFileEx(errorFile, message.c_str(), sizeof(message), overlap, routine);
-	
-	DWORD bytesWritten = 0;
-	bool success = WriteFile(errorFile, message.c_str(), message.size() * sizeof(wchar_t), &bytesWritten, NULL);
+	//DWORD bytesWritten = 0;
+	//bool success = WriteFile(errorFile, (message + L"\n").c_str(), (message + L"\n").size() * sizeof(wchar_t), &bytesWritten, NULL);
 
 	if (!success)
 	{
 		ErrorMessage(L"Error WriteFile Failed");
 	}
+}
+
+void CALLBACK gpr460::System::OverlapComplete(DWORD errorCode, DWORD length, LPOVERLAPPED overlapped)
+{
+	
 }
