@@ -34,13 +34,16 @@ void gpr460::System::LogToErrorFile(const gpr460::string& message)
 	if (errorFile == INVALID_HANDLE_VALUE)
 	{
 		errorFile = CreateFileW(ERROR_FILENAME.c_str(), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_FLAG_OVERLAPPED, NULL);
+
+		//not asynchronous
 		//errorFile = CreateFileW(ERROR_FILENAME.c_str(), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 	}
 
 	OVERLAPPED overlap = OVERLAPPED();
-	overlap.Offset = SetFilePointer(errorFile, 0, 0, FILE_END);;
+	overlap.Offset = SetFilePointer(errorFile, 0, 0, FILE_END); //finds position at end of file, number of bytes to read past before writing
 	bool success = WriteFileEx(errorFile, (message + L"\n").c_str(), (message + L"\n").size() * sizeof(wchar_t), &overlap, OverlapComplete);
 	
+	//not asynchronous
 	//DWORD bytesWritten = 0;
 	//bool success = WriteFile(errorFile, (message + L"\n").c_str(), (message + L"\n").size() * sizeof(wchar_t), &bytesWritten, NULL);
 
