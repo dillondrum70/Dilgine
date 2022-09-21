@@ -12,7 +12,9 @@ void gpr460::System::Init()
 
 	freopen("CONOUT$", "w", stdout);
 
-	errorFile = INVALID_HANDLE_VALUE;
+	//errorFile = INVALID_HANDLE_VALUE;
+
+	errorFile = CreateFileW(ERROR_FILENAME.c_str(), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_FLAG_OVERLAPPED, NULL);
 }
 
 void gpr460::System::Shutdown()
