@@ -394,3 +394,6 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+
+# Engine Generated Text Files
+.GameErrors.txt
