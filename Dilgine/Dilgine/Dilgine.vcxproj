@@ -132,9 +132,15 @@
   <ItemGroup>
     <ClCompile Include="Source\main.cpp" />
     <ClCompile Include="Source\System.cpp" />
+    <ClCompile Include="Source\System_Common.cpp" />
+    <ClCompile Include="Source\System_Emscripten.cpp" />
+    <ClCompile Include="Source\System_Win32.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Header\System.h" />
+    <ClInclude Include="Header\System_Common.h" />
+    <ClInclude Include="Header\System_Emscripten.h" />
+    <ClInclude Include="Header\System_Win32.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
