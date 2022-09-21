@@ -48,8 +48,20 @@ int main(int argc, char* argv[])
     return 0;
 }
 
+void MainLoopProcesses(EngineState* engine)
+{
+    Uint32 now = GetTicks();
+    if (now - engine->frameStart >= 16)
+    {
+        frameStep(engine);
+    }
+}
+
 void runMainLoop(EngineState* engine)
 {
+#ifdef _EMSCRIPTEN_
+    emscripten_run_main_loop(MainLoopProcesses, 0, true);
+#else
     while (!engine->quit)
     {
         Uint32 now = GetTicks();
@@ -58,6 +70,7 @@ void runMainLoop(EngineState* engine)
             frameStep(engine);
         }
     }
+#endif
 }
 
 void frameStep(void* arg)

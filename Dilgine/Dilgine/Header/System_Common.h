@@ -30,10 +30,11 @@ namespace gpr460 {
 
 		void LogToErrorFile(const gpr460::string& message);
 
-		static void CALLBACK OverlapComplete(DWORD errorCode, DWORD length, LPOVERLAPPED overlapped);
+		//static void CALLBACK OverlapComplete(DWORD errorCode, DWORD length, LPOVERLAPPED overlapped);
 
 	private:
-		HANDLE errorFile;
+		//static HANDLE errorFile;
+		void* systemSubclass;
 	};
 
 }

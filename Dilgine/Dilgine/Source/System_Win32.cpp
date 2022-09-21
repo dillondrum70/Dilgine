@@ -13,17 +13,22 @@ void gpr460::System::Init()
 	freopen("CONOUT$", "w", stdout);
 
 	//errorFile = INVALID_HANDLE_VALUE;
+	systemSubclass = DBG_NEW SystemWin32();
 
-	errorFile = CreateFileW(ERROR_FILENAME.c_str(), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_FLAG_OVERLAPPED, NULL);
+	((SystemWin32*)systemSubclass)->errorFile = CreateFileW(ERROR_FILENAME.c_str(), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_FLAG_OVERLAPPED, NULL);
 }
 
 void gpr460::System::Shutdown()
 {
-	if (errorFile != INVALID_HANDLE_VALUE)
+	if (((SystemWin32*)systemSubclass))
 	{
-		CloseHandle(errorFile);
-	}
+		if (((SystemWin32*)systemSubclass)->errorFile != INVALID_HANDLE_VALUE)
+		{
+			CloseHandle(((SystemWin32*)systemSubclass)->errorFile);
+		}
 
+		delete ((SystemWin32*)systemSubclass);
+	}
 }
 
 void gpr460::System::ErrorMessage(const gpr460::string& message)
@@ -33,17 +38,17 @@ void gpr460::System::ErrorMessage(const gpr460::string& message)
 
 void gpr460::System::LogToErrorFile(const gpr460::string& message)
 {
-	if (errorFile == INVALID_HANDLE_VALUE)
+	if (((SystemWin32*)systemSubclass)->errorFile == INVALID_HANDLE_VALUE)
 	{
-		errorFile = CreateFileW(ERROR_FILENAME.c_str(), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_FLAG_OVERLAPPED, NULL);
+		((SystemWin32*)systemSubclass)->errorFile = CreateFileW(ERROR_FILENAME.c_str(), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_FLAG_OVERLAPPED, NULL);
 
 		//not asynchronous
 		//errorFile = CreateFileW(ERROR_FILENAME.c_str(), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 	}
 
 	OVERLAPPED overlap = OVERLAPPED();
-	overlap.Offset = SetFilePointer(errorFile, 0, 0, FILE_END); //finds position at end of file, number of bytes to read past before writing
-	bool success = WriteFileEx(errorFile, (message + L"\n").c_str(), (message + L"\n").size() * sizeof(wchar_t), &overlap, OverlapComplete);
+	overlap.Offset = SetFilePointer(((SystemWin32*)systemSubclass)->errorFile, 0, 0, FILE_END); //finds position at end of file, number of bytes to read past before writing
+	bool success = WriteFileEx(((SystemWin32*)systemSubclass)->errorFile, (message + L"\n").c_str(), (message + L"\n").size() * sizeof(wchar_t), &overlap, /*OverlapComplete*/ nullptr);
 
 	//not asynchronous
 	//DWORD bytesWritten = 0;
@@ -55,7 +60,7 @@ void gpr460::System::LogToErrorFile(const gpr460::string& message)
 	}
 }
 
-void CALLBACK gpr460::System::OverlapComplete(DWORD errorCode, DWORD length, LPOVERLAPPED overlapped)
+/*void CALLBACK gpr460::System::OverlapComplete(DWORD errorCode, DWORD length, LPOVERLAPPED overlapped)
 {
 
-}
+}*/

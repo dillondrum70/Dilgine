@@ -19,6 +19,14 @@ namespace gpr460
 
 	const gpr460::string ERROR_FILENAME = L"GameErrors.txt";
 
+	
+
+	class SystemWin32
+	{
+	public:
+		HANDLE errorFile;
+	};
+
 	/*class System
 	{
 	public:
