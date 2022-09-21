@@ -397,3 +397,6 @@ FodyWeavers.xsd
 
 # Engine Generated Text Files
 GameErrors.txt
+
+# Engine Emscripten Builds
+build/

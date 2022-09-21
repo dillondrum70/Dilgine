@@ -1,5 +1,4 @@
-#include "Header\System.h"
-#include <iostream>
+#include "System.h"
 
 struct EngineState
 {
@@ -48,10 +47,10 @@ int main(int argc, char* argv[])
     return 0;
 }
 
-void MainLoopProcesses(EngineState* engine)
+void MainLoopProcesses(void* engine)
 {
     Uint32 now = GetTicks();
-    if (now - engine->frameStart >= 16)
+    if (now - ((EngineState*)engine)->frameStart >= 16)
     {
         frameStep(engine);
     }
@@ -59,16 +58,17 @@ void MainLoopProcesses(EngineState* engine)
 
 void runMainLoop(EngineState* engine)
 {
-#ifdef _EMSCRIPTEN_
-    emscripten_run_main_loop(MainLoopProcesses, 0, true);
+#ifdef __EMSCRIPTEN__
+    emscripten_set_main_loop_arg(MainLoopProcesses, engine, 0, true);
 #else
     while (!engine->quit)
     {
-        Uint32 now = GetTicks();
+        /*Uint32 now = GetTicks();
         if (now - engine->frameStart >= 16)
         {
             frameStep(engine);
-        }
+        }*/
+        MainLoopProcesses(engine);
     }
 #endif
 }

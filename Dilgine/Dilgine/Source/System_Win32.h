@@ -1,21 +1,20 @@
 #ifndef SYSTEM_WIN32_H
 #define SYSTEM_WIN32_H
 
+#ifdef _WIN32
 // THIS IS WINDOWS-ONLY
 #define _CRT_SECURE_NO_WARNINGS
 #define _CRTDBG_MAP_ALLOC
-#include <stdlib.h>
-#include <crtdbg.h>
-#include <iostream>
-#include "SDL2/SDL.h"
+
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
+#include <crtdbg.h>
 
 #include "System_Common.h"
 
 namespace gpr460
 {
-	typedef std::wstring string;
+	//typedef std::wstring string;
 
 	const gpr460::string ERROR_FILENAME = L"GameErrors.txt";
 
@@ -44,5 +43,6 @@ namespace gpr460
 		HANDLE errorFile;
 	};*/
 }
+#endif
 
 #endif

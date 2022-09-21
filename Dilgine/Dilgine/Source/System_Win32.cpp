@@ -1,5 +1,6 @@
-#include "Header/System_Win32.h"
+#include "System_Win32.h"
 
+#ifdef _WIN32
 void gpr460::System::Init()
 {
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
@@ -64,3 +65,4 @@ void gpr460::System::LogToErrorFile(const gpr460::string& message)
 {
 
 }*/
+#endif

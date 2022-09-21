@@ -1,6 +1,7 @@
-#include "Header/System_Emscripten.h"
+#include "System_Emscripten.h"
 
-/*void gpr460::System::Init()
+#ifdef __EMSCRIPTEN__
+void gpr460::System::Init()
 {
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 	_CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_DEBUG);
@@ -19,4 +20,5 @@ void gpr460::System::ErrorMessage(const gpr460::string& message)
 void gpr460::System::LogToErrorFile(const gpr460::string& message)
 {
 	//emscripten_run_script("console.log(message)");
-}*/
+}
+#endif

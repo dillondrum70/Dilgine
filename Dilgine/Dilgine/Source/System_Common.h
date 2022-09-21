@@ -9,11 +9,15 @@
 #define DBG_NEW new
 #endif
 
+#include <stdlib.h>
+#include <iostream>
 #include <string>
+
+#include "SDL2\SDL.h"
 
 namespace gpr460 {
 
-	#ifdef _EMSCRIPTEN_
+	#ifdef __EMSCRIPTEN__
 		typedef std::string string;
 	#else
 		typedef std::wstring string;

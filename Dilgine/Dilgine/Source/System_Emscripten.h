@@ -3,7 +3,9 @@
 
 #include "System_Common.h"
 
-//#include <emscripten.h>
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+
 
 namespace gpr460 {
 
@@ -15,5 +17,5 @@ namespace gpr460 {
 	};
 
 }
-
+#endif
 #endif
