@@ -396,4 +396,4 @@ FodyWeavers.xsd
 *.sln.iml
 
 # Engine Generated Text Files
-.GameErrors.txt
+GameErrors.txt
