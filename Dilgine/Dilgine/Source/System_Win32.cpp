@@ -1,4 +1,4 @@
-#include "Header/System.h"
+#include "Header/System_Win32.h"
 
 void gpr460::System::Init()
 {
