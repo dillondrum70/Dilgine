@@ -400,3 +400,6 @@ GameErrors.txt
 
 # Engine Emscripten Builds
 build/
+
+#Laptop-Specific Batch Files
+em_start_laptop.bat

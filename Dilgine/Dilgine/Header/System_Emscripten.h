@@ -6,12 +6,12 @@
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
 
+#include <emscripten/bind.h>
 
 namespace gpr460 {
 
 	//error constants
-	const gpr460::string ERROR_PRESSED_K = "Do not press K!!!";
-	const gpr460::string LOG_ERROR_PRESSED_K = "Error: User pressed 'k'";
+	const gpr460::string ERROR_PRESSED_K = "Error: User pressed 'k'";
 
 	class SystemEmscripten
 	{
@@ -19,5 +19,6 @@ namespace gpr460 {
 	};
 
 }
+
 #endif
 #endif

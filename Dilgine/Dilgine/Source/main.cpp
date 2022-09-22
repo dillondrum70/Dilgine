@@ -99,7 +99,7 @@ void frameStep(void* arg)
 
                 // TODO: Add calls to ErrorMessage and LogToErrorFile here
                 engine->system->ErrorMessage(gpr460::ERROR_PRESSED_K);
-                engine->system->LogToErrorFile(gpr460::LOG_ERROR_PRESSED_K);
+                engine->system->LogToErrorFile(gpr460::ERROR_PRESSED_K);
                 // DONE
             }
             if (event.key.keysym.sym == SDLK_ESCAPE)

@@ -14,13 +14,10 @@
 
 namespace gpr460
 {
-	//typedef std::wstring string;
-
 	const gpr460::string ERROR_FILENAME = L"GameErrors.txt";
 
 	//error constants
-	const gpr460::string ERROR_PRESSED_K = L"Do not press K!!!";
-	const gpr460::string LOG_ERROR_PRESSED_K = L"Error: User pressed 'k'";
+	const gpr460::string ERROR_PRESSED_K = L"Error: User pressed 'k'";
 
 	class SystemWin32
 	{
@@ -28,22 +25,6 @@ namespace gpr460
 		HANDLE errorFile;
 	};
 
-	/*class System
-	{
-	public:
-		void Init();
-
-		void Shutdown();
-
-		void ErrorMessage(const gpr460::string& message);
-
-		void LogToErrorFile(const gpr460::string& message);
-
-		static void CALLBACK OverlapComplete(DWORD errorCode, DWORD length, LPOVERLAPPED overlapped);
-
-	private:
-		HANDLE errorFile;
-	};*/
 }
 #endif
 
