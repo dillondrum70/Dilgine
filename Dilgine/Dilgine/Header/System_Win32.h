@@ -18,7 +18,9 @@ namespace gpr460
 
 	const gpr460::string ERROR_FILENAME = L"GameErrors.txt";
 
-	
+	//error constants
+	const gpr460::string ERROR_PRESSED_K = L"Do not press K!!!";
+	const gpr460::string LOG_ERROR_PRESSED_K = L"Error: User pressed 'k'";
 
 	class SystemWin32
 	{
