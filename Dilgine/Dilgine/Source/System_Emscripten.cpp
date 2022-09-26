@@ -12,26 +12,16 @@ void gpr460::System::Shutdown()
 
 }
 
-EM_JS(void, error_message, (gpr460::string mess), {
-	alert(String(mess));
-	});
-
 void gpr460::System::ErrorMessage(const gpr460::string& message)
 {
-	error_message(message.c_str());
-	//emscripten_run_script("alert(message)");
-	//EM_ASM({ console.log($) }, message);
+	gpr460::string pass = "alert('" + message + "')";
+	emscripten_run_script(pass.c_str());
 }
-
-EM_JS(void, log_error_message, (gpr460::string mess), {
-	console.log(String(mess));
-	});
 
 void gpr460::System::LogToErrorFile(const gpr460::string& message)
 {
-	log_error_message(message.c_str());
-	//emscripten_run_script("console.log(message)");
-	//EM_ASM({ console.log($) }, message);
+	gpr460::string pass = "console.log('" + message + "')";
+	emscripten_run_script(pass.c_str());
 }
 
 #endif
