@@ -9,7 +9,7 @@
 namespace gpr460 {
 
 	//error constants
-	const gpr460::string ERROR_PRESSED_K = "Error: User pressed 'k'";
+	const gpr460::string ERROR_PRESSED_K = "Error: User pressed k";
 
 	class SystemEmscripten
 	{
