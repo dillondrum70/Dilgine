@@ -34,8 +34,14 @@ jobs:
       working-directory: ${{env.GITHUB_WORKSPACE}}
       run: nuget restore ${{env.SOLUTION_FILE_PATH}}
 
-    - name: Build
+    - name: Build Windows
       working-directory: ${{env.GITHUB_WORKSPACE}}
       # Add additional options to the MSBuild command line here (like platform or verbosity level).
       # See https://docs.microsoft.com/visualstudio/msbuild/msbuild-command-line-reference
       run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} /p:Platform=x64 ${{env.SOLUTION_FILE_PATH}}
+      
+    - name: Setup Emscripten toolchain
+      uses: mymindstorm/setup-emsdk@v11
+
+    - name: Build Emscripten
+      run: emcc Dilgine\Dilgine\Source\main.cpp Dilgine\Dilgine\Source\System_Emscripten.cpp -sUSE_SDL=2 -sLLD_REPORT_UNDEFINED -IDilgine\Dilgine\Header -o .\build\html\index.html
