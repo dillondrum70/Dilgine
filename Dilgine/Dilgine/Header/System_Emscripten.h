@@ -11,11 +11,18 @@ namespace gpr460 {
 	//error constants
 	const gpr460::string ERROR_PRESSED_K = "Error: User pressed k";
 
-	class SystemEmscripten
+	class System_Emscripten : public System
 	{
+		~System_Emscripten() override {}
 
+		void Init() override;
+
+		void Shutdown() override;
+
+		void ErrorMessage(const gpr460::string& message) override;
+
+		void LogToErrorFile(const gpr460::string& message) override;
 	};
-
 }
 
 #endif

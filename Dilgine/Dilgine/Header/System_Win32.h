@@ -19,9 +19,18 @@ namespace gpr460
 	//error constants
 	const gpr460::string ERROR_PRESSED_K = L"Error: User pressed 'k'";
 
-	class SystemWin32
+	class System_Win32 : public System
 	{
-	public:
+		~System_Win32() override {}
+
+		void Init() override;
+
+		void Shutdown() override;
+
+		void ErrorMessage(const gpr460::string& message) override;
+
+		void LogToErrorFile(const gpr460::string& message) override;
+
 		HANDLE errorFile;
 	};
 

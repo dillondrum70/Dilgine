@@ -26,19 +26,19 @@ namespace gpr460 {
 	class System
 	{
 	public:
-		void Init();
+		virtual ~System() {}
 
-		void Shutdown();
+		virtual void Init() = 0;
 
-		void ErrorMessage(const gpr460::string& message);
+		virtual void Shutdown() = 0;
 
-		void LogToErrorFile(const gpr460::string& message);
+		virtual void ErrorMessage(const gpr460::string& message) = 0;
+
+		virtual void LogToErrorFile(const gpr460::string& message) = 0;
+
+		static System* Create();
 
 		//static void CALLBACK OverlapComplete(DWORD errorCode, DWORD length, LPOVERLAPPED overlapped);
-
-	private:
-		//static HANDLE errorFile;
-		void* systemSubclass;
 	};
 
 }

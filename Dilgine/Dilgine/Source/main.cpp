@@ -20,8 +20,8 @@ int main(int argc, char* argv[])
     SDL_Window* window = NULL;
     SDL_Renderer* renderer = NULL;
 
-    gpr460::System system;
-    system.Init();
+    gpr460::System* system = gpr460::System::Create();
+    system->Init();
 
     int* leak = DBG_NEW int[4096];
 
@@ -35,7 +35,7 @@ int main(int argc, char* argv[])
     engine.renderer = renderer;
     engine.frame = 0;
     engine.frameStart = GetTicks();
-    engine.system = &system;
+    engine.system = system;
 
     runMainLoop(&engine);
 
@@ -43,7 +43,12 @@ int main(int argc, char* argv[])
     SDL_DestroyWindow(window);
     SDL_Quit();
 
-    system.Shutdown();
+    system->Shutdown();
+    if (system)
+    {
+        delete system;
+    }
+
     return 0;
 }
 
