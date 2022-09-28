@@ -44,4 +44,4 @@ jobs:
       uses: mymindstorm/setup-emsdk@v11
 
     - name: Build Emscripten
-      run: emcc Dilgine\Dilgine\Source\main.cpp Dilgine\Dilgine\Source\System_Emscripten.cpp -sUSE_SDL=2 -sLLD_REPORT_UNDEFINED -IDilgine\Dilgine\Header -o .\build\html\index.html
+      run: emcc Dilgine\Dilgine\Source\main.cpp Dilgine\Dilgine\Source\System_Emscripten.cpp -sUSE_SDL=2 -sLLD_REPORT_UNDEFINED -IDilgine\Dilgine\Header -o .\index.html
