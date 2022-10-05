@@ -21,18 +21,12 @@
     <ClCompile Include="Source\System_Win32.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\System_Emscripten.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Header\System.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Header\System_Win32.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Header\System_Emscripten.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Header\System_Common.h">
