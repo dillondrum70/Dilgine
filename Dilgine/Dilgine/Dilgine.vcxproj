@@ -18,6 +18,31 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Scripts\Core\System\System_Win32.cpp" />
+    <ClCompile Include="Scripts\Core\World.cpp" />
+    <ClCompile Include="Scripts\Game\Components\CollisionColorChanger.cpp" />
+    <ClCompile Include="Scripts\Game\Components\PlayerController.cpp" />
+    <ClCompile Include="Scripts\Game\Components\RectangleCollider.cpp" />
+    <ClCompile Include="Scripts\Game\Components\RectangleRenderer.cpp" />
+    <ClCompile Include="Scripts\Game\Components\Transform.cpp" />
+    <ClCompile Include="Scripts\Game\GameObject.cpp" />
+    <ClCompile Include="Scripts\main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Scripts\Core\System\System.h" />
+    <ClInclude Include="Scripts\Core\System\System_Common.h" />
+    <ClInclude Include="Scripts\Core\System\System_Win32.h" />
+    <ClInclude Include="Scripts\Core\Vector2.h" />
+    <ClInclude Include="Scripts\Core\Vector3.h" />
+    <ClInclude Include="Scripts\Core\World.h" />
+    <ClInclude Include="Scripts\Game\Components\CollisionColorChanger.h" />
+    <ClInclude Include="Scripts\Game\Components\PlayerController.h" />
+    <ClInclude Include="Scripts\Game\Components\RectangleCollider.h" />
+    <ClInclude Include="Scripts\Game\Components\RectangleRenderer.h" />
+    <ClInclude Include="Scripts\Game\Components\Transform.h" />
+    <ClInclude Include="Scripts\Game\GameObject.h" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
@@ -104,7 +129,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)\include;$(ProjectDir);$(ProjectDir)\Header;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\include;$(ProjectDir);$(ProjectDir)\Scripts\Game;$(ProjectDir)\Scripts\Game\Components;$(ProjectDir)\Scripts\Core\System;$(ProjectDir)\Scripts;$(ProjectDir)\Scripts\Core;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -132,15 +157,6 @@
       <AdditionalDependencies>SDL2main.lib;SDL2.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="Source\main.cpp" />
-    <ClCompile Include="Source\System_Win32.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="Header\System.h" />
-    <ClInclude Include="Header\System_Common.h" />
-    <ClInclude Include="Header\System_Win32.h" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

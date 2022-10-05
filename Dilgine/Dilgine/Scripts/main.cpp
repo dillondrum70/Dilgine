@@ -1,15 +1,6 @@
 #include "System.h"
 
-struct EngineState
-{
-    SDL_Renderer* renderer;
-    gpr460::System* system;
-    Uint32 frameStart;
-    bool quit;
-    int frame;
-};
-
-void runMainLoop(EngineState* engine);
+void runMainLoop(gpr460::EngineState* engine);
 void frameStep(void* arg);
 Uint32 GetTicks();
 
@@ -30,14 +21,14 @@ int main(int argc, char* argv[])
     window = SDL_CreateWindow("SDL2 Test", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WIDTH, HEIGHT, SDL_WINDOW_SHOWN);
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
-    EngineState engine;
-    engine.quit = false;
-    engine.renderer = renderer;
-    engine.frame = 0;
-    engine.frameStart = GetTicks();
-    engine.system = system;
+    //EngineState engine;
+    gpr460::System::engine.quit = false;
+    gpr460::System::engine.renderer = renderer;
+    gpr460::System::engine.frame = 0;
+    gpr460::System::engine.frameStart = GetTicks();
+    gpr460::System::engine.system = system;
 
-    runMainLoop(&engine);
+    runMainLoop(&gpr460::System::engine);
 
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
@@ -55,13 +46,13 @@ int main(int argc, char* argv[])
 void MainLoopProcesses(void* engine)
 {
     Uint32 now = GetTicks();
-    if (now - ((EngineState*)engine)->frameStart >= 16)
+    if (now - ((gpr460::EngineState*)engine)->frameStart >= 16)
     {
         frameStep(engine);
     }
 }
 
-void runMainLoop(EngineState* engine)
+void runMainLoop(gpr460::EngineState* engine)
 {
 #ifdef __EMSCRIPTEN__
     emscripten_set_main_loop_arg(MainLoopProcesses, engine, 0, true);
@@ -80,7 +71,7 @@ void runMainLoop(EngineState* engine)
 
 void frameStep(void* arg)
 {
-    EngineState* engine = (EngineState*)arg;
+    gpr460::EngineState* engine = (gpr460::EngineState*)arg;
     SDL_Event event;
 
     Uint32 now = GetTicks();
@@ -112,6 +103,8 @@ void frameStep(void* arg)
                 engine->quit = true;
             }
         }
+
+
     }
 
     int x = (SDL_sinf(engine->frame / 100.0f) * 100.0f) + 200;

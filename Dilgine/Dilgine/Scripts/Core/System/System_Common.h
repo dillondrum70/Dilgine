@@ -23,9 +23,20 @@ namespace gpr460 {
 		typedef std::wstring string;
 	#endif
 
+	struct EngineState
+	{
+		SDL_Renderer* renderer;
+		gpr460::System* system;
+		Uint32 frameStart;
+		bool quit;
+		int frame;
+	};
+
 	class System
 	{
 	public:
+		static EngineState engine;
+
 		virtual ~System() {}
 
 		virtual void Init() = 0;

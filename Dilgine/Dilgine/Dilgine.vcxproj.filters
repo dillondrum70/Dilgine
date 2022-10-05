@@ -15,21 +15,69 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Source\main.cpp">
+    <ClCompile Include="Scripts\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\System_Win32.cpp">
+    <ClCompile Include="Scripts\Game\GameObject.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Scripts\Game\Components\CollisionColorChanger.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Scripts\Game\Components\PlayerController.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Scripts\Game\Components\RectangleCollider.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Scripts\Game\Components\RectangleRenderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Scripts\Game\Components\Transform.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Scripts\Core\System\System_Win32.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Scripts\Core\World.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Header\System.h">
+    <ClInclude Include="Scripts\Game\GameObject.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Header\System_Win32.h">
+    <ClInclude Include="Scripts\Game\Components\CollisionColorChanger.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Header\System_Common.h">
+    <ClInclude Include="Scripts\Game\Components\PlayerController.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Scripts\Game\Components\RectangleCollider.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Scripts\Game\Components\RectangleRenderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Scripts\Game\Components\Transform.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Scripts\Core\System\System.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Scripts\Core\System\System_Common.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Scripts\Core\System\System_Win32.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Scripts\Core\Vector3.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Scripts\Core\Vector2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Scripts\Core\World.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
