@@ -1,4 +1,5 @@
 #ifndef PLAYER_CONTROLLER_H
+#define PLAYER_CONTROLLER_H
 
 class GameObject;
 

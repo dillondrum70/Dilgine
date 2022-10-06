@@ -1,4 +1,5 @@
 #ifndef RECTANGLE_COLLIDER_H
+#define RECTANGLE_COLLIDER_H
 
 class GameObject;
 

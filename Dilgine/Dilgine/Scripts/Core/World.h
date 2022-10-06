@@ -1,18 +1,21 @@
 #ifndef WORLD_H
+#define WORLD_H
 #include "GameObject.h"
+
+#include <vector>
+
+class SDL_Window;
 
 class World
 {
 private:
-	GameObject* background;
-	GameObject* wall;
-	GameObject* player;
+	std::vector<GameObject*> gameObjects;
 
 public:
-	World() { background = nullptr; wall = nullptr; player = nullptr; }
+	World() { }
 	~World() { CleanUp(); }
 	
-	void Init();
+	void Init(SDL_Window* pWindow);
 	void CleanUp();
 
 	void Update();

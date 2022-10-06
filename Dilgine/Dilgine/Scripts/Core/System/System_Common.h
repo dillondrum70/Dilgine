@@ -15,6 +15,8 @@
 
 #include "SDL2\SDL.h"
 
+#include "World.h"
+
 namespace gpr460 {
 
 	#ifdef __EMSCRIPTEN__
@@ -26,7 +28,8 @@ namespace gpr460 {
 	struct EngineState
 	{
 		SDL_Renderer* renderer;
-		gpr460::System* system;
+		System* system;
+		World* world;
 		Uint32 frameStart;
 		bool quit;
 		int frame;

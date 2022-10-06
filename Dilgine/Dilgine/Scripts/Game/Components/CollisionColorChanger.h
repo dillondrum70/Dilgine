@@ -1,4 +1,6 @@
 #ifndef COLLISION_COLOR_CHANGER_H
+#define COLLISION_COLOR_CHANGER_H
+
 #include "Vector3.h"
 
 class GameObject;

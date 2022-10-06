@@ -1,4 +1,5 @@
 #ifndef VECTOR3_H
+#define VECTOR3_H
 #include <math.h>
 
 struct Vector3

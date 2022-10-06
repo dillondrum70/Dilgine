@@ -1,4 +1,5 @@
 #ifndef RECTANGLE_RENDERER_H
+#define RECTANGLE_RENDERER_H
 
 #include "Vector3.h"
 
