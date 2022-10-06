@@ -24,6 +24,9 @@ struct Vector2
 	void operator+=(const Vector2& rhs) { x += rhs.x; y += rhs.y; }
 	void operator-=(const Vector2& rhs) { x -= rhs.x; y -= rhs.y; }
 	void operator*=(const int rhs) { x *= rhs; y *= rhs; }
+
+	bool operator==(const Vector2& rhs) const { return (x == rhs.x && y == rhs.y); }
+	bool operator!=(const Vector2& rhs) const { return (x != rhs.x || y != rhs.y); }
 };
 
 #endif

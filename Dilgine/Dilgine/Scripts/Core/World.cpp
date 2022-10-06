@@ -6,13 +6,22 @@
 
 void World::Init(SDL_Window* pWindow)
 {
+	int width, height;
+	SDL_GetWindowSize(pWindow, &width, &height);
+
 	GameObject* background = DBG_NEW GameObject();
-	Transform backTrans = background->GetTransform();
-	int top, left, bottom, right;
-	SDL_GetWindowBordersSize(pWindow, &top, &left, &bottom, &right);
-	backTrans.position = Vector2(0, 0);
-	background->CreateRenderer(50, 50, Vector3(0, 255, 255));
+	Transform& backTrans = background->GetTransform();
+	backTrans.position = Vector2(width / 2, height / 2);
+	background->CreateRenderer(width, height, Vector3(150, 150, 150));
 	gameObjects.push_back(background);
+
+	GameObject* player = DBG_NEW GameObject();
+	Transform& playerTrans = player->GetTransform();
+	playerTrans.position = Vector2(width / 4, height / 2);
+	player->CreateRenderer(50, 50, Vector3(0, 255, 255));
+	player->CreateCollider(50, 50, player);
+	player->CreatePlayerController(player);
+	gameObjects.push_back(player);
 }
 
 void World::CleanUp()
@@ -41,7 +50,7 @@ void World::Update()
 	}
 }
 
-void World::Render()
+void World::Render(SDL_Renderer*& prRenderer)
 {
 	for (GameObject* obj : gameObjects)
 	{
@@ -52,9 +61,14 @@ void World::Render()
 			continue;
 		}
 
-		if (gpr460::engine.renderer)
+		if (prRenderer)
 		{
-			obj->Render(gpr460::engine.renderer);
+			obj->Render(prRenderer);
+		}
+		else
+		{
+			gpr460::engine.system->ErrorMessage(gpr460::ERROR_MISSING_ENGINE_RENDERER);
+			gpr460::engine.system->LogToErrorFile(gpr460::ERROR_MISSING_ENGINE_RENDERER);
 		}
 	}
 }

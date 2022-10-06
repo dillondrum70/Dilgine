@@ -137,7 +137,7 @@ void frameStep(void* arg)
 
     SDL_RenderClear(engine->renderer);
 
-    engine->world->Render();
+    engine->world->Render(engine->renderer);
     //SDL_SetRenderDrawColor(engine->renderer, 255, 0, 0, SDL_ALPHA_OPAQUE);
     //SDL_RenderFillRect(engine->renderer, &r);
     SDL_RenderPresent(engine->renderer);

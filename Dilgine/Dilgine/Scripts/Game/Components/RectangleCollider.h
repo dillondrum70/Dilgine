@@ -11,7 +11,7 @@ private:
 public:
 	int width, height;
 
-	RectangleCollider() { width = 1; height = 1; gameObject = nullptr; }
+	RectangleCollider() { width = 50; height = 50; gameObject = nullptr; }
 	RectangleCollider(int vWidth, int vHeight, GameObject* vGameObject) { width = vWidth; height = vHeight; gameObject = vGameObject; }
 
 	GameObject* GetGameObject() { return gameObject; }

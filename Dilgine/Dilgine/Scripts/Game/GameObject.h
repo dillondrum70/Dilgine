@@ -34,7 +34,7 @@ public:
     CollisionColorChanger* GetColorChanger() { return colorChanger; }
 
     void Update();
-    void Render(SDL_Renderer* pRenderer);
+    void Render(SDL_Renderer*& prRenderer);
 
 protected:
     Transform transform;

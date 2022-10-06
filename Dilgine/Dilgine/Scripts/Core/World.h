@@ -20,7 +20,7 @@ public:
 
 	void Update();
 
-	void Render();
+	void Render(SDL_Renderer*& prRenderer);
 };
 
 #endif

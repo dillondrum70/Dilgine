@@ -44,4 +44,4 @@ jobs:
       uses: mymindstorm/setup-emsdk@v11
 
     - name: Build Emscripten
-      run: emcc Dilgine\Dilgine\Source\main.cpp Dilgine\Dilgine\Source\System_Emscripten.cpp -sUSE_SDL=2 -sLLD_REPORT_UNDEFINED -IDilgine\Dilgine\Header -o .\index.html
+      run: emcc Dilgine\Dilgine\Scripts\main.cpp Dilgine\Dilgine\Scripts\Core\System\System_Emscripten.cpp Dilgine\Dilgine\Scripts\Game\GameObject.cpp Dilgine\Dilgine\Scripts\Game\Components\CollisionColorChanger.cpp Dilgine\Dilgine\Scripts\Game\Components\PlayerController.cpp Dilgine\Dilgine\Scripts\Game\Components\RectangleCollider.cpp Dilgine\Dilgine\Scripts\Game\Components\RectangleRenderer.cpp Dilgine\Dilgine\Scripts\Game\Components\Transform.cpp -sUSE_SDL=2 -sLLD_REPORT_UNDEFINED -IDilgine\Dilgine\Scripts\Core -IDilgine\Dilgine\Scripts\Core\System -IDilgine\Dilgine\Scripts\Game -IDilgine\Dilgine\Scripts\Game\Components -o .\build\html\index.html
