@@ -4,7 +4,9 @@
 
 #include "SDL2/SDL.h"
 
-void CollisionColorChanger::Update()
+#include <iostream>
+
+void CollisionColorChanger::Update(std::vector<GameObject*> gameObjects)
 {
 	if (!gameObject)
 	{
@@ -22,5 +24,25 @@ void CollisionColorChanger::Update()
 		return;
 	}
 
-	//if(col->CheckCollision())
+	RectangleRenderer* rend = gameObject->GetRenderer();
+
+	if (!rend)
+	{
+		gpr460::engine.system->ErrorMessage(gpr460::ERROR_MISSING_RECTRENDERER_REFERENCE);
+		gpr460::engine.system->LogToErrorFile(gpr460::ERROR_MISSING_RECTRENDERER_REFERENCE);
+		return;
+	}
+
+	for (GameObject* obj : gameObjects)
+	{
+		if (obj && obj != gameObject && obj->GetCollider() && col->CheckCollision(obj->GetCollider()))
+		{
+			rend->color = color;
+			break;
+		}
+		else
+		{
+			rend->color = rend->baseColor;
+		}
+	}
 }

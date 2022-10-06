@@ -18,6 +18,8 @@ public:
 	void Init(SDL_Window* pWindow);
 	void CleanUp();
 
+	std::vector<GameObject*>& GetGameObjects() { return gameObjects; }
+
 	void Update();
 
 	void Render(SDL_Renderer*& prRenderer);

@@ -14,6 +14,7 @@ namespace gpr460 {
 	const gpr460::string ERROR_CREATE_SDL_RENDERER_FAILED = "Error: Creation of SDL_Renderer failed";
 	const gpr460::string ERROR_MISSING_GAMEOBJECT_REFERENCE = "Error: Missing Reference to GameObject";
 	const gpr460::string ERROR_MISSING_RECTCOLLIDER_REFERENCE = "Error: Missing Reference to RectangularCollider";
+	const gpr460::string ERROR_MISSING_RECTRENDERER_REFERENCE = "Error: Missing Reference to RectangularRenderer";
 	const gpr460::string ERROR_COMPONENT_EXISTS = "Error: Component to be created already exists";
 
 	class System_Emscripten : public System

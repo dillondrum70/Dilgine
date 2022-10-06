@@ -24,6 +24,9 @@ struct Vector3
 	void operator+=(const Vector3& rhs) { x += rhs.x; y += rhs.y; z += rhs.z; }
 	void operator-=(const Vector3& rhs) { x -= rhs.x; y -= rhs.y; z -= rhs.z; }
 	void operator*=(const int rhs) { x *= rhs; y *= rhs; z *= rhs; }
+
+	bool operator==(const Vector3& rhs) const { return (x == rhs.x && y == rhs.y && z == rhs.z); }
+	bool operator!=(const Vector3& rhs) const { return (x != rhs.x || y != rhs.y || z != rhs.z); }
 };
 
 #endif

@@ -55,7 +55,7 @@ void World::Update()
 			return;
 		}
 
-		obj->Update();
+		obj->Update(gameObjects);
 	}
 }
 
