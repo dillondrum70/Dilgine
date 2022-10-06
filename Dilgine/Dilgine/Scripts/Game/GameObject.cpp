@@ -2,6 +2,8 @@
 
 #include "System.h"
 
+#include "SDL2/SDL.h"
+
 GameObject::~GameObject()
 {
 	if (renderer)
@@ -28,23 +30,27 @@ GameObject::~GameObject()
 
 RectangleRenderer* GameObject::CreateRenderer(int vWidth, int vHeight, Vector3 vColor)
 {
-	return DBG_NEW RectangleRenderer(vWidth, vHeight, vColor);
+	renderer = DBG_NEW RectangleRenderer(vWidth, vHeight, vColor);
+	return renderer;
 }
 
 
 RectangleCollider* GameObject::CreateCollider(int vWidth, int vHeight, GameObject* vGameObject)
 {
-	return DBG_NEW RectangleCollider(vWidth, vHeight, vGameObject);
+	collider = DBG_NEW RectangleCollider(vWidth, vHeight, vGameObject);
+	return collider;
 }
 
 PlayerController* GameObject::CreatePlayerController(GameObject* vGameObject)
 {
-	return DBG_NEW PlayerController(vGameObject);
+	player = DBG_NEW PlayerController(vGameObject);
+	return player;
 }
 
 CollisionColorChanger* GameObject::CreateCollisionColorChanger(Vector3 vColor, GameObject* vGameObject)
 {
-	return DBG_NEW CollisionColorChanger(vColor, vGameObject);
+	colorChanger = DBG_NEW CollisionColorChanger(vColor, vGameObject);
+	return colorChanger;
 }
 
 void GameObject::Update()
@@ -60,8 +66,8 @@ void GameObject::Render(SDL_Renderer* pRenderer)
 	if (renderer && pRenderer)
 	{
 		SDL_Rect rect = {
-		(int)transform.position.x,
-		(int)transform.position.y,
+		transform.position.x,
+		transform.position.y,
 		renderer->width,
 		renderer->height
 		};

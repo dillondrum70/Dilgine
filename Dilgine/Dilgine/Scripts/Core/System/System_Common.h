@@ -26,26 +26,10 @@ namespace gpr460 {
 	#else
 		typedef std::wstring string;
 	#endif
-	
-	class System;
-
-	struct EngineState
-	{
-		EngineState() { renderer = nullptr; system = nullptr; world = nullptr; frameStart = 0; quit = false; frame = DEFAULT_FRAME_RATE; }
-
-		SDL_Renderer* renderer;
-		System* system;
-		World* world;
-		Uint32 frameStart;
-		bool quit;
-		int frame;
-	};
 
 	class System
 	{
 	public:
-		static EngineState engine;
-
 		virtual ~System() {}
 
 		virtual void Init() = 0;
@@ -60,6 +44,20 @@ namespace gpr460 {
 
 		//static void CALLBACK OverlapComplete(DWORD errorCode, DWORD length, LPOVERLAPPED overlapped);
 	};
+
+	struct EngineState
+	{
+		EngineState() { renderer = nullptr; system = nullptr; world = nullptr; frameStart = 0; quit = false; frame = DEFAULT_FRAME_RATE; }
+
+		SDL_Renderer* renderer;
+		System* system;
+		World* world;
+		Uint32 frameStart;
+		bool quit;
+		int frame;
+	};
+
+	static EngineState engine;
 
 }
 

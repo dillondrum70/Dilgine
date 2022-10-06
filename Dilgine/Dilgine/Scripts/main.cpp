@@ -21,19 +21,27 @@ int main(int argc, char* argv[])
     window = SDL_CreateWindow("SDL2 Test", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WIDTH, HEIGHT, SDL_WINDOW_SHOWN);
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
+    if (!renderer)
+    {
+        system->ErrorMessage(gpr460::ERROR_CREATE_SDL_RENDERER_FAILED);
+        system->LogToErrorFile(gpr460::ERROR_CREATE_SDL_RENDERER_FAILED);
+        return 0;
+    }
+
     //declare and initialize world
     World* world = DBG_NEW World();
-    world->Init(window);
 
     //EngineState engine;
-    gpr460::System::engine.quit = false;
-    gpr460::System::engine.renderer = renderer;
-    gpr460::System::engine.frame = 0;
-    gpr460::System::engine.frameStart = GetTicks();
-    gpr460::System::engine.system = system;
-    gpr460::System::engine.world = world;
+    gpr460::engine.quit = false;
+    gpr460::engine.renderer = renderer;
+    gpr460::engine.frame = 0;
+    gpr460::engine.frameStart = GetTicks();
+    gpr460::engine.system = system;
+    gpr460::engine.world = world;
 
-    runMainLoop(&gpr460::System::engine);
+    world->Init(window);
+
+    runMainLoop(&gpr460::engine);
 
     //delete and cleanup world first
     world->CleanUp();

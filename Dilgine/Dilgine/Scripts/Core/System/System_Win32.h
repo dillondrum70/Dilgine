@@ -19,6 +19,7 @@ namespace gpr460
 
 	//error constants
 	const gpr460::string ERROR_PRESSED_K = L"Error: User pressed 'k'";
+	const gpr460::string ERROR_CREATE_SDL_RENDERER_FAILED = L"Error: Creation of SDL_Renderer failed";
 	const gpr460::string ERROR_MISSING_GAMEOBJECT_REFERENCE = L"Error: Missing Reference to GameObject";
 	const gpr460::string ERROR_MISSING_RECTCOLLIDER_REFERENCE = L"Error: Missing Reference to RectangularCollider";
 

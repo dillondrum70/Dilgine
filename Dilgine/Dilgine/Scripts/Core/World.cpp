@@ -10,7 +10,8 @@ void World::Init(SDL_Window* pWindow)
 	Transform backTrans = background->GetTransform();
 	int top, left, bottom, right;
 	SDL_GetWindowBordersSize(pWindow, &top, &left, &bottom, &right);
-	backTrans.position = Vector2(top / 2, left / 2);
+	backTrans.position = Vector2(0, 0);
+	background->CreateRenderer(50, 50, Vector3(0, 255, 255));
 	gameObjects.push_back(background);
 }
 
@@ -31,8 +32,8 @@ void World::Update()
 	{
 		if (!obj)
 		{
-			gpr460::System::engine.system->ErrorMessage(gpr460::ERROR_MISSING_GAMEOBJECT_REFERENCE);
-			gpr460::System::engine.system->LogToErrorFile(gpr460::ERROR_MISSING_GAMEOBJECT_REFERENCE);
+			gpr460::engine.system->ErrorMessage(gpr460::ERROR_MISSING_GAMEOBJECT_REFERENCE);
+			gpr460::engine.system->LogToErrorFile(gpr460::ERROR_MISSING_GAMEOBJECT_REFERENCE);
 			return;
 		}
 
@@ -46,11 +47,14 @@ void World::Render()
 	{
 		if (!obj)
 		{
-			gpr460::System::engine.system->ErrorMessage(gpr460::ERROR_MISSING_GAMEOBJECT_REFERENCE);
-			gpr460::System::engine.system->LogToErrorFile(gpr460::ERROR_MISSING_GAMEOBJECT_REFERENCE);
+			gpr460::engine.system->ErrorMessage(gpr460::ERROR_MISSING_GAMEOBJECT_REFERENCE);
+			gpr460::engine.system->LogToErrorFile(gpr460::ERROR_MISSING_GAMEOBJECT_REFERENCE);
 			continue;
 		}
 
-		obj->Render(gpr460::System::engine.renderer);
+		if (gpr460::engine.renderer)
+		{
+			obj->Render(gpr460::engine.renderer);
+		}
 	}
 }
