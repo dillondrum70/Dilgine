@@ -7,7 +7,7 @@
 #include "RectangleRenderer.h"
 #include "Transform.h"
 
-class SDL_Renderer;
+struct SDL_Renderer;
 
 class GameObject
 {
@@ -22,8 +22,8 @@ public:
 
     ~GameObject();
 
-    RectangleRenderer* CreateRenderer(float vWidth, float vHeight, Vector3 vColor);
-    RectangleCollider* CreateCollider(float vWidth, float vHeight, GameObject* vGameObject);
+    RectangleRenderer* CreateRenderer(int vWidth, int vHeight, Vector3 vColor);
+    RectangleCollider* CreateCollider(int vWidth, int vHeight, GameObject* vGameObject);
     PlayerController* CreatePlayerController(GameObject* vGameObject);
     CollisionColorChanger* CreateCollisionColorChanger(Vector3 vColor, GameObject* vGameObject);
 

@@ -8,16 +8,16 @@ class PlayerController
 private:
 	GameObject* gameObject;
 
-	float speed = 1;
+	int speed = 1;
 
 public:
 	PlayerController() { gameObject = nullptr; }
 	PlayerController(GameObject* vGameObject) { gameObject = vGameObject; }
 
 	GameObject* GetGameObject() { return gameObject; }
-	float GetSpeed() { return speed; }
+	int GetSpeed() { return speed; }
 
-	void SetSpeed(float vSpeed) { speed = vSpeed; }
+	void SetSpeed(int vSpeed) { speed = vSpeed; }
 
 	void Update();
 };

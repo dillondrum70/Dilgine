@@ -9,10 +9,10 @@ private:
 	GameObject* gameObject;
 
 public:
-	float width, height;
+	int width, height;
 
 	RectangleCollider() { width = 1; height = 1; gameObject = nullptr; }
-	RectangleCollider(float vWidth, float vHeight, GameObject* vGameObject) { width = vWidth; height = vHeight; gameObject = vGameObject; }
+	RectangleCollider(int vWidth, int vHeight, GameObject* vGameObject) { width = vWidth; height = vHeight; gameObject = vGameObject; }
 
 	GameObject* GetGameObject() { return gameObject; }
 

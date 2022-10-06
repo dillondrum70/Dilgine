@@ -21,5 +21,11 @@ bool RectangleCollider::CheckCollision(RectangleCollider* other)
 
 	Transform otherTransform = other->GetGameObject()->GetTransform();
 
+	if (otherTransform.position.x - gameObject->GetTransform().position.x < other->width + width &&
+		otherTransform.position.y - gameObject->GetTransform().position.y < other->height + height)
+	{
+		return true;
+	}
 
+	return false;
 }

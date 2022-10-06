@@ -4,7 +4,7 @@
 
 #include <vector>
 
-class SDL_Window;
+struct SDL_Window;
 
 class World
 {

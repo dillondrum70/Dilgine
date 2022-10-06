@@ -26,13 +26,13 @@ GameObject::~GameObject()
 	}
 }
 
-RectangleRenderer* GameObject::CreateRenderer(float vWidth, float vHeight, Vector3 vColor)
+RectangleRenderer* GameObject::CreateRenderer(int vWidth, int vHeight, Vector3 vColor)
 {
 	return DBG_NEW RectangleRenderer(vWidth, vHeight, vColor);
 }
 
 
-RectangleCollider* GameObject::CreateCollider(float vWidth, float vHeight, GameObject* vGameObject)
+RectangleCollider* GameObject::CreateCollider(int vWidth, int vHeight, GameObject* vGameObject)
 {
 	return DBG_NEW RectangleCollider(vWidth, vHeight, vGameObject);
 }
@@ -60,8 +60,8 @@ void GameObject::Render(SDL_Renderer* pRenderer)
 	if (renderer && pRenderer)
 	{
 		SDL_Rect rect = {
-		transform.position.x,
-		transform.position.y,
+		(int)transform.position.x,
+		(int)transform.position.y,
 		renderer->width,
 		renderer->height
 		};

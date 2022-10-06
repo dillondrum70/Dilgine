@@ -19,14 +19,20 @@
 
 namespace gpr460 {
 
+	const int DEFAULT_FRAME_RATE = 60;
+
 	#ifdef __EMSCRIPTEN__
 		typedef std::string string;
 	#else
 		typedef std::wstring string;
 	#endif
+	
+	class System;
 
 	struct EngineState
 	{
+		EngineState() { renderer = nullptr; system = nullptr; world = nullptr; frameStart = 0; quit = false; frame = DEFAULT_FRAME_RATE; }
+
 		SDL_Renderer* renderer;
 		System* system;
 		World* world;
