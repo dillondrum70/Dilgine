@@ -21,7 +21,16 @@ void World::Init(SDL_Window* pWindow)
 	player->CreateRenderer(50, 50, Vector3(0, 255, 255));
 	player->CreateCollider(50, 50, player);
 	player->CreatePlayerController(player);
+	player->CreateCollisionColorChanger(Vector3(0, 0, 255), player);
 	gameObjects.push_back(player);
+
+	GameObject* wall = DBG_NEW GameObject();
+	Transform& wallTrans = wall->GetTransform();
+	wallTrans.position = Vector2( (3 * width) / 4, height / 2);
+	wall->CreateRenderer(50, 50, Vector3(255, 150, 0));
+	wall->CreateCollider(50, 50, wall);
+	wall->CreateCollisionColorChanger(Vector3(0, 0, 255), wall);
+	gameObjects.push_back(wall);
 }
 
 void World::CleanUp()

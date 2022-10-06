@@ -20,24 +20,4 @@ void PlayerController::Update()
 	Vector2 input = Vector2(keyboardState[SDL_SCANCODE_RIGHT] - keyboardState[SDL_SCANCODE_LEFT], keyboardState[SDL_SCANCODE_DOWN] - keyboardState[SDL_SCANCODE_UP]);
 
 	transform.position += input * speed;
-
-	/*Vector2 change = Vector2(0);
-	if (keyboardState[SDLK_RIGHT])
-	{
-		change.x += 1;
-	}
-	if (keyboardState[SDLK_LEFT])
-	{
-		change.x -= 1;
-	}
-	if (keyboardState[SDLK_UP])
-	{
-		change.y += 1;
-	}
-	if (keyboardState[SDLK_DOWN])
-	{
-		change.y -= 1;
-	}
-
-	transform.position += change.Normalized() * speed;*/
 }
