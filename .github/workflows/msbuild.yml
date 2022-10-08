@@ -53,3 +53,23 @@ jobs:
           GHR_COMPRESS: zip
           GHR_PATH: build/
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: GitHub Pages
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # You may pin to the exact commit or the version.
+        # uses: crazy-max/ghaction-github-pages@a117e4aa1fb4854d021546d2abdfac95be568a3a
+        uses: crazy-max/ghaction-github-pages@v2.6.0
+        with:
+        # Git domain (default github.com)
+          #domain: # optional, default is github.com
+          # GitHub repository where assets will be deployed (default $GITHUB_REPOSITORY)
+          #repo: # optional
+          # Git branch where assets will be deployed
+          #target_branch: # optional, default is gh-pages
+          # Create incremental commit instead of doing push force
+          #keep_history: # optional, default is false
+          # Allow an empty commit to be created
+          #allow_empty_commit: # optional, default is true
+          # Build directory to deploy
+          build_dir: bin-emscripten/bin/
