@@ -46,39 +46,38 @@ jobs:
     - name: Setup Emscripten toolchain
       uses: mymindstorm/setup-emsdk@v11
       
-    - name: Create Build Directory
-      run: mkdir build
+    - run: mkdir build
 
     - name: Build Emscripten
       run: emcc Dilgine\Dilgine\Scripts\main.cpp Dilgine\Dilgine\Scripts\Core\System\System_Emscripten.cpp Dilgine\Dilgine\Scripts\Game\GameObject.cpp Dilgine\Dilgine\Scripts\Game\Components\CollisionColorChanger.cpp Dilgine\Dilgine\Scripts\Game\Components\PlayerController.cpp Dilgine\Dilgine\Scripts\Game\Components\RectangleCollider.cpp Dilgine\Dilgine\Scripts\Game\Components\RectangleRenderer.cpp Dilgine\Dilgine\Scripts\Game\Components\Transform.cpp Dilgine\Dilgine\Scripts\Core\World.cpp -sUSE_SDL=2 -sLLD_REPORT_UNDEFINED -IDilgine\Dilgine\Scripts\Core -IDilgine\Dilgine\Scripts\Core\System -IDilgine\Dilgine\Scripts\Game -IDilgine\Dilgine\Scripts\Game\Components -IDilgine\Dilgine\Scripts\Core\World -o .\build\index.html
       
-      - name: Release
-        uses: fnkr/github-action-ghr@v1.3
-        if: startsWith(github.ref, 'refs/tags/')
-        env:
-          GHR_COMPRESS: zip
-          GHR_PATH: build/
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Release
+      uses: fnkr/github-action-ghr@v1.3
+      if: startsWith(github.ref, 'refs/tags/')
+      env:
+        GHR_COMPRESS: zip
+        GHR_PATH: build/
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
-      - name: GitHub Pages
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: GitHub Pages
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         # You may pin to the exact commit or the version.
         # uses: crazy-max/ghaction-github-pages@a117e4aa1fb4854d021546d2abdfac95be568a3a
-        uses: crazy-max/ghaction-github-pages@v2.6.0
-        with:
-        # Git domain (default github.com)
-          #domain: # optional, default is github.com
-          # GitHub repository where assets will be deployed (default $GITHUB_REPOSITORY)
-          #repo: # optional
-          # Git branch where assets will be deployed
-          #target_branch: # optional, default is gh-pages
-          # Create incremental commit instead of doing push force
-          #keep_history: # optional, default is false
-          # Allow an empty commit to be created
-          #allow_empty_commit: # optional, default is true
-          # Build directory to deploy
-          build_dir: bin-emscripten/bin/
+      uses: crazy-max/ghaction-github-pages@v2.6.0
+      with:
+      # Git domain (default github.com)
+        #domain: # optional, default is github.com
+        # GitHub repository where assets will be deployed (default $GITHUB_REPOSITORY)
+        #repo: # optional
+        # Git branch where assets will be deployed
+        #target_branch: # optional, default is gh-pages
+        # Create incremental commit instead of doing push force
+        #keep_history: # optional, default is false
+        # Allow an empty commit to be created
+        #allow_empty_commit: # optional, default is true
+        # Build directory to deploydd
+        build_dir: bin-emscripten/bin/
     #- uses: actions/upload-artifact@v3
       #with:
         #name: page
