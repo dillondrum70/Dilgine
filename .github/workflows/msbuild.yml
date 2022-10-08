@@ -65,8 +65,8 @@ jobs:
       url: ${{steps.deployment.outputs.page_url}}
       
     steps:
-    - uses: actions/checkout@v3
-    - uses: actions/download-artifact@v3
+    #- uses: actions/checkout@v3
+    - uses: actions/download-artifact@master
       with:
         name: page
         path: build
@@ -75,6 +75,6 @@ jobs:
       with:
         path: build
     - id: deployment
-      uses: actions/deploy-pages@v1
+      uses: actions/deploy-pages@master
       
       
