@@ -7,9 +7,7 @@ on:
     branches: [ "main" ]
   workflow_dispatch:
     branches: [ "main" ]
-    
-permissions:
-        id-token: read|write|none
+        
 
 env:
   # Path to the solution file relative to the root of the project.
@@ -22,6 +20,7 @@ env:
 
 permissions:
   contents: read
+  id-token: read|write|none
 
 jobs:
   build:
