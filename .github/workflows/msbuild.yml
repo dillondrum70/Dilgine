@@ -72,5 +72,7 @@ jobs:
         path: .
     - id: deployment
       uses: actions/deploy-pages@master
+      permissions:
+        id-token: read|write|none
       
       
