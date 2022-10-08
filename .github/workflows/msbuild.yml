@@ -7,6 +7,9 @@ on:
     branches: [ "main" ]
   workflow_dispatch:
     branches: [ "main" ]
+    
+permissions:
+        id-token: read|write|none
 
 env:
   # Path to the solution file relative to the root of the project.
@@ -72,7 +75,5 @@ jobs:
         path: .
     - id: deployment
       uses: actions/deploy-pages@master
-      permissions:
-        id-token: read|write|none
       
       
