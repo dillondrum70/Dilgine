@@ -7,6 +7,8 @@
 #include "RectangleRenderer.h"
 #include "Transform.h"
 
+#include <vector>
+
 struct SDL_Renderer;
 
 class GameObject
@@ -33,7 +35,7 @@ public:
     PlayerController* GetPlayer() { return player; }
     CollisionColorChanger* GetColorChanger() { return colorChanger; }
 
-    void Update();
+    void Update(std::vector<GameObject*> gameObjects);
     void Render(SDL_Renderer*& prRenderer);
 
 protected:

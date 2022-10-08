@@ -39,6 +39,7 @@ RectangleRenderer* GameObject::CreateRenderer(int vWidth, int vHeight, Vector3 v
 	{
 		gpr460::engine.system->ErrorMessage(gpr460::ERROR_COMPONENT_EXISTS);
 		gpr460::engine.system->LogToErrorFile(gpr460::ERROR_COMPONENT_EXISTS);
+		return renderer;
 	}
 }
 
@@ -54,6 +55,7 @@ RectangleCollider* GameObject::CreateCollider(int vWidth, int vHeight, GameObjec
 	{
 		gpr460::engine.system->ErrorMessage(gpr460::ERROR_COMPONENT_EXISTS);
 		gpr460::engine.system->LogToErrorFile(gpr460::ERROR_COMPONENT_EXISTS);
+		return collider;
 	}
 }
 
@@ -68,6 +70,7 @@ PlayerController* GameObject::CreatePlayerController(GameObject* vGameObject)
 	{
 		gpr460::engine.system->ErrorMessage(gpr460::ERROR_COMPONENT_EXISTS);
 		gpr460::engine.system->LogToErrorFile(gpr460::ERROR_COMPONENT_EXISTS);
+		return player;
 	}
 }
 
@@ -82,15 +85,16 @@ CollisionColorChanger* GameObject::CreateCollisionColorChanger(Vector3 vColor, G
 	{
 		gpr460::engine.system->ErrorMessage(gpr460::ERROR_COMPONENT_EXISTS);
 		gpr460::engine.system->LogToErrorFile(gpr460::ERROR_COMPONENT_EXISTS);
+		return colorChanger;
 	}
 }
 
-void GameObject::Update()
+void GameObject::Update(std::vector<GameObject*> gameObjects)
 {
 	if (player)
 		player->Update();
 	if (colorChanger)
-		colorChanger->Update();
+		colorChanger->Update(gameObjects);
 }
 
 void GameObject::Render(SDL_Renderer*& prRenderer)
