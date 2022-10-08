@@ -70,9 +70,7 @@ jobs:
       with:
         name: page
         path: build
-    - uses: actions/configure-pages@v2
-      with:
-        path: build
+    - uses: actions/configure-pages@v1
     - uses: actions/upload-pages-artifact@v1
       with:
         path: build
