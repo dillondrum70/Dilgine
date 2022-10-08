@@ -69,11 +69,11 @@ jobs:
     - uses: actions/download-artifact@v3
       with:
         name: page
-        path: ./build
+        path: build
     - uses: actions/configure-pages@v2
     - uses: actions/upload-pages-artifact@v1
       with:
-        path: ./build
+        path: build
     - id: deployment
       uses: actions/deploy-pages@v1
       
