@@ -65,6 +65,7 @@ jobs:
       url: ${{steps.deployment.outputs.page_url}}
       
     steps:
+    - uses: actions/checkout@v2
     - uses: actions/download-artifact@master
       with:
         name: page
