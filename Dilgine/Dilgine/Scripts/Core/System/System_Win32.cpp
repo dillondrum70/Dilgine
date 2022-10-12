@@ -3,8 +3,9 @@
 #ifdef _WIN32
 void gpr460::System_Win32::Init()
 {
-	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-	_CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_DEBUG);
+	//_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+	//_CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_DEBUG);
+	_CrtMemCheckpoint(&memState);
 
 	if (!AllocConsole())
 	{
@@ -24,6 +25,8 @@ void gpr460::System_Win32::Shutdown()
 	{
 		CloseHandle(errorFile);
 	}
+
+	_CrtMemDumpAllObjectsSince(&memState);
 }
 
 void gpr460::System_Win32::ErrorMessage(const gpr460::string& message)

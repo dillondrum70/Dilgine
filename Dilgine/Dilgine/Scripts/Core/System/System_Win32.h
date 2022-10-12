@@ -38,6 +38,8 @@ namespace gpr460
 
 		void LogToErrorFile(const gpr460::string& message) override;
 
+		_CrtMemState memState;
+
 		HANDLE errorFile;
 	};
 
