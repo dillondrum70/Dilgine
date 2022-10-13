@@ -1,7 +1,7 @@
 #include "System.h"
 
 void runMainLoop(gpr460::EngineState* engine);
-void frameStep(void* arg);
+void frameStep();
 Uint32 GetTicks();
 
 int main(int argc, char* argv[])
@@ -61,19 +61,20 @@ int main(int argc, char* argv[])
     return 0;
 }
 
-void MainLoopProcesses(void* engine)
+void MainLoopProcesses()
 {
     Uint32 now = GetTicks();
-    if (now - ((gpr460::EngineState*)engine)->frameStart >= 16)
+    if (now - gpr460::engine.frameStart >= 16)
     {
-        frameStep(engine);
+        frameStep();
     }
 }
 
 void runMainLoop(gpr460::EngineState* engine)
 {
 #ifdef __EMSCRIPTEN__
-    emscripten_set_main_loop_arg(MainLoopProcesses, engine, 0, true);
+    //emscripten_set_main_loop_arg(MainLoopProcesses, engine, 0, true);
+    emscripten_set_main_loop(MainLoopProcesses, 0, true);
 #else
     while (!engine->quit)
     {
@@ -82,26 +83,26 @@ void runMainLoop(gpr460::EngineState* engine)
         {
             frameStep(engine);
         }*/
-        MainLoopProcesses(engine);
+        MainLoopProcesses();
     }
 #endif
 }
 
-void frameStep(void* arg)
+void frameStep()
 {
-    gpr460::EngineState* engine = (gpr460::EngineState*)arg;
+    //gpr460::EngineState* engine = (gpr460::EngineState*)arg;
     SDL_Event event;
 
     Uint32 now = GetTicks();
 
-    engine->frame++;
-    engine->frameStart = now;
+    gpr460::engine.frame++;
+    gpr460::engine.frameStart = now;
 
     while (SDL_PollEvent(&event))
     {
         if (event.type == SDL_QUIT)
         {
-            engine->quit = true;
+            gpr460::engine.quit = true;
         }
 
         if (event.type == SDL_KEYDOWN)
@@ -112,18 +113,18 @@ void frameStep(void* arg)
                 std::cout << "K pressed!\n";
 
                 // TODO: Add calls to ErrorMessage and LogToErrorFile here
-                engine->system->ErrorMessage(gpr460::ERROR_PRESSED_K);
-                engine->system->LogToErrorFile(gpr460::ERROR_PRESSED_K);
+                gpr460::engine.system->ErrorMessage(gpr460::ERROR_PRESSED_K);
+                gpr460::engine.system->LogToErrorFile(gpr460::ERROR_PRESSED_K);
                 // DONE
             }
             if (event.key.keysym.sym == SDLK_ESCAPE)
             {
-                engine->quit = true;
+                gpr460::engine.quit = true;
             }
         }
     }
 
-    engine->world->Update();
+    gpr460::engine.world->Update();
     //int x = (SDL_sinf(engine->frame / 100.0f) * 100.0f) + 200;
 
     /*SDL_Rect r = {
@@ -135,7 +136,7 @@ void frameStep(void* arg)
 
     
 
-    engine->world->Render(engine->renderer);
+    gpr460::engine.world->Render(gpr460::engine.renderer);
     //SDL_SetRenderDrawColor(engine->renderer, 255, 0, 0, SDL_ALPHA_OPAQUE);
     //SDL_RenderFillRect(engine->renderer, &r);
     

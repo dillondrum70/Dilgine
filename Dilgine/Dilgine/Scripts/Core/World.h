@@ -8,11 +8,12 @@ struct SDL_Window;
 
 struct Components
 {
-	std::vector<Transform> transformComponents;
-	std::vector<RectangleRenderer> rectRendererComponents;
-	std::vector<RectangleCollider> rectColliderComponents;
-	std::vector<PlayerController> playerControllerComponents;
-	std::vector<CollisionColorChanger> colorChangeComponents;
+	static const int MAX_GAMEOBJECTS = 500;
+	Transform transformComponents[MAX_GAMEOBJECTS];
+	RectangleRenderer rectRendererComponents[MAX_GAMEOBJECTS];
+	RectangleCollider rectColliderComponents[MAX_GAMEOBJECTS];
+	PlayerController playerControllerComponents[MAX_GAMEOBJECTS];
+	CollisionColorChanger colorChangeComponents[MAX_GAMEOBJECTS];
 };
 
 class World
@@ -23,7 +24,7 @@ private:
 	Components components;
 
 public:
-	const int MAX_GAMEOBJECTS = 500;
+	
 	int activeGameObjects = 0;
 	int activeTransforms = 0;
 	int activeRectRenderers = 0;

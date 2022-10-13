@@ -12,11 +12,11 @@ void World::Init(SDL_Window* pWindow)
 	GameObject background;
 	//Add Transform component
 	//components.transformComponents.push_back(Transform(Vector2(width / 2, height / 2)));
-	components.transformComponents.push_back(Transform(Vector2(width / 2, height / 2)));
+	components.transformComponents[activeTransforms] = (Transform(Vector2(width / 2, height / 2)));
 	background.SetTransform(&components.transformComponents[activeTransforms]);
 	activeTransforms++;
 	//Add RectangleRenderer component
-	components.rectRendererComponents.push_back(RectangleRenderer(width, height, Vector3(150, 150, 150)));
+	components.rectRendererComponents[activeRectRenderers] = (RectangleRenderer(width, height, Vector3(150, 150, 150)));
 	background.SetRenderer(&components.rectRendererComponents[activeRectRenderers]);
 	activeRectRenderers++;
 	//Add GameObject to cache
@@ -25,35 +25,35 @@ void World::Init(SDL_Window* pWindow)
 	activeGameObjects++;
 
 	GameObject player;
-	components.transformComponents.push_back(Vector2(width / 4, height / 2));
+	components.transformComponents[activeTransforms] = (Vector2(width / 4, height / 2));
 	player.SetTransform(&components.transformComponents[activeTransforms]);
 	activeTransforms++;
-	components.rectRendererComponents.push_back(RectangleRenderer(50, 50, Vector3(0, 255, 255)));
+	components.rectRendererComponents[activeRectRenderers] = (RectangleRenderer(50, 50, Vector3(0, 255, 255)));
 	player.SetRenderer(&components.rectRendererComponents[activeRectRenderers]);
 	activeRectRenderers++;
-	components.rectColliderComponents.push_back(RectangleCollider(50, 50, &player));
+	components.rectColliderComponents[activeRectColliders] = (RectangleCollider(50, 50, &player));
 	player.SetCollider(&components.rectColliderComponents[activeRectColliders]);
 	activeRectColliders++;
-	components.playerControllerComponents.push_back(PlayerController(&player));
+	components.playerControllerComponents[activePlayerControllers] = (PlayerController(&player));
 	player.SetPlayer(&components.playerControllerComponents[activePlayerControllers]);
 	activePlayerControllers++;
-	components.colorChangeComponents.push_back(CollisionColorChanger(Vector3(0, 0, 255), &player));
+	components.colorChangeComponents[activeColorChange] = (CollisionColorChanger(Vector3(0, 0, 255), &player));
 	player.SetColorChanger(&components.colorChangeComponents[activeColorChange]);
 	activeColorChange++;
 	gameObjects.push_back(player);
 	activeGameObjects++;
 
 	GameObject wall;
-	components.transformComponents.push_back(Vector2((3 * width) / 4, height / 2));
+	components.transformComponents[activeTransforms] = (Vector2((3 * width) / 4, height / 2));
 	wall.SetTransform(&components.transformComponents[activeTransforms]);
 	activeTransforms++;
-	components.rectRendererComponents.push_back(RectangleRenderer(50, 50, Vector3(255, 150, 0)));
+	components.rectRendererComponents[activeRectRenderers] = (RectangleRenderer(50, 50, Vector3(255, 150, 0)));
 	wall.SetRenderer(&components.rectRendererComponents[activeRectRenderers]);
 	activeRectRenderers++;
-	components.rectColliderComponents.push_back(RectangleCollider(50, 50, &wall));
+	components.rectColliderComponents[activeRectColliders] = (RectangleCollider(50, 50, &wall));
 	wall.SetCollider(&components.rectColliderComponents[activeRectColliders]);
 	activeRectColliders++;
-	components.colorChangeComponents.push_back(CollisionColorChanger(Vector3(0, 0, 255), &wall));
+	components.colorChangeComponents[activeColorChange] = (CollisionColorChanger(Vector3(0, 0, 255), &wall));
 	wall.SetColorChanger(&components.colorChangeComponents[activeColorChange]);
 	activeColorChange++;
 	gameObjects.push_back(wall);
@@ -87,24 +87,16 @@ void World::CleanUp()
 	}*/
 
 	gameObjects.clear();
-	components.colorChangeComponents.clear();
-	components.playerControllerComponents.clear();
-	components.rectColliderComponents.clear();
-	components.rectRendererComponents.clear();
-	components.transformComponents.clear();
 }
 
 void World::Update()
 {
-	for (int i = 0; i < activePlayerControllers; i++)
-	{
-		components.playerControllerComponents[i].Update();
-	}
+	PlayerController::Update();
 
 	//Checks each collider against each other collider once
 	//for(int i = 0; ...
 		//for(int j = i; ...
-	CollisionColorChanger::Update(gameObjects);
+	CollisionColorChanger::Update();
 }
 
 void World::Render(SDL_Renderer*& prRenderer)
@@ -132,7 +124,7 @@ void World::Render(SDL_Renderer*& prRenderer)
 	SDL_SetRenderDrawColor(prRenderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
 	SDL_RenderClear(prRenderer);
 
-	RectangleRenderer::Render(components.rectRendererComponents, components.transformComponents, activeRectRenderers, prRenderer);
+	RectangleRenderer::Render(components.rectRendererComponents, components.transformComponents, activeRectRenderers, activeTransforms, prRenderer);
 
 	SDL_RenderPresent(prRenderer);
 }

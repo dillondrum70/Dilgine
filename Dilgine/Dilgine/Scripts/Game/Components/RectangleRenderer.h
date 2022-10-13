@@ -18,7 +18,7 @@ public:
 	RectangleRenderer() { width = 50; height = 50; baseColor = Vector3(255); color = Vector3(255); }
 	RectangleRenderer(int vWidth, int vHeight, Vector3 vColor) { width = vWidth; height = vHeight; baseColor = vColor; color = vColor; }
 
-	static void Render(std::vector<RectangleRenderer>& renderers, std::vector<Transform>& transforms, int rendererCount, SDL_Renderer*& prRenderer);
+	static void Render(RectangleRenderer* renderers, Transform* transforms, int rendererCount, int transCount, SDL_Renderer*& prRenderer);
 };
 
 #endif

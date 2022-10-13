@@ -4,7 +4,7 @@
 #include "SDL2/SDL.h"
 #include "System.h"
 
-void PlayerController::Update()
+/*void PlayerController::Update()
 {
 	if (!gameObject)
 	{
@@ -20,4 +20,13 @@ void PlayerController::Update()
 	Vector2 input = Vector2(keyboardState[SDL_SCANCODE_RIGHT] - keyboardState[SDL_SCANCODE_LEFT], keyboardState[SDL_SCANCODE_DOWN] - keyboardState[SDL_SCANCODE_UP]);
 
 	transform->position += input * speed;
+}*/
+
+void PlayerController::Update()
+{
+	Components& components = gpr460::engine.world->GetComponents();
+	for (int i = 0; i < gpr460::engine.world->activePlayerControllers; i++)
+	{
+		components.playerControllerComponents[i].Update();
+	}
 }

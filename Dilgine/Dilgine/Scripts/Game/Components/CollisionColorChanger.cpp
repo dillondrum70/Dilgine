@@ -6,8 +6,9 @@
 
 #include <iostream>
 
-void CollisionColorChanger::Update(std::vector<GameObject>& gameObjects)
+void CollisionColorChanger::Update()
 {
+	std::vector<GameObject>& gameObjects = gpr460::engine.world->GetGameObjects();
 	Components& components = gpr460::engine.world->GetComponents();
 
 	for (int i = 0; i < gameObjects.size(); i++)

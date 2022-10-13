@@ -3,7 +3,7 @@
 
 #include "SDL2/SDL.h"
 
-void RectangleRenderer::Render(std::vector<RectangleRenderer>& renderers, std::vector<Transform>& transforms, int rendererCount, SDL_Renderer*& prRenderer)
+void RectangleRenderer::Render(RectangleRenderer* renderers, Transform* transforms, int rendererCount, int transCount, SDL_Renderer*& prRenderer)
 {
 	SDL_Rect* rects = new SDL_Rect[rendererCount];
 
