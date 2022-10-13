@@ -6,6 +6,7 @@
 #include <vector>
 
 class Transform;
+class GameObject;
 struct SDL_Renderer;
 
 class RectangleRenderer
@@ -15,10 +16,12 @@ public:
 	Vector3 baseColor;
 	Vector3 color;
 
-	RectangleRenderer() { width = 50; height = 50; baseColor = Vector3(255); color = Vector3(255); }
-	RectangleRenderer(int vWidth, int vHeight, Vector3 vColor) { width = vWidth; height = vHeight; baseColor = vColor; color = vColor; }
+	GameObject* gameObject;
 
-	static void Render(RectangleRenderer* renderers, Transform* transforms, int rendererCount, int transCount, SDL_Renderer*& prRenderer);
+	RectangleRenderer() { width = 50; height = 50; baseColor = Vector3(255); color = Vector3(255); gameObject = nullptr; }
+	RectangleRenderer(int vWidth, int vHeight, Vector3 vColor, GameObject* pGameObject) { width = vWidth; height = vHeight; baseColor = vColor; color = vColor; gameObject = pGameObject; }
+
+	static void RenderAll(SDL_Renderer*& prRenderer);
 };
 
 #endif

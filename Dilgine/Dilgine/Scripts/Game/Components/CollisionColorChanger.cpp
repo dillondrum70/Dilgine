@@ -6,29 +6,34 @@
 
 #include <iostream>
 
-void CollisionColorChanger::Update()
+void CollisionColorChanger::UpdateAll()
 {
-	GameObject* gameObjects = gpr460::engine->world->GetGameObjects();
+	RectangleCollider* rectCollider = gpr460::engine->world->GetComponents().rectColliderComponents;
 	Components& components = gpr460::engine->world->GetComponents();
 
-	for (int i = 0; i < gpr460::engine->world->activeGameObjects; i++)
+	for (int i = 0; i < gpr460::engine->world->activeRectColliders; i++)
 	{
-		for (int j = i; j < gpr460::engine->world->activeGameObjects; j++)
+		GameObject* object1 = rectCollider[i].GetGameObject();
+		if (object1)
 		{
-			if (gameObjects[i].GetCollider() && gameObjects[j].GetCollider() &&
-				gameObjects[i].GetRenderer() && gameObjects[j].GetRenderer() &&
-				gameObjects[i].GetColorChanger() && gameObjects[j].GetColorChanger())
+			for (int j = i + 1; j < gpr460::engine->world->activeRectColliders; j++)
 			{
-				if (gameObjects[i].GetCollider()->CheckCollision(*gameObjects[j].GetCollider()))
+				GameObject* object2 = rectCollider[j].GetGameObject();
+				if (object2 && object1->GetCollider() && object2->GetCollider() &&
+					object1->GetRenderer() && object2->GetRenderer() &&
+					object1->GetColorChanger() && object2->GetColorChanger())
 				{
-					gameObjects[i].GetRenderer()->color = gameObjects[i].GetColorChanger()->color;
-					gameObjects[j].GetRenderer()->color = gameObjects[j].GetColorChanger()->color;
-					break;
-				}
-				else
-				{
-					gameObjects[i].GetRenderer()->color = gameObjects[i].GetRenderer()->baseColor;
-					gameObjects[j].GetRenderer()->color = gameObjects[j].GetRenderer()->baseColor;
+					if (object1->GetCollider()->CheckCollision(*object2->GetCollider()))
+					{
+						object1->GetRenderer()->color = object1->GetColorChanger()->color;
+						object2->GetRenderer()->color = object2->GetColorChanger()->color;
+						break;
+					}
+					else
+					{
+						object1->GetRenderer()->color = object1->GetRenderer()->baseColor;
+						object2->GetRenderer()->color = object2->GetRenderer()->baseColor;
+					}
 				}
 			}
 		}

@@ -16,7 +16,7 @@ void World::Init(SDL_Window* pWindow)
 	background.SetTransform(&components.transformComponents[activeTransforms]);
 	activeTransforms++;
 	//Add RectangleRenderer component
-	components.rectRendererComponents[activeRectRenderers] = (RectangleRenderer(width, height, Vector3(150, 150, 150)));
+	components.rectRendererComponents[activeRectRenderers] = (RectangleRenderer(width, height, Vector3(150, 150, 150), &gameObjects[activeGameObjects]));
 	background.SetRenderer(&components.rectRendererComponents[activeRectRenderers]);
 	activeRectRenderers++;
 	//Add GameObject to cache
@@ -25,19 +25,19 @@ void World::Init(SDL_Window* pWindow)
 	activeGameObjects++;
 
 	GameObject player;
-	components.transformComponents[activeTransforms] = (Vector2(width / 4, height / 2));
+	components.transformComponents[activeTransforms] = Transform(Vector2(width / 4, height / 2));
 	player.SetTransform(&components.transformComponents[activeTransforms]);
 	activeTransforms++;
-	components.rectRendererComponents[activeRectRenderers] = (RectangleRenderer(50, 50, Vector3(0, 255, 255)));
+	components.rectRendererComponents[activeRectRenderers] = (RectangleRenderer(50, 50, Vector3(0, 255, 255), &gameObjects[activeGameObjects]));
 	player.SetRenderer(&components.rectRendererComponents[activeRectRenderers]);
 	activeRectRenderers++;
-	components.rectColliderComponents[activeRectColliders] = (RectangleCollider(50, 50, &player));
+	components.rectColliderComponents[activeRectColliders] = (RectangleCollider(50, 50, &gameObjects[activeGameObjects]));
 	player.SetCollider(&components.rectColliderComponents[activeRectColliders]);
 	activeRectColliders++;
-	components.playerControllerComponents[activePlayerControllers] = (PlayerController(&player));
+	components.playerControllerComponents[activePlayerControllers] = (PlayerController(&gameObjects[activeGameObjects]));
 	player.SetPlayer(&components.playerControllerComponents[activePlayerControllers]);
 	activePlayerControllers++;
-	components.colorChangeComponents[activeColorChange] = (CollisionColorChanger(Vector3(0, 0, 255), &player));
+	components.colorChangeComponents[activeColorChange] = (CollisionColorChanger(Vector3(0, 0, 255), &gameObjects[activeGameObjects]));
 	player.SetColorChanger(&components.colorChangeComponents[activeColorChange]);
 	activeColorChange++;
 	gameObjects[activeGameObjects] = player;
@@ -47,13 +47,13 @@ void World::Init(SDL_Window* pWindow)
 	components.transformComponents[activeTransforms] = (Vector2((3 * width) / 4, height / 2));
 	wall.SetTransform(&components.transformComponents[activeTransforms]);
 	activeTransforms++;
-	components.rectRendererComponents[activeRectRenderers] = (RectangleRenderer(50, 50, Vector3(255, 150, 0)));
+	components.rectRendererComponents[activeRectRenderers] = (RectangleRenderer(50, 50, Vector3(255, 150, 0), &gameObjects[activeGameObjects]));
 	wall.SetRenderer(&components.rectRendererComponents[activeRectRenderers]);
 	activeRectRenderers++;
-	components.rectColliderComponents[activeRectColliders] = (RectangleCollider(50, 50, &wall));
+	components.rectColliderComponents[activeRectColliders] = (RectangleCollider(50, 50, &gameObjects[activeGameObjects]));
 	wall.SetCollider(&components.rectColliderComponents[activeRectColliders]);
 	activeRectColliders++;
-	components.colorChangeComponents[activeColorChange] = (CollisionColorChanger(Vector3(0, 0, 255), &wall));
+	components.colorChangeComponents[activeColorChange] = (CollisionColorChanger(Vector3(0, 0, 255), &gameObjects[activeGameObjects]));
 	wall.SetColorChanger(&components.colorChangeComponents[activeColorChange]);
 	activeColorChange++;
 	gameObjects[activeGameObjects] = wall;
@@ -89,12 +89,12 @@ void World::CleanUp()
 
 void World::Update()
 {
-	PlayerController::Update();
+	PlayerController::UpdateAll();
 
 	//Checks each collider against each other collider once
 	//for(int i = 0; ...
 		//for(int j = i; ...
-	CollisionColorChanger::Update();
+	CollisionColorChanger::UpdateAll();
 }
 
 void World::Render(SDL_Renderer*& prRenderer)
@@ -122,7 +122,7 @@ void World::Render(SDL_Renderer*& prRenderer)
 	SDL_SetRenderDrawColor(prRenderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
 	SDL_RenderClear(prRenderer);
 
-	RectangleRenderer::Render(components.rectRendererComponents, components.transformComponents, activeRectRenderers, activeTransforms, prRenderer);
+	RectangleRenderer::RenderAll(prRenderer);
 
 	SDL_RenderPresent(prRenderer);
 }

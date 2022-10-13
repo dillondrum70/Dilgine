@@ -4,6 +4,8 @@ void runMainLoop();
 void frameStep();
 Uint32 GetTicks();
 
+gpr460::EngineState* gpr460::engine;
+
 int main(int argc, char* argv[])
 {
     gpr460::engine = DBG_NEW gpr460::EngineState();

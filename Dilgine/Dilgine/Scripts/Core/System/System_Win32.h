@@ -22,8 +22,9 @@ namespace gpr460
 	const gpr460::string ERROR_CREATE_SDL_RENDERER_FAILED = L"Error: Creation of SDL_Renderer failed";
 	const gpr460::string ERROR_MISSING_ENGINE_RENDERER = L"Error: Could not get SDL_Renderer* renderer on engine";
 	const gpr460::string ERROR_MISSING_GAMEOBJECT_REFERENCE = L"Error: Missing Reference to GameObject";
-	const gpr460::string ERROR_MISSING_RECTCOLLIDER_REFERENCE = L"Error: Missing Reference to RectangularCollider";
-	const gpr460::string ERROR_MISSING_RECTRENDERER_REFERENCE = L"Error: Missing Reference to RectangularRenderer";
+	const gpr460::string ERROR_MISSING_TRANSFORM_REFERENCE = L"Error: Missing Reference to Transform Component";
+	const gpr460::string ERROR_MISSING_RECTCOLLIDER_REFERENCE = L"Error: Missing Reference to RectangularCollider Component";
+	const gpr460::string ERROR_MISSING_RECTRENDERER_REFERENCE = L"Error: Missing Reference to RectangularRenderer Component";
 	const gpr460::string ERROR_COMPONENT_EXISTS = L"Error: Component to be created already exists";
 
 	class System_Win32 : public System

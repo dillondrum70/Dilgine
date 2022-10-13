@@ -22,7 +22,7 @@ public:
 
 	void SetSpeed(int vSpeed) { speed = vSpeed; }
 
-	static void Update();
+	static void UpdateAll();
 	
 };
 
