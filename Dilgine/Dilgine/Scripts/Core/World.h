@@ -46,6 +46,12 @@ public:
 	GameObject* GetGameObjects() { return gameObjects; }
 	Components& GetComponents() { return components; }
 
+	void CreateTransform(GameObject& rObj, Vector2 vPos);
+	void CreateRectangleRenderer(GameObject& rObj, int vWidth, int vheight, Vector3 vColor);
+	void CreateRectangleCollider(GameObject& rObj, int vWidth, int vHeight);
+	void CreatePlayerController(GameObject& rObj, int vSpeed);
+	void CreateCollisionColorChange(GameObject& rObj, Vector3 vColor);
+
 	void Update();
 
 	void Render(SDL_Renderer*& prRenderer);
