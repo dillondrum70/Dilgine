@@ -20,7 +20,7 @@ void World::Init(SDL_Window* pWindow)
 	background.SetRenderer(&components.rectRendererComponents[activeRectRenderers]);
 	activeRectRenderers++;
 	//Add GameObject to cache
-	gameObjects.push_back(background);
+	gameObjects[activeGameObjects] = background;
 	//INC GameObject count
 	activeGameObjects++;
 
@@ -40,7 +40,7 @@ void World::Init(SDL_Window* pWindow)
 	components.colorChangeComponents[activeColorChange] = (CollisionColorChanger(Vector3(0, 0, 255), &player));
 	player.SetColorChanger(&components.colorChangeComponents[activeColorChange]);
 	activeColorChange++;
-	gameObjects.push_back(player);
+	gameObjects[activeGameObjects] = player;
 	activeGameObjects++;
 
 	GameObject wall;
@@ -56,7 +56,7 @@ void World::Init(SDL_Window* pWindow)
 	components.colorChangeComponents[activeColorChange] = (CollisionColorChanger(Vector3(0, 0, 255), &wall));
 	wall.SetColorChanger(&components.colorChangeComponents[activeColorChange]);
 	activeColorChange++;
-	gameObjects.push_back(wall);
+	gameObjects[activeGameObjects] = wall;
 	activeGameObjects++;
 }
 
@@ -85,8 +85,6 @@ void World::CleanUp()
 			delete obj.GetTransform();
 		}
 	}*/
-
-	gameObjects.clear();
 }
 
 void World::Update()

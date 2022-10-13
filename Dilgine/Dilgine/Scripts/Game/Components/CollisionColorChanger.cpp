@@ -8,12 +8,12 @@
 
 void CollisionColorChanger::Update()
 {
-	std::vector<GameObject>& gameObjects = gpr460::engine.world->GetGameObjects();
+	GameObject* gameObjects = gpr460::engine.world->GetGameObjects();
 	Components& components = gpr460::engine.world->GetComponents();
 
-	for (int i = 0; i < gameObjects.size(); i++)
+	for (int i = 0; i < gpr460::engine.world->activeGameObjects; i++)
 	{
-		for (int j = i; j < gameObjects.size(); j++)
+		for (int j = i; j < gpr460::engine.world->activeGameObjects; j++)
 		{
 			if (gameObjects[i].GetCollider() && gameObjects[j].GetCollider() &&
 				gameObjects[i].GetRenderer() && gameObjects[j].GetRenderer() &&
