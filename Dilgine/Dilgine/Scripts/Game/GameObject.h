@@ -16,6 +16,7 @@ class GameObject
 public:
 	GameObject()
 	{
+        transform = nullptr;
         renderer = nullptr; 
         collider = nullptr; 
         player = nullptr;
@@ -24,22 +25,28 @@ public:
 
     ~GameObject();
 
-    RectangleRenderer* CreateRenderer(int vWidth, int vHeight, Vector3 vColor);
-    RectangleCollider* CreateCollider(int vWidth, int vHeight, GameObject* vGameObject);
-    PlayerController* CreatePlayerController(GameObject* vGameObject);
-    CollisionColorChanger* CreateCollisionColorChanger(Vector3 vColor, GameObject* vGameObject);
+    //RectangleRenderer CreateRenderer(int vWidth, int vHeight, Vector3 vColor);
+    //RectangleCollider CreateCollider(int vWidth, int vHeight, GameObject* vGameObject);
+    //PlayerController CreatePlayerController(GameObject* vGameObject);
+    //CollisionColorChanger CreateCollisionColorChanger(Vector3 vColor, GameObject* vGameObject);
 
-    Transform& GetTransform() { return transform; }
+    Transform* GetTransform() { return transform; }
     RectangleRenderer* GetRenderer() { return renderer; }
     RectangleCollider* GetCollider() { return collider; }
     PlayerController* GetPlayer() { return player; }
     CollisionColorChanger* GetColorChanger() { return colorChanger; }
 
-    void Update(std::vector<GameObject*> gameObjects);
-    void Render(SDL_Renderer*& prRenderer);
+    void SetTransform(Transform* vTrans) { transform = vTrans; }
+    void SetRenderer(RectangleRenderer* vRend) { renderer = vRend; }
+    void SetCollider(RectangleCollider* vCol) { collider = vCol; }
+    void SetPlayer(PlayerController* vControl) { player = vControl; }
+    void SetColorChanger(CollisionColorChanger* vChange) { colorChanger = vChange; }
+
+    //void Update(std::vector<GameObject>& gameObjects);
+    //void Render(SDL_Renderer*& prRenderer);
 
 protected:
-    Transform transform;
+    Transform* transform;
     RectangleRenderer* renderer;
     RectangleCollider* collider;
     PlayerController* player;

@@ -13,11 +13,11 @@ void PlayerController::Update()
 		return;
 	}
 
-	Transform& transform = gameObject->GetTransform();
+	Transform* transform = gameObject->GetTransform();
 
 	const Uint8* keyboardState = SDL_GetKeyboardState(NULL);
 
 	Vector2 input = Vector2(keyboardState[SDL_SCANCODE_RIGHT] - keyboardState[SDL_SCANCODE_LEFT], keyboardState[SDL_SCANCODE_DOWN] - keyboardState[SDL_SCANCODE_UP]);
 
-	transform.position += input * speed;
+	transform->position += input * speed;
 }

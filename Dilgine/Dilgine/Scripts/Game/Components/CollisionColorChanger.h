@@ -18,7 +18,7 @@ public:
 	CollisionColorChanger() { color = Vector3(255); gameObject = nullptr; }
 	CollisionColorChanger(Vector3 vColor, GameObject* vGameObject) { color = vColor; gameObject = vGameObject; }
 
-	void Update(std::vector<GameObject*> gameObjects);
+	static void Update(std::vector<GameObject>& gameObjects);
 };
 
 #endif

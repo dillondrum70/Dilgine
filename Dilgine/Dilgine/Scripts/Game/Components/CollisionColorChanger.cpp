@@ -6,43 +6,30 @@
 
 #include <iostream>
 
-void CollisionColorChanger::Update(std::vector<GameObject*> gameObjects)
+void CollisionColorChanger::Update(std::vector<GameObject>& gameObjects)
 {
-	if (!gameObject)
+	Components& components = gpr460::engine.world->GetComponents();
+
+	for (int i = 0; i < gameObjects.size(); i++)
 	{
-		gpr460::engine.system->ErrorMessage(gpr460::ERROR_MISSING_RECTCOLLIDER_REFERENCE);
-		gpr460::engine.system->LogToErrorFile(gpr460::ERROR_MISSING_RECTCOLLIDER_REFERENCE);
-		return;
-	}
-
-	RectangleCollider* col = gameObject->GetCollider();
-
-	if (!col)
-	{
-		gpr460::engine.system->ErrorMessage(gpr460::ERROR_MISSING_RECTCOLLIDER_REFERENCE);
-		gpr460::engine.system->LogToErrorFile(gpr460::ERROR_MISSING_RECTCOLLIDER_REFERENCE);
-		return;
-	}
-
-	RectangleRenderer* rend = gameObject->GetRenderer();
-
-	if (!rend)
-	{
-		gpr460::engine.system->ErrorMessage(gpr460::ERROR_MISSING_RECTRENDERER_REFERENCE);
-		gpr460::engine.system->LogToErrorFile(gpr460::ERROR_MISSING_RECTRENDERER_REFERENCE);
-		return;
-	}
-
-	for (GameObject* obj : gameObjects)
-	{
-		if (obj && obj != gameObject && obj->GetCollider() && col->CheckCollision(obj->GetCollider()))
+		for (int j = i; j < gameObjects.size(); j++)
 		{
-			rend->color = color;
-			break;
-		}
-		else
-		{
-			rend->color = rend->baseColor;
+			if (gameObjects[i].GetCollider() && gameObjects[j].GetCollider() &&
+				gameObjects[i].GetRenderer() && gameObjects[j].GetRenderer() &&
+				gameObjects[i].GetColorChanger() && gameObjects[j].GetColorChanger())
+			{
+				if (gameObjects[i].GetCollider()->CheckCollision(*gameObjects[j].GetCollider()))
+				{
+					gameObjects[i].GetRenderer()->color = gameObjects[i].GetColorChanger()->color;
+					gameObjects[j].GetRenderer()->color = gameObjects[j].GetColorChanger()->color;
+					break;
+				}
+				else
+				{
+					gameObjects[i].GetRenderer()->color = gameObjects[i].GetRenderer()->baseColor;
+					gameObjects[j].GetRenderer()->color = gameObjects[j].GetRenderer()->baseColor;
+				}
+			}
 		}
 	}
 }

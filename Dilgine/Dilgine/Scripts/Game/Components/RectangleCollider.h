@@ -16,7 +16,7 @@ public:
 
 	GameObject* GetGameObject() { return gameObject; }
 
-	bool CheckCollision(RectangleCollider* other);
+	bool CheckCollision(RectangleCollider& other);
 };
 
 #endif

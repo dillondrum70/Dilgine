@@ -133,14 +133,12 @@ void frameStep(void* arg)
         50
     };*/
 
-    SDL_SetRenderDrawColor(engine->renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
-
-    SDL_RenderClear(engine->renderer);
+    
 
     engine->world->Render(engine->renderer);
     //SDL_SetRenderDrawColor(engine->renderer, 255, 0, 0, SDL_ALPHA_OPAQUE);
     //SDL_RenderFillRect(engine->renderer, &r);
-    SDL_RenderPresent(engine->renderer);
+    
 }
 
 Uint32 GetTicks()

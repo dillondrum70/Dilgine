@@ -6,7 +6,7 @@
 
 GameObject::~GameObject()
 {
-	if (renderer)
+	/*if (renderer)
 	{
 		delete renderer;
 		renderer = nullptr;
@@ -25,10 +25,10 @@ GameObject::~GameObject()
 	{
 		delete colorChanger;
 		colorChanger = nullptr;
-	}
+	}*/
 }
 
-RectangleRenderer* GameObject::CreateRenderer(int vWidth, int vHeight, Vector3 vColor)
+/*RectangleRenderer* GameObject::CreateRenderer(int vWidth, int vHeight, Vector3 vColor)
 {
 	if (!renderer)
 	{
@@ -87,9 +87,9 @@ CollisionColorChanger* GameObject::CreateCollisionColorChanger(Vector3 vColor, G
 		gpr460::engine.system->LogToErrorFile(gpr460::ERROR_COMPONENT_EXISTS);
 		return colorChanger;
 	}
-}
+}*/
 
-void GameObject::Update(std::vector<GameObject*> gameObjects)
+/*void GameObject::Update(std::vector<GameObject>& gameObjects)
 {
 	if (player)
 		player->Update();
@@ -103,8 +103,8 @@ void GameObject::Render(SDL_Renderer*& prRenderer)
 	if (renderer && prRenderer)
 	{
 		SDL_Rect rect = {
-		transform.position.x - (renderer->width / 2),
-		transform.position.y - (renderer->height / 2),
+		transform->position.x - (renderer->width / 2),
+		transform->position.y - (renderer->height / 2),
 		renderer->width,
 		renderer->height
 		};
@@ -112,4 +112,4 @@ void GameObject::Render(SDL_Renderer*& prRenderer)
 		SDL_SetRenderDrawColor(prRenderer, renderer->color.x, renderer->color.y, renderer->color.z, SDL_ALPHA_OPAQUE);
 		SDL_RenderFillRect(prRenderer, &rect);
 	}
-}
+}*/
