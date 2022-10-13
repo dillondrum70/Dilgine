@@ -24,8 +24,9 @@
 
 void PlayerController::Update()
 {
-	Components& components = gpr460::engine.world->GetComponents();
-	for (int i = 0; i < gpr460::engine.world->activePlayerControllers; i++)
+	Components& components = gpr460::engine->world->GetComponents();
+
+	for (int i = 0; i < gpr460::engine->world->activePlayerControllers; i++)
 	{
 		components.playerControllerComponents[i].Update();
 	}

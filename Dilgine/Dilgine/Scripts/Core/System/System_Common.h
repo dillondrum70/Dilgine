@@ -57,7 +57,7 @@ namespace gpr460 {
 		int frame;
 	};
 
-	static EngineState engine;
+	static EngineState* engine;
 
 }
 

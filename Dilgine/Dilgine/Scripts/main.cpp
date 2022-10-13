@@ -1,11 +1,13 @@
 #include "System.h"
 
-void runMainLoop(gpr460::EngineState* engine);
+void runMainLoop();
 void frameStep();
 Uint32 GetTicks();
 
 int main(int argc, char* argv[])
 {
+    gpr460::engine = DBG_NEW gpr460::EngineState();
+
     const int WIDTH = 640;
     const int HEIGHT = 480;
     SDL_Window* window = NULL;
@@ -32,16 +34,16 @@ int main(int argc, char* argv[])
     World* world = DBG_NEW World();
 
     //EngineState engine;
-    gpr460::engine.quit = false;
-    gpr460::engine.renderer = renderer;
-    gpr460::engine.frame = 0;
-    gpr460::engine.frameStart = GetTicks();
-    gpr460::engine.system = system;
-    gpr460::engine.world = world;
+    gpr460::engine->quit = false;
+    gpr460::engine->renderer = renderer;
+    gpr460::engine->frame = 0;
+    gpr460::engine->frameStart = GetTicks();
+    gpr460::engine->system = system;
+    gpr460::engine->world = world;
 
     world->Init(window);
 
-    runMainLoop(&gpr460::engine);
+    runMainLoop();
 
     //delete and cleanup world first
     world->CleanUp();
@@ -58,25 +60,27 @@ int main(int argc, char* argv[])
         delete system;
     }
 
+    delete gpr460::engine;
+
     return 0;
 }
 
 void MainLoopProcesses()
 {
     Uint32 now = GetTicks();
-    if (now - gpr460::engine.frameStart >= 16)
+    if (now - gpr460::engine->frameStart >= 16)
     {
         frameStep();
     }
 }
 
-void runMainLoop(gpr460::EngineState* engine)
+void runMainLoop()
 {
 #ifdef __EMSCRIPTEN__
     //emscripten_set_main_loop_arg(MainLoopProcesses, engine, 0, true);
     emscripten_set_main_loop(MainLoopProcesses, 0, true);
 #else
-    while (!engine->quit)
+    while (!gpr460::engine->quit)
     {
         /*Uint32 now = GetTicks();
         if (now - engine->frameStart >= 16)
@@ -95,14 +99,14 @@ void frameStep()
 
     Uint32 now = GetTicks();
 
-    gpr460::engine.frame++;
-    gpr460::engine.frameStart = now;
+    gpr460::engine->frame++;
+    gpr460::engine->frameStart = now;
 
     while (SDL_PollEvent(&event))
     {
         if (event.type == SDL_QUIT)
         {
-            gpr460::engine.quit = true;
+            gpr460::engine->quit = true;
         }
 
         if (event.type == SDL_KEYDOWN)
@@ -113,18 +117,18 @@ void frameStep()
                 std::cout << "K pressed!\n";
 
                 // TODO: Add calls to ErrorMessage and LogToErrorFile here
-                gpr460::engine.system->ErrorMessage(gpr460::ERROR_PRESSED_K);
-                gpr460::engine.system->LogToErrorFile(gpr460::ERROR_PRESSED_K);
+                gpr460::engine->system->ErrorMessage(gpr460::ERROR_PRESSED_K);
+                gpr460::engine->system->LogToErrorFile(gpr460::ERROR_PRESSED_K);
                 // DONE
             }
             if (event.key.keysym.sym == SDLK_ESCAPE)
             {
-                gpr460::engine.quit = true;
+                gpr460::engine->quit = true;
             }
         }
     }
 
-    gpr460::engine.world->Update();
+    gpr460::engine->world->Update();
     //int x = (SDL_sinf(engine->frame / 100.0f) * 100.0f) + 200;
 
     /*SDL_Rect r = {
@@ -136,7 +140,7 @@ void frameStep()
 
     
 
-    gpr460::engine.world->Render(gpr460::engine.renderer);
+    gpr460::engine->world->Render(gpr460::engine->renderer);
     //SDL_SetRenderDrawColor(engine->renderer, 255, 0, 0, SDL_ALPHA_OPAQUE);
     //SDL_RenderFillRect(engine->renderer, &r);
     
