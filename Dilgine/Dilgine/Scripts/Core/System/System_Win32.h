@@ -19,13 +19,19 @@ namespace gpr460
 
 	//error constants
 	const gpr460::string ERROR_PRESSED_K = L"Error: User pressed 'k'";
+
 	const gpr460::string ERROR_CREATE_SDL_RENDERER_FAILED = L"Error: Creation of SDL_Renderer failed";
 	const gpr460::string ERROR_MISSING_ENGINE_RENDERER = L"Error: Could not get SDL_Renderer* renderer on engine";
+
 	const gpr460::string ERROR_MISSING_GAMEOBJECT_REFERENCE = L"Error: Missing Reference to GameObject";
 	const gpr460::string ERROR_MISSING_TRANSFORM_REFERENCE = L"Error: Missing Reference to Transform Component";
 	const gpr460::string ERROR_MISSING_RECTCOLLIDER_REFERENCE = L"Error: Missing Reference to RectangularCollider Component";
 	const gpr460::string ERROR_MISSING_RECTRENDERER_REFERENCE = L"Error: Missing Reference to RectangularRenderer Component";
+
 	const gpr460::string ERROR_COMPONENT_EXISTS = L"Error: Component to be created already exists";
+
+	const gpr460::string ERROR_GAMEOBJECT_OVERFLOW = L"Error: Too many game objects";
+	const gpr460::string ERROR_COMPONENT_OVERFLOW = L"Error: Too many components";
 
 	class System_Win32 : public System
 	{

@@ -52,6 +52,8 @@ public:
 	void CreatePlayerController(GameObject& rObj, int vSpeed);
 	void CreateCollisionColorChange(GameObject& rObj, Vector3 vColor);
 
+	void AddGameObject(GameObject& rObj);
+
 	void Update();
 
 	void Render(SDL_Renderer*& prRenderer);
