@@ -130,6 +130,18 @@ void World::Update()
 		//for(int j = i; ...
 	CollisionColorChanger::UpdateAll();
 
+	//Call AllCollisions on player and print returned collider addresses
+	{
+		int count;
+		RectangleCollider* colliders = components.rectColliderComponents[0].AllCollisions(count);
+
+		for (int i = 0; i < count; i++)
+		{
+			std::cout << "Returned: " << &colliders[i] << std::endl;
+		}
+		std::cout << std::endl << std::endl;
+	}
+
 	//Clear stack at end of each frame
 	gpr460::engine->stack.clear();
 }

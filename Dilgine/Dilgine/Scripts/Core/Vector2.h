@@ -1,9 +1,11 @@
 #ifndef VECTOR2_H
 #define VECTOR2_H
 #include <math.h>
+#include <iostream>
 
 struct Vector2
 {
+public:
 	int x, y;
 
 	Vector2() { x = 0; y = 0; }
@@ -27,6 +29,8 @@ struct Vector2
 
 	bool operator==(const Vector2& rhs) const { return (x == rhs.x && y == rhs.y); }
 	bool operator!=(const Vector2& rhs) const { return (x != rhs.x || y != rhs.y); }
+
+	friend std::ostream& operator<<(std::ostream& os, const Vector2& v) { os << "(" << v.x << ", " << v.y << ")"; }
 };
 
 #endif

@@ -3,6 +3,8 @@
 #include "GameObject.h"
 #include "System.h"
 
+#include <list>
+
 bool RectangleCollider::CheckCollision(RectangleCollider& other)
 {
 	if (!other.GetGameObject() || !gameObject)
@@ -21,4 +23,37 @@ bool RectangleCollider::CheckCollision(RectangleCollider& other)
 	}
 
 	return false;
+}
+
+RectangleCollider* RectangleCollider::AllCollisions(int& count)
+{
+	if (!gameObject)
+	{
+		gpr460::engine->system->ErrorMessage(gpr460::ERROR_MISSING_GAMEOBJECT_REFERENCE);
+		gpr460::engine->system->LogToErrorFile(gpr460::ERROR_MISSING_GAMEOBJECT_REFERENCE);
+		return nullptr;
+	}
+
+	RectangleCollider* rectCollider = gpr460::engine->world->GetComponents().rectColliderComponents;
+	Components& components = gpr460::engine->world->GetComponents();
+
+	std::vector<int> included;
+
+	for (int i = 0; i < gpr460::engine->world->activeRectColliders; i++)
+	{
+		GameObject* obj = rectCollider[i].GetGameObject();
+		if (&rectCollider[i] != this && CheckCollision(rectCollider[i]))
+		{
+			included.push_back(i);
+		}
+	}
+
+	count = included.size();
+	RectangleCollider* colliders = gpr460::engine->stack.alloc<RectangleCollider>(included.size());
+	for (int i = 0; i < count; i++)
+	{
+		colliders[i] = rectCollider[included[i]];
+	}
+
+	return colliders;
 }

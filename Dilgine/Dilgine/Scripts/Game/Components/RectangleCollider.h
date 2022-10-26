@@ -17,6 +17,8 @@ public:
 	GameObject* GetGameObject() { return gameObject; }
 
 	bool CheckCollision(RectangleCollider& other);
+
+	RectangleCollider* AllCollisions(int& count);
 };
 
 #endif
