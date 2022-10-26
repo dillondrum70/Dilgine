@@ -26,7 +26,7 @@ public:
 
 		//Print what's on stack
 		{
-			std::cout << "Stack: " << &allocationPoint << std::endl << std::endl;
+			std::cout << "Stack: " << allocationPoint << std::endl;
 		}
 
 		base += sizeToAllocate;
@@ -50,7 +50,6 @@ public:
 			{
 				std::cout << "Stack: " << &allocationPoint[i] << std::endl;
 			}
-			std::cout << std::endl;
 		}
 		
 		base += sizeToAllocate;

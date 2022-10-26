@@ -30,7 +30,7 @@ public:
 	bool operator==(const Vector2& rhs) const { return (x == rhs.x && y == rhs.y); }
 	bool operator!=(const Vector2& rhs) const { return (x != rhs.x || y != rhs.y); }
 
-	friend std::ostream& operator<<(std::ostream& os, const Vector2& v) { os << "(" << v.x << ", " << v.y << ")"; }
+	friend std::ostream& operator<<(std::ostream& os, const Vector2& v) { os << "(" << v.x << ", " << v.y << ")"; return os; }
 };
 
 #endif

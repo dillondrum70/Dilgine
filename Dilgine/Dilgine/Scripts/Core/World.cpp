@@ -121,6 +121,14 @@ void World::CleanUp()
 	
 }
 
+void World::PrintFrame()
+{
+	int* frame = gpr460::engine->stack.alloc<int>();
+	*frame = gpr460::engine->frame;
+	std::cout << "Frame: " << *frame << std::endl;
+	std::cout << "Returned Frame Address: " << frame << std::endl;
+}
+
 void World::Update()
 {
 	PlayerController::UpdateAll();
@@ -137,10 +145,13 @@ void World::Update()
 
 		for (int i = 0; i < count; i++)
 		{
-			std::cout << "Returned: " << &colliders[i] << std::endl;
+			std::cout << "Returned Collider: " << &colliders[i] << std::endl;
 		}
-		std::cout << std::endl << std::endl;
+		std::cout << std::endl;
 	}
+
+	//PrintFrame();
+	std::cout << std::endl << std::endl;;
 
 	//Clear stack at end of each frame
 	gpr460::engine->stack.clear();

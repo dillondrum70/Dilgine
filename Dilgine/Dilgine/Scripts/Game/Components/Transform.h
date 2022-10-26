@@ -10,7 +10,7 @@ public:
 	Transform() { position = Vector2(0); }
 	Transform(Vector2 vPos) { position = vPos; }
 
-	friend std::ostream& operator<<(std::ostream& os, const Transform& t) { os << t.position; }
+	friend std::ostream& operator<<(std::ostream& os, const Transform& t) { os << t.position;  return os; }
 };
 
 #endif

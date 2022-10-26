@@ -148,7 +148,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)\include;$(ProjectDir);$(ProjectDir)\Scripts;$(ProjectDir)\Scripts\Core;$(ProjectDir)\Scripts\Core\System;$(ProjectDir)\Scripts\Game;$(ProjectDir)\Scripts\Game\Components;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\include;$(ProjectDir);$(ProjectDir)\Scripts;$(ProjectDir)\Scripts\Core;$(ProjectDir)\Scripts\Core\System;$(ProjectDir)\Scripts\Game;$(ProjectDir)\Scripts\Game\Components;$(ProjectDir)\Assets;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

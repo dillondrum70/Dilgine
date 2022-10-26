@@ -54,6 +54,8 @@ public:
 
 	void AddGameObject(GameObject& rObj);
 
+	void PrintFrame();
+
 	void Update();
 
 	void Render(SDL_Renderer*& prRenderer);
