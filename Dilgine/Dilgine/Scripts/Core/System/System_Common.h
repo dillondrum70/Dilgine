@@ -16,6 +16,7 @@
 #include "SDL2\SDL.h"
 
 #include "World.h"
+#include "StackAllocator.h"
 
 namespace gpr460 {
 
@@ -55,6 +56,7 @@ namespace gpr460 {
 		Uint32 frameStart;
 		bool quit;
 		int frame;
+		StackAllocator stack;
 	};
 
 	extern EngineState* engine;

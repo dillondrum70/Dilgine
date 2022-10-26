@@ -24,12 +24,16 @@ void World::Init(SDL_Window* pWindow)
 	CreateCollisionColorChange(player, Vector3(0, 0, 255));
 	AddGameObject(player);
 
-	GameObject wall;
-	CreateTransform(wall, Vector2((3 * width) / 4, height / 2));
-	CreateRectangleRenderer(wall, 50, 50, Vector3(255, 150, 0));
-	CreateRectangleCollider(wall, 50, 50);
-	CreateCollisionColorChange(wall, Vector3(0, 0, 255));
-	AddGameObject(wall);
+	int wallCount = 20;
+	for (int i = 0; i < wallCount; i++)
+	{
+		GameObject wall;
+		CreateTransform(wall, Vector2(rand() % width, rand() % height));
+		CreateRectangleRenderer(wall, 50, 50, Vector3(255, 150, 0));
+		CreateRectangleCollider(wall, 50, 50);
+		CreateCollisionColorChange(wall, Vector3(0, 0, 255));
+		AddGameObject(wall);
+	}
 }
 
 void World::CreateTransform(GameObject& rObj, Vector2 vPos)
@@ -125,6 +129,9 @@ void World::Update()
 	//for(int i = 0; ...
 		//for(int j = i; ...
 	CollisionColorChanger::UpdateAll();
+
+	//Clear stack at end of each frame
+	gpr460::engine->stack.clear();
 }
 
 void World::Render(SDL_Renderer*& prRenderer)

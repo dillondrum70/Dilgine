@@ -23,7 +23,7 @@ int main(int argc, char* argv[])
     window = SDL_CreateWindow("SDL2 Test", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WIDTH, HEIGHT, SDL_WINDOW_SHOWN);
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
-    int* leak = DBG_NEW int[4096];
+    //int* leak = DBG_NEW int[4096];
 
     if (!renderer)
     {
