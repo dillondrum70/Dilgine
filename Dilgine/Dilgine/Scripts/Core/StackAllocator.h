@@ -2,7 +2,7 @@
 #define STACK_ALLOCATOR_H
 #include <iostream>
 
-const int STACK_BUFFER_SIZE = 32; //In MB
+const int STACK_BUFFER_SIZE = 1; //In MB
 
 class StackAllocator {
 private:
