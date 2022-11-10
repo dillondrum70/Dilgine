@@ -19,10 +19,12 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Scripts\Core\Serialization.cpp" />
     <ClCompile Include="Scripts\Core\StackAllocator.cpp" />
     <ClCompile Include="Scripts\Core\System\System_Win32.cpp" />
     <ClCompile Include="Scripts\Core\World.cpp" />
     <ClCompile Include="Scripts\Game\Components\CollisionColorChanger.cpp" />
+    <ClCompile Include="Scripts\Game\Components\Component.cpp" />
     <ClCompile Include="Scripts\Game\Components\PlayerController.cpp" />
     <ClCompile Include="Scripts\Game\Components\RectangleCollider.cpp" />
     <ClCompile Include="Scripts\Game\Components\RectangleRenderer.cpp" />
@@ -31,6 +33,7 @@
     <ClCompile Include="Scripts\main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Scripts\Core\Serialization.h" />
     <ClInclude Include="Scripts\Core\StackAllocator.h" />
     <ClInclude Include="Scripts\Core\System\System.h" />
     <ClInclude Include="Scripts\Core\System\System_Common.h" />
@@ -39,11 +42,15 @@
     <ClInclude Include="Scripts\Core\Vector3.h" />
     <ClInclude Include="Scripts\Core\World.h" />
     <ClInclude Include="Scripts\Game\Components\CollisionColorChanger.h" />
+    <ClInclude Include="Scripts\Game\Components\Component.h" />
     <ClInclude Include="Scripts\Game\Components\PlayerController.h" />
     <ClInclude Include="Scripts\Game\Components\RectangleCollider.h" />
     <ClInclude Include="Scripts\Game\Components\RectangleRenderer.h" />
     <ClInclude Include="Scripts\Game\Components\Transform.h" />
     <ClInclude Include="Scripts\Game\GameObject.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Data\level0.dat" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
@@ -131,7 +138,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)\include;$(ProjectDir);$(ProjectDir)\Scripts\Game;$(ProjectDir)\Scripts\Game\Components;$(ProjectDir)\Scripts\Core\System;$(ProjectDir)\Scripts;$(ProjectDir)\Scripts\Core;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\include;$(ProjectDir);$(ProjectDir)\Scripts\Game;$(ProjectDir)\Scripts\Game\Components;$(ProjectDir)\Scripts\Core\System;$(ProjectDir)\Scripts;$(ProjectDir)\Scripts\Core;$(ProjectDir)\Data;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

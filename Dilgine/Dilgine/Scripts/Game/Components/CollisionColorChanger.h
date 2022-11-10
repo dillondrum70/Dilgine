@@ -7,6 +7,8 @@
 
 class GameObject;
 
+const Vector3 COLOR_CHANGE_DEFAULT = Vector3(255);
+
 class CollisionColorChanger
 {
 private:
@@ -15,6 +17,10 @@ private:
 	GameObject* gameObject;
 
 public:
+	enum { compID = 'CHNG' };
+
+	static void Create(GameObject& gameObject, Vector3 vColor = COLOR_CHANGE_DEFAULT);
+
 	CollisionColorChanger() { color = Vector3(255); gameObject = nullptr; }
 	CollisionColorChanger(Vector3 vColor, GameObject* vGameObject) { color = vColor; gameObject = vGameObject; }
 

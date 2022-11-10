@@ -11,96 +11,96 @@ void World::Init(SDL_Window* pWindow)
 
 	GameObject background;
 	//Add Transform component
-	CreateTransform(background, Vector2(width / 2, height / 2));
+	Transform::Create(background, Vector2(width / 2, height / 2));
 	//Add RectangleRenderer component
-	CreateRectangleRenderer(background, width, height, Vector3(150, 150, 150));
+	RectangleRenderer::Create(background, width, height, Vector3(150, 150, 150));
 	AddGameObject(background);
 
 	GameObject player;
-	CreateTransform(player, Vector2(width / 4, height / 2));
-	CreateRectangleRenderer(player, 50, 50, Vector3(0, 255, 255));
-	CreateRectangleCollider(player, 50, 50);
-	CreatePlayerController(player, 1);
-	CreateCollisionColorChange(player, Vector3(0, 0, 255));
+	Transform::Create(player, Vector2(width / 4, height / 2));
+	RectangleRenderer::Create(player, 50, 50, Vector3(0, 255, 255));
+	RectangleCollider::Create(player, 50, 50);
+	PlayerController::Create(player, 1);
+	CollisionColorChanger::Create(player, Vector3(0, 0, 255));
 	AddGameObject(player);
 
 	int wallCount = 20;
 	for (int i = 0; i < wallCount; i++)
 	{
 		GameObject wall;
-		CreateTransform(wall, Vector2(rand() % width, rand() % height));
-		CreateRectangleRenderer(wall, 50, 50, Vector3(255, 150, 0));
-		CreateRectangleCollider(wall, 50, 50);
-		CreateCollisionColorChange(wall, Vector3(0, 0, 255));
+		Transform::Create(wall, Vector2(rand() % width, rand() % height));
+		RectangleRenderer::Create(wall, 50, 50, Vector3(255, 150, 0));
+		RectangleCollider::Create(wall, 50, 50);
+		CollisionColorChanger::Create(wall, Vector3(0, 0, 255));
 		AddGameObject(wall);
 	}
 }
 
-void World::CreateTransform(GameObject& rObj, Vector2 vPos)
-{
-	if (activeTransforms + 1 >= gpr460::MAX_GAMEOBJECTS)
-	{
-		gpr460::engine->system->ErrorMessage(gpr460::ERROR_COMPONENT_OVERFLOW);
-		gpr460::engine->system->LogToErrorFile(gpr460::ERROR_COMPONENT_OVERFLOW);
-	}
-
-	components.transformComponents[activeTransforms] = Transform(vPos);
-	rObj.SetTransform(&components.transformComponents[activeTransforms]);
-	activeTransforms++;
-}
-
-void World::CreateRectangleRenderer(GameObject& rObj, int vWidth, int vheight, Vector3 vColor)
-{
-	if (activeRectRenderers + 1 >= gpr460::MAX_GAMEOBJECTS)
-	{
-		gpr460::engine->system->ErrorMessage(gpr460::ERROR_COMPONENT_OVERFLOW);
-		gpr460::engine->system->LogToErrorFile(gpr460::ERROR_COMPONENT_OVERFLOW);
-	}
-
-	components.rectRendererComponents[activeRectRenderers] = RectangleRenderer(vWidth, vheight, vColor, &gameObjects[activeGameObjects]);
-	rObj.SetRenderer(&components.rectRendererComponents[activeRectRenderers]);
-	activeRectRenderers++;
-}
-
-void World::CreateRectangleCollider(GameObject& rObj, int vWidth, int vHeight)
-{
-
-	if (activeRectColliders + 1 >= gpr460::MAX_GAMEOBJECTS)
-	{
-		gpr460::engine->system->ErrorMessage(gpr460::ERROR_COMPONENT_OVERFLOW);
-		gpr460::engine->system->LogToErrorFile(gpr460::ERROR_COMPONENT_OVERFLOW);
-	}
-
-	components.rectColliderComponents[activeRectColliders] = RectangleCollider(vWidth, vHeight, &gameObjects[activeGameObjects]);
-	rObj.SetCollider(&components.rectColliderComponents[activeRectColliders]);
-	activeRectColliders++;
-}
-
-void World::CreatePlayerController(GameObject& rObj, int vSpeed)
-{
-	if (activePlayerControllers + 1 >= gpr460::MAX_GAMEOBJECTS)
-	{
-		gpr460::engine->system->ErrorMessage(gpr460::ERROR_COMPONENT_OVERFLOW);
-		gpr460::engine->system->LogToErrorFile(gpr460::ERROR_COMPONENT_OVERFLOW);
-	}
-
-	components.playerControllerComponents[activePlayerControllers] = (PlayerController(vSpeed, &gameObjects[activeGameObjects]));
-	rObj.SetPlayer(&components.playerControllerComponents[activePlayerControllers]);
-	activePlayerControllers++;
-}
-
-void World::CreateCollisionColorChange(GameObject& rObj, Vector3 vColor)
-{
-	if (activeColorChange + 1 >= gpr460::MAX_GAMEOBJECTS)
-	{
-		gpr460::engine->system->ErrorMessage(gpr460::ERROR_COMPONENT_OVERFLOW);
-		gpr460::engine->system->LogToErrorFile(gpr460::ERROR_COMPONENT_OVERFLOW);
-	}
-
-	components.colorChangeComponents[activeColorChange] = CollisionColorChanger(vColor, &gameObjects[activeGameObjects]);
-	rObj.SetColorChanger(&components.colorChangeComponents[activeColorChange]);
-	activeColorChange++;
-}
+//void World::CreateTransform(GameObject& rObj, Vector2 vPos)
+//{
+//	if (activeTransforms + 1 >= gpr460::MAX_GAMEOBJECTS)
+//	{
+//		gpr460::engine->system->ErrorMessage(gpr460::ERROR_COMPONENT_OVERFLOW);
+//		gpr460::engine->system->LogToErrorFile(gpr460::ERROR_COMPONENT_OVERFLOW);
+//	}
+//
+//	components.transformComponents[activeTransforms] = Transform(vPos);
+//	rObj.SetTransform(&components.transformComponents[activeTransforms]);
+//	activeTransforms++;
+//}
+//
+//void World::CreateRectangleRenderer(GameObject& rObj, int vWidth, int vheight, Vector3 vColor)
+//{
+//	if (activeRectRenderers + 1 >= gpr460::MAX_GAMEOBJECTS)
+//	{
+//		gpr460::engine->system->ErrorMessage(gpr460::ERROR_COMPONENT_OVERFLOW);
+//		gpr460::engine->system->LogToErrorFile(gpr460::ERROR_COMPONENT_OVERFLOW);
+//	}
+//
+//	components.rectRendererComponents[activeRectRenderers] = RectangleRenderer(vWidth, vheight, vColor, &gameObjects[activeGameObjects]);
+//	rObj.SetRenderer(&components.rectRendererComponents[activeRectRenderers]);
+//	activeRectRenderers++;
+//}
+//
+//void World::CreateRectangleCollider(GameObject& rObj, int vWidth, int vHeight)
+//{
+//
+//	if (activeRectColliders + 1 >= gpr460::MAX_GAMEOBJECTS)
+//	{
+//		gpr460::engine->system->ErrorMessage(gpr460::ERROR_COMPONENT_OVERFLOW);
+//		gpr460::engine->system->LogToErrorFile(gpr460::ERROR_COMPONENT_OVERFLOW);
+//	}
+//
+//	components.rectColliderComponents[activeRectColliders] = RectangleCollider(vWidth, vHeight, &gameObjects[activeGameObjects]);
+//	rObj.SetCollider(&components.rectColliderComponents[activeRectColliders]);
+//	activeRectColliders++;
+//}
+//
+//void World::CreatePlayerController(GameObject& rObj, int vSpeed)
+//{
+//	if (activePlayerControllers + 1 >= gpr460::MAX_GAMEOBJECTS)
+//	{
+//		gpr460::engine->system->ErrorMessage(gpr460::ERROR_COMPONENT_OVERFLOW);
+//		gpr460::engine->system->LogToErrorFile(gpr460::ERROR_COMPONENT_OVERFLOW);
+//	}
+//
+//	components.playerControllerComponents[activePlayerControllers] = (PlayerController(vSpeed, &gameObjects[activeGameObjects]));
+//	rObj.SetPlayer(&components.playerControllerComponents[activePlayerControllers]);
+//	activePlayerControllers++;
+//}
+//
+//void World::CreateCollisionColorChange(GameObject& rObj, Vector3 vColor)
+//{
+//	if (activeColorChange + 1 >= gpr460::MAX_GAMEOBJECTS)
+//	{
+//		gpr460::engine->system->ErrorMessage(gpr460::ERROR_COMPONENT_OVERFLOW);
+//		gpr460::engine->system->LogToErrorFile(gpr460::ERROR_COMPONENT_OVERFLOW);
+//	}
+//
+//	components.colorChangeComponents[activeColorChange] = CollisionColorChanger(vColor, &gameObjects[activeGameObjects]);
+//	rObj.SetColorChanger(&components.colorChangeComponents[activeColorChange]);
+//	activeColorChange++;
+//}
 
 void World::AddGameObject(GameObject& rObj)
 {

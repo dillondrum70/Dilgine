@@ -16,6 +16,7 @@ namespace gpr460
 {
 	//filenames
 	const gpr460::string FILENAME_ERROR = L"GameErrors.txt";
+	const gpr460::string FILENAME_LEVEL0 = L"level0.dat";
 
 	//error constants
 	const gpr460::string ERROR_PRESSED_K = L"Error: User pressed 'k'";

@@ -13,6 +13,10 @@ private:
 	int speed = 1;
 
 public:
+	enum { compID = 'PCTL' };
+
+	static void Create(GameObject& gameObject, int vSpeed = 1);
+
 	PlayerController() { gameObject = nullptr; }
 	PlayerController(int vSpeed, GameObject* vGameObject) { speed = vSpeed; gameObject = vGameObject; }
 	~PlayerController() { }

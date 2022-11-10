@@ -4,6 +4,11 @@
 #include "SDL2/SDL.h"
 #include "System.h"
 
+void PlayerController::Create(GameObject& gameObject, int vSpeed)
+{
+	gameObject.CreatePlayerController(gameObject, vSpeed);
+}
+
 void PlayerController::UpdateAll()
 {
 	Components& components = gpr460::engine->world->GetComponents();

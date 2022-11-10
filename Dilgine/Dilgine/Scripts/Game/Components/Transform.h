@@ -2,9 +2,15 @@
 #define TRANSFORM_H
 #include "Vector2.h"
 
+class GameObject;
+
 class Transform
 {
 public:
+	enum { compID = 'TRNS' };
+
+	static void Create(GameObject& gameObject, Vector2 pos);
+
 	Vector2 position;
 
 	Transform() { position = Vector2(0); }

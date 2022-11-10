@@ -5,6 +5,11 @@
 
 #include <list>
 
+void RectangleCollider::Create(GameObject& gameObject, int vWidth, int vHeight)
+{
+	gameObject.CreateRectangleCollider(gameObject, vWidth, vHeight);
+}
+
 bool RectangleCollider::CheckCollision(RectangleCollider& other)
 {
 	if (!other.GetGameObject() || !gameObject)

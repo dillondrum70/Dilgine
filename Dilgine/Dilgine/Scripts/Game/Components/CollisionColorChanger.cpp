@@ -6,6 +6,11 @@
 
 #include <iostream>
 
+void CollisionColorChanger::Create(GameObject& gameObject, Vector3 vColor)
+{
+	gameObject.CreateCollisionColorChange(gameObject, vColor);
+}
+
 void CollisionColorChanger::UpdateAll()
 {
 	RectangleCollider* rectCollider = gpr460::engine->world->GetComponents().rectColliderComponents;

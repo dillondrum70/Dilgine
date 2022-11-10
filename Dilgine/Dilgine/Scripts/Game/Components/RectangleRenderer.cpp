@@ -20,6 +20,11 @@
 	SDL_RenderFillRects(prRenderer, rects, rendererCount);
 }*/
 
+void RectangleRenderer::Create(GameObject& gameObject, int vWidth, int vHeight, Vector3 vColor)
+{
+	gameObject.CreateRectangleRenderer(gameObject, vWidth, vHeight, vColor);
+}
+
 void RectangleRenderer::RenderAll(SDL_Renderer*& prRenderer)
 {
 	Components& components = gpr460::engine->world->GetComponents();

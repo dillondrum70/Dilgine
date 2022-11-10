@@ -10,6 +10,7 @@ namespace gpr460 {
 
 	//error constants
 	const gpr460::string ERROR_PRESSED_K = "Error: User pressed k";
+	const gpr460::string FILENAME_LEVEL0 = "level0.dat";
 
 	const gpr460::string ERROR_MISSING_ENGINE_RENDERER = "Error: Could not get SDL_Renderer* renderer on engine";
 	const gpr460::string ERROR_CREATE_SDL_RENDERER_FAILED = "Error: Creation of SDL_Renderer failed";
