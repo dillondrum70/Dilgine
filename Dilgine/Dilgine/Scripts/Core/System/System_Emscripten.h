@@ -25,6 +25,8 @@ namespace gpr460 {
 	const gpr460::string ERROR_GAMEOBJECT_OVERFLOW = "Error: Too many game objects";
 	const gpr460::string ERROR_COMPONENT_OVERFLOW = "Error: Too many components";
 
+	const gpr460::string ERROR_LEVEL_OPEN_FAIL = "Level data file failed to open";
+
 	class System_Emscripten : public System
 	{
 		~System_Emscripten() override {}

@@ -4,6 +4,7 @@
 #include "Vector3.h"
 
 #include <vector>
+#include <iostream>
 
 class GameObject;
 
@@ -17,7 +18,9 @@ private:
 	GameObject* gameObject;
 
 public:
-	enum { compID = 'CHNG' };
+	static enum { compID = 'CHNG' };
+
+	static void Deserialize(GameObject& gameObject, std::istream& stream);
 
 	static void Create(GameObject& gameObject, Vector3 vColor = COLOR_CHANGE_DEFAULT);
 

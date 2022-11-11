@@ -1,6 +1,8 @@
 #ifndef RECTANGLE_COLLIDER_H
 #define RECTANGLE_COLLIDER_H
 
+#include <iostream>
+
 class GameObject;
 
 const int RCOL_DEFAULT_WIDTH = 50, RCOL_DEFAULT_HEIGHT = 50;
@@ -13,7 +15,9 @@ private:
 public:
 	int width, height;
 
-	enum { compID = 'RCOL' };
+	static enum { compID = 'RCOL' };
+
+	static void Deserialize(GameObject& gameObject, std::istream& stream);
 
 	static void Create(GameObject& gameObject, int vWidth = RCOL_DEFAULT_WIDTH, int vHeight = RCOL_DEFAULT_HEIGHT);
 

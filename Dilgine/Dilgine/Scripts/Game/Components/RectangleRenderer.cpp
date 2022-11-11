@@ -20,6 +20,27 @@
 	SDL_RenderFillRects(prRenderer, rects, rendererCount);
 }*/
 
+//RREN [w h (col.x col.y col.z)]
+void RectangleRenderer::Deserialize(GameObject& gameObject, std::istream& stream)
+{
+	stream.ignore(100, '[');
+
+	int w = 0, h = 0;
+	Vector3 col;
+
+	stream >> w;
+	stream >> h;
+
+	stream.ignore(100, '(');
+	stream >> col.x;
+	stream >> col.y;
+	stream >> col.z;
+	//stream.ignore(100, ')');
+	gameObject.CreateRectangleRenderer(gameObject, w, h, col);
+
+	stream.ignore(100, ']');
+}
+
 void RectangleRenderer::Create(GameObject& gameObject, int vWidth, int vHeight, Vector3 vColor)
 {
 	gameObject.CreateRectangleRenderer(gameObject, vWidth, vHeight, vColor);

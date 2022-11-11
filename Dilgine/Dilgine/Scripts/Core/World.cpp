@@ -1,15 +1,26 @@
 #include "World.h"
 
 #include "System.h"
+//#include <windows.h>
 
 #include "SDL2/SDL.h"
+
+const std::string path = "..\\Dilgine\\Data\\level0.dat";
 
 void World::Init(SDL_Window* pWindow)
 {
 	int width, height;
 	SDL_GetWindowSize(pWindow, &width, &height);
 
-	GameObject background;
+	/*TCHAR buffer[MAX_PATH] = { 0 };
+	GetModuleFileName(NULL, buffer, MAX_PATH);
+	std::wstring::size_type pos = std::wstring(buffer).find_last_of(L"\\/");
+	std::wcout << std::wstring(buffer).substr(0, pos);*/
+	//std::string path = "..\\Dilgine\\Data\\level0.dat";
+	//std::cout << std::endl << path << std::endl;
+	serial.LoadLevel(path);
+
+	/*GameObject background;
 	//Add Transform component
 	Transform::Create(background, Vector2(width / 2, height / 2));
 	//Add RectangleRenderer component
@@ -33,7 +44,7 @@ void World::Init(SDL_Window* pWindow)
 		RectangleCollider::Create(wall, 50, 50);
 		CollisionColorChanger::Create(wall, Vector3(0, 0, 255));
 		AddGameObject(wall);
-	}
+	}*/
 }
 
 //void World::CreateTransform(GameObject& rObj, Vector2 vPos)

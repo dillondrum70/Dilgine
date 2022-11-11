@@ -2,12 +2,16 @@
 #define TRANSFORM_H
 #include "Vector2.h"
 
+#include <iostream>
+
 class GameObject;
 
 class Transform
 {
 public:
-	enum { compID = 'TRNS' };
+	static enum { compID = 'TRNS' };
+
+	static void Deserialize(GameObject& gameObject, std::istream& stream);
 
 	static void Create(GameObject& gameObject, Vector2 pos);
 

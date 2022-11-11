@@ -4,6 +4,7 @@
 #include "Vector3.h"
 
 #include <vector>
+#include <iostream>
 
 class Transform;
 class GameObject;
@@ -21,7 +22,9 @@ public:
 
 	GameObject* gameObject;
 
-	enum { compID = 'RREN' };
+	static enum { compID = 'RREN' };
+
+	static void Deserialize(GameObject& gameObject, std::istream& stream);
 
 	static void Create(GameObject& gameObject, int vWidth = RREND_DEFAULT_WIDTH, int vHeight = RREND_DEFAULT_HEIGHT, Vector3 vColor = RREND_DEFAULT_COLOR);
 

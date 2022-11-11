@@ -13,7 +13,9 @@ private:
 	int speed = 1;
 
 public:
-	enum { compID = 'PCTL' };
+	static enum { compID = 'PCTL' };
+
+	static void Deserialize(GameObject& gameObject, std::istream& stream);
 
 	static void Create(GameObject& gameObject, int vSpeed = 1);
 

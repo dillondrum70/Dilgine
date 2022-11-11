@@ -6,6 +6,23 @@
 
 #include <iostream>
 
+//CHNG [(col.x col.y col.z)]
+void CollisionColorChanger::Deserialize(GameObject& gameObject, std::istream& stream)
+{
+	stream.ignore(100, '[');
+
+	Vector3 col;
+
+	stream.ignore(100, '(');
+	stream >> col.x;
+	stream >> col.y;
+	stream >> col.z;
+	//stream.ignore(100, ')');
+	gameObject.CreateCollisionColorChange(gameObject, col);
+
+	stream.ignore(100, ']');
+}
+
 void CollisionColorChanger::Create(GameObject& gameObject, Vector3 vColor)
 {
 	gameObject.CreateCollisionColorChange(gameObject, vColor);

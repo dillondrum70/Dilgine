@@ -1,6 +1,7 @@
 #ifndef WORLD_H
 #define WORLD_H
 #include "GameObject.h"
+#include "Serialization.h"
 
 #include <vector>
 
@@ -27,6 +28,8 @@ private:
 	GameObject gameObjects[gpr460::MAX_GAMEOBJECTS];
 
 	Components components;
+
+	Serialize serial;
 
 public:
 	

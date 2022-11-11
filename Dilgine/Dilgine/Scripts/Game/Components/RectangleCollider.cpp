@@ -5,6 +5,21 @@
 
 #include <list>
 
+//RCOL [w h]
+void RectangleCollider::Deserialize(GameObject& gameObject, std::istream& stream)
+{
+	stream.ignore(100, '[');
+
+	int w = 0, h = 0;
+
+	stream >> w;
+	stream >> h;
+
+	gameObject.CreateRectangleCollider(gameObject, w, h);
+
+	stream.ignore(100, ']');
+}
+
 void RectangleCollider::Create(GameObject& gameObject, int vWidth, int vHeight)
 {
 	gameObject.CreateRectangleCollider(gameObject, vWidth, vHeight);

@@ -4,6 +4,20 @@
 #include "SDL2/SDL.h"
 #include "System.h"
 
+//PCTL [s]
+void PlayerController::Deserialize(GameObject& gameObject, std::istream& stream)
+{
+	stream.ignore(100, '[');
+
+	int s = 0;
+
+	stream >> s;
+
+	gameObject.CreatePlayerController(gameObject, s);
+
+	stream.ignore(100, ']');
+}
+
 void PlayerController::Create(GameObject& gameObject, int vSpeed)
 {
 	gameObject.CreatePlayerController(gameObject, vSpeed);
