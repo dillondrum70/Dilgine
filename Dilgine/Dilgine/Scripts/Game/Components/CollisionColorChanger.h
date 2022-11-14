@@ -18,7 +18,7 @@ private:
 	GameObject* gameObject;
 
 public:
-	static enum { compID = 'CHNG' };
+	enum { compID = 'CHNG' };
 
 	static void Deserialize(GameObject& gameObject, std::istream& stream);
 

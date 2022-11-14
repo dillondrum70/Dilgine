@@ -15,7 +15,7 @@ private:
 public:
 	int width, height;
 
-	static enum { compID = 'RCOL' };
+	enum { compID = 'RCOL' };
 
 	static void Deserialize(GameObject& gameObject, std::istream& stream);
 

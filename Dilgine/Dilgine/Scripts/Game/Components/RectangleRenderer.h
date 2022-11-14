@@ -22,7 +22,7 @@ public:
 
 	GameObject* gameObject;
 
-	static enum { compID = 'RREN' };
+	enum { compID = 'RREN' };
 
 	static void Deserialize(GameObject& gameObject, std::istream& stream);
 

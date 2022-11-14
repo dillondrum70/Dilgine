@@ -9,7 +9,7 @@ class GameObject;
 class Transform
 {
 public:
-	static enum { compID = 'TRNS' };
+	enum { compID = 'TRNS' };
 
 	static void Deserialize(GameObject& gameObject, std::istream& stream);
 
