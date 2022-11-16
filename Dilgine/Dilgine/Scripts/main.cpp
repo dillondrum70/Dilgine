@@ -1,6 +1,7 @@
 #include "System.h"
-#include "vulkan/vulkan.h"
+#include "VulkanContent.h"
 
+void Run();
 void runMainLoop();
 void frameStep();
 Uint32 GetTicks();
@@ -8,6 +9,21 @@ Uint32 GetTicks();
 gpr460::EngineState* gpr460::engine;
 
 int main(int argc, char* argv[])
+{
+    try
+    {
+        Run();
+    }
+    catch (const std::exception& e)
+    {
+        std::cerr << e.what() << std::endl;
+        return EXIT_FAILURE;
+    }
+
+    return 0;
+}
+
+void Run()
 {
     gpr460::engine = DBG_NEW gpr460::EngineState();
 
@@ -24,16 +40,23 @@ int main(int argc, char* argv[])
     window = SDL_CreateWindow("SDL2 Test", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WIDTH, HEIGHT, SDL_WINDOW_SHOWN);
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
-    //int* leak = DBG_NEW int[4096];
-    uint32_t extensionCount = 0;
-    vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
-    std::cout << extensionCount << " extensions supported\n";
-
     if (!renderer)
     {
         system->ErrorMessage(gpr460::ERROR_CREATE_SDL_RENDERER_FAILED);
         system->LogToErrorFile(gpr460::ERROR_CREATE_SDL_RENDERER_FAILED);
-        return 0;
+        return;
+    }
+
+    //int* leak = DBG_NEW int[4096];
+    uint32_t extensionCount = 0;
+    vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
+    std::vector<VkExtensionProperties> extensions(extensionCount);
+    vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, extensions.data());
+    
+    std::cout << "Available Extensions:\n";
+    for (const auto& extension : extensions) 
+    {
+        std::cout << "\t" << extension.extensionName << std::endl;
     }
 
     //declare and initialize world
@@ -42,10 +65,13 @@ int main(int argc, char* argv[])
     //EngineState engine;
     gpr460::engine->quit = false;
     gpr460::engine->renderer = renderer;
+    //vulkan instance set in VulkanInit
     gpr460::engine->frame = 0;
     gpr460::engine->frameStart = GetTicks();
     gpr460::engine->system = system;
     gpr460::engine->world = world;
+
+    dVulkan::InitVulkan(window);
 
     world->Init(window);
 
@@ -53,8 +79,10 @@ int main(int argc, char* argv[])
 
     //delete and cleanup world first
     world->CleanUp();
-    if(world)
+    if (world)
         delete world;
+    vkDestroyInstance(gpr460::engine->vInstance, nullptr);
+    
 
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
@@ -67,8 +95,6 @@ int main(int argc, char* argv[])
     }
 
     delete gpr460::engine;
-
-    return 0;
 }
 
 void MainLoopProcesses()

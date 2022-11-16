@@ -15,6 +15,8 @@ namespace gpr460 {
 	const gpr460::string ERROR_MISSING_ENGINE_RENDERER = "Error: Could not get SDL_Renderer* renderer on engine";
 	const gpr460::string ERROR_CREATE_SDL_RENDERER_FAILED = "Error: Creation of SDL_Renderer failed";
 
+	const gpr460::string ERROR_CREATE_VULKAN_INSTANCE_FAILED = "Error: Creation of Vulkan Instance failed";
+
 	const gpr460::string ERROR_MISSING_GAMEOBJECT_REFERENCE = "Error: Missing Reference to GameObject";
 	const gpr460::string ERROR_MISSING_TRANSFORM_REFERENCE = "Error: Missing Reference to Transform Component";
 	const gpr460::string ERROR_MISSING_RECTCOLLIDER_REFERENCE = "Error: Missing Reference to RectangularCollider";
