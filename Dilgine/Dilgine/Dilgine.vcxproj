@@ -138,13 +138,14 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)\include;$(ProjectDir);$(ProjectDir)\Scripts\Game;$(ProjectDir)\Scripts\Game\Components;$(ProjectDir)\Scripts\Core\System;$(ProjectDir)\Scripts;$(ProjectDir)\Scripts\Core;$(ProjectDir)\Data;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\include;$(ProjectDir);$(ProjectDir)\Scripts\Game;$(ProjectDir)\Scripts\Game\Components;$(ProjectDir)\Scripts\Core\System;$(ProjectDir)\Scripts;$(ProjectDir)\Scripts\Core;$(ProjectDir)\Data;$(ProjectDir)\VulkanSDK\1.3.231.1\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(ProjectDir)\lib\x64</AdditionalLibraryDirectories>
-      <AdditionalDependencies>SDL2main.lib;SDL2.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)\lib\x64;$(ProjectDir)\VulkanSDK\1.3.231.1\Lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>SDL2main.lib;SDL2.lib;vulkan-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">

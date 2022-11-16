@@ -1,4 +1,5 @@
 #include "System.h"
+#include "vulkan/vulkan.h"
 
 void runMainLoop();
 void frameStep();
@@ -24,6 +25,9 @@ int main(int argc, char* argv[])
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
     //int* leak = DBG_NEW int[4096];
+    uint32_t extensionCount = 0;
+    vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
+    std::cout << extensionCount << " extensions supported\n";
 
     if (!renderer)
     {
