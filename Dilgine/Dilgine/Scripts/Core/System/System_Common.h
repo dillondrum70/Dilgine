@@ -20,6 +20,7 @@
 #include "vulkan/vulkan.h"
 
 #include "World.h"
+#include "VulkanContent.h"
 #include "StackAllocator.h"
 
 namespace gpr460 {
@@ -52,10 +53,10 @@ namespace gpr460 {
 
 	struct EngineState
 	{
-		EngineState() { renderer = nullptr; vInstance = NULL; system = nullptr; world = nullptr; frameStart = 0; quit = false; frame = DEFAULT_FRAME_RATE; }
+		EngineState() { renderer = nullptr; system = nullptr; world = nullptr; frameStart = 0; quit = false; frame = DEFAULT_FRAME_RATE; }
 
 		SDL_Renderer* renderer;
-		VkInstance vInstance;
+		EngineVulkan vulkanEngine;
 		System* system;
 		World* world;
 		Uint32 frameStart;

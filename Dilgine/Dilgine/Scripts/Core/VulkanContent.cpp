@@ -2,7 +2,22 @@
 
 #include "System.h"
 
-void dVulkan::InitVulkan(SDL_Window* window)
+void EngineVulkan::Cleanup()
+{
+    vkDestroyInstance(vInstance, nullptr);
+    vkDestroyDevice(device, nullptr);
+}
+
+void EngineVulkan::InitVulkan(SDL_Window* window)
+{
+    CreateInstance(window);
+
+    ChoosePhysicalDevice();
+
+    CreateLogicalDevice();
+}
+
+void EngineVulkan::CreateInstance(SDL_Window* window)
 {
     //Vulkan instance
     //gpr460::engine->vInstance
@@ -28,6 +43,21 @@ void dVulkan::InitVulkan(SDL_Window* window)
     cInfo.enabledExtensionCount = sdlExtensionCount;
     cInfo.ppEnabledExtensionNames = sdlExtensions;
 
+    InitValidationLayers(&cInfo);
+
+    //Pass in creation info, custom callback (which we don't need), and the actual instance
+    VkResult result = vkCreateInstance(&cInfo, nullptr, &gpr460::engine->vulkanEngine.vInstance);
+
+    if (result != VK_SUCCESS)
+    {
+        gpr460::engine->system->ErrorMessage(gpr460::ERROR_CREATE_SDL_RENDERER_FAILED);
+        gpr460::engine->system->LogToErrorFile(gpr460::ERROR_CREATE_SDL_RENDERER_FAILED);
+        throw std::runtime_error("Failed to create Vulkan Instance");
+    }
+}
+
+void EngineVulkan::InitValidationLayers(VkInstanceCreateInfo* cInfo)
+{
     //Check if any validation layers don't exist
     if (enableValidationLayers)
     {
@@ -38,6 +68,86 @@ void dVulkan::InitVulkan(SDL_Window* window)
         }
 
         //Set CreateInfo values for validation layers
+        cInfo->enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
+        cInfo->ppEnabledLayerNames = validationLayers.data();
+    }
+    else
+    {
+        cInfo->enabledLayerCount = 0;
+    }
+}
+
+void EngineVulkan::ChoosePhysicalDevice()
+{
+    //List devices
+    uint32_t deviceCount = 0;
+    vkEnumeratePhysicalDevices(gpr460::engine->vulkanEngine.vInstance, &deviceCount, nullptr);
+
+    //Error if no GPUs can support Vulkan
+    if (deviceCount == 0)
+    {
+        throw std::runtime_error("Failed to find GPUs with Vulkan support");
+    }
+
+    //Get physical devices
+    std::vector<VkPhysicalDevice> devices(deviceCount);
+    vkEnumeratePhysicalDevices(gpr460::engine->vulkanEngine.vInstance, &deviceCount, devices.data());
+
+    std::cout << "Physical Devices:\n";
+    //Check if devices have capabilities we need
+    for (const auto& device : devices)
+    {
+        //Simply accept first valid GPU we find
+        if (CheckDevice(device))
+        {
+            physicalDevice = device;
+            break;
+        }
+    }
+
+    //If physical device not set, we didn't find a good enough GPU
+    if (physicalDevice == VK_NULL_HANDLE)
+    {
+        throw std::runtime_error("Failed to find capable GPU");
+    }
+    else
+    {
+        VkPhysicalDeviceProperties deviceProperties;
+        vkGetPhysicalDeviceProperties(physicalDevice, &deviceProperties);
+
+        std::cout << "Chosen Device:\n\t" << deviceProperties.deviceName << std::endl;
+    }
+}
+
+void EngineVulkan::CreateLogicalDevice()
+{
+    QueueFamilyIndices indices = FindQueueFamilies(physicalDevice);
+
+    //Information needed to create logical device
+    VkDeviceQueueCreateInfo queueCreateInfo{};
+    queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+    queueCreateInfo.queueFamilyIndex = indices.graphicsFamily.value();
+    queueCreateInfo.queueCount = 1;
+
+    //Required even if there is only one queue
+    float queuePriority = 1.0f;
+    queueCreateInfo.pQueuePriorities = &queuePriority;
+
+    //Info about device's features
+    VkPhysicalDeviceFeatures deviceFeatures{};
+
+    //Required create info for device
+    VkDeviceCreateInfo cInfo{};
+    cInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+    cInfo.pQueueCreateInfos = &queueCreateInfo;
+    cInfo.queueCreateInfoCount = 1;
+    cInfo.pEnabledFeatures = &deviceFeatures;
+
+    //Extension info for VkDeviceCreateInfo
+    cInfo.enabledExtensionCount = 0;
+
+    if (enableValidationLayers)
+    {
         cInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
         cInfo.ppEnabledLayerNames = validationLayers.data();
     }
@@ -46,18 +156,13 @@ void dVulkan::InitVulkan(SDL_Window* window)
         cInfo.enabledLayerCount = 0;
     }
 
-    //Pass in creation info, custom callback (which we don't need), and the actual instance
-    VkResult result = vkCreateInstance(&cInfo, nullptr, &gpr460::engine->vInstance);
-
-    if (result != VK_SUCCESS)
+    if (vkCreateDevice(physicalDevice, &cInfo, nullptr, &device) != VK_SUCCESS)
     {
-        gpr460::engine->system->ErrorMessage(gpr460::ERROR_CREATE_SDL_RENDERER_FAILED);
-        gpr460::engine->system->LogToErrorFile(gpr460::ERROR_CREATE_SDL_RENDERER_FAILED);
-        throw std::runtime_error("Failed to create Vulkan Instance");
+        throw std::runtime_error("Failed to create logical device");
     }
 }
 
-bool dVulkan::CheckValidationSupport()
+bool EngineVulkan::CheckValidationSupport()
 {
     //Get number of layers
     uint32_t layerCount;
@@ -90,4 +195,56 @@ bool dVulkan::CheckValidationSupport()
     }
 
     return true;
+}
+
+bool EngineVulkan::CheckDevice(VkPhysicalDevice device)
+{
+    //Get properties
+    VkPhysicalDeviceProperties deviceProperties;
+    vkGetPhysicalDeviceProperties(device, &deviceProperties);
+
+    std::cout << "\t" << deviceProperties.deviceName << std::endl;
+
+    //Get features
+    //VkPhysicalDeviceFeatures deviceFeatures;
+    //vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
+
+    QueueFamilyIndices indices = FindQueueFamilies(device);
+
+    //Return true if physical device is a discrete (non-integrated) GPU and has geometry shader feature
+    return deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU && indices.isComplete();
+}
+
+QueueFamilyIndices EngineVulkan::FindQueueFamilies(VkPhysicalDevice device)
+{
+    QueueFamilyIndices indices;
+
+    //Get number of queue families
+    uint32_t queueFamilyCount;
+    vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
+
+    //Get information about queue families
+    std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
+    vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
+
+    //Check each queue family and find one that supports VK_QUEUE_GRAPHICS_BIT
+    int i = 0;
+    for (const auto& queueFamily : queueFamilies)
+    {
+        //Bitwise AND to tell if it supports
+        if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT)
+        {
+            indices.graphicsFamily = i;
+        }
+
+        //Only need to find index of first queue family that supports VK_QUEUE_GRAPHICS_BIT
+        if (indices.isComplete())
+        {
+            break;
+        }
+
+        i++;
+    }
+
+    return indices;
 }

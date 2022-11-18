@@ -71,7 +71,7 @@ void Run()
     gpr460::engine->system = system;
     gpr460::engine->world = world;
 
-    dVulkan::InitVulkan(window);
+    gpr460::engine->vulkanEngine.InitVulkan(window);
 
     world->Init(window);
 
@@ -81,8 +81,8 @@ void Run()
     world->CleanUp();
     if (world)
         delete world;
-    vkDestroyInstance(gpr460::engine->vInstance, nullptr);
-    
+
+    gpr460::engine->vulkanEngine.Cleanup();
 
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
