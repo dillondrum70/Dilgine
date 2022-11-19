@@ -1,6 +1,8 @@
 #ifndef VULKAN_CONTENT_H
 #define VULKAN_CONTENT_H
 
+#define DEBUGGING
+
 #include <vector>
 #include <optional>
 
@@ -15,6 +17,13 @@ struct QueueFamilyIndices
 
 	//QueueFamilyIndices is complete if graphics family has a value (not null)
 	bool isComplete() { return graphicsFamily.has_value() && presentFamily.has_value(); }
+};
+
+struct SwapChainSupportDetails
+{
+	VkSurfaceCapabilitiesKHR capabilities;			//Minimum and maximum capabilities of swap chain
+	std::vector<VkSurfaceFormatKHR> formats;		//Surface formats
+	std::vector<VkPresentModeKHR> presentModes;		//Available presentation modes
 };
 
 class EngineVulkan
@@ -46,6 +55,16 @@ private:
 	//Represents SDL window, Vulkan is platform agnostic and this allows it to interface with an abstract surface that can render images
 	VkSurfaceKHR surface;
 
+	//Swapchain object
+	VkSwapchainKHR swapChain;
+
+	//Images in swap chain that are referenced during rendering
+	std::vector<VkImage> swapChainImages;
+
+	//store swap chain image info
+	VkFormat swapChainImageFormat;
+	VkExtent2D swapChainExtent;
+
 	//Validation layers to enable
 	const std::vector<const char*> validationLayers = { "VK_LAYER_KHRONOS_validation" };
 
@@ -53,17 +72,18 @@ private:
 	const std::vector<const char*> deviceExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 
 	//Only use validation layers if not debugging, can just define this macro to turn them off
-#ifndef NDEBUG
+#ifndef DEBUGGING
 	const bool enableValidationLayers = false;
 #else
-	cosnt bool enableValidationLayers = true;
+	const bool enableValidationLayers = true;
 #endif
 
-	void CreateInstance(SDL_Window* window);			//Instance everything is done with
+	void CreateInstance(SDL_Window* window);				//Instance everything is done with
+	void CreateSurface(SDL_Window* window);					//Platform agnostic representation of actual window that is drawn to
 	void InitValidationLayers(VkInstanceCreateInfo* cInfo);	//Debugging symbols
-	void ChoosePhysicalDevice();	//Choose which GPU to use, must support everything we need
-	void CreateLogicalDevice();		//Create logical interface
-	void CreateSurface(SDL_Window* window);
+	void ChoosePhysicalDevice();							//Choose which GPU to use, must support everything we need
+	void CreateLogicalDevice();								//Create logical interface
+	void CreateSwapChain(SDL_Window* window);				//Determine and create parameters for drawing
 
 	//Check if validation layers are supported
 	bool CheckValidationSupport();
@@ -74,6 +94,18 @@ private:
 
 	//Find queue families supported by device
 	QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice device);
+
+	//Populate SwapChainSupportDetails
+	SwapChainSupportDetails QuerySwapChainSupport(VkPhysicalDevice device);
+
+	//Determine surface format
+	VkSurfaceFormatKHR ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR> &availableFormats);
+
+	//Determine best present mode
+	VkPresentModeKHR ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
+
+	//Choosing resolution of swap chain images
+	VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, SDL_Window* window);
 };
 
 #endif

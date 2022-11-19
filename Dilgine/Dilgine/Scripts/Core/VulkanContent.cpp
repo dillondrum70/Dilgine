@@ -3,24 +3,41 @@
 #include "System.h"
 
 #include <set>
+#include <cstdint>
+#include <limits>
+#include <algorithm>
 
 void EngineVulkan::Cleanup()
 {
+    vkDestroySwapchainKHR(logicalDevice, swapChain, nullptr);
     vkDestroySurfaceKHR(vInstance, surface, nullptr);
     vkDestroyDevice(logicalDevice, nullptr);
     vkDestroyInstance(vInstance, nullptr);
 }
 
+
 void EngineVulkan::InitVulkan(SDL_Window* window)
 {
+    std::cout << "\n------------------------------\n\n";
+    std::cout << "Initializing Vulkan...\n";
+    std::cout << "\n------------------------------\n\n";
+
     CreateInstance(window);
-
+    std::cout << "Vulkan Instance Initialized...\n";
     CreateSurface(window);
-
+    std::cout << "Vulkan Surface Initialized...\n";
     ChoosePhysicalDevice();
-
+    std::cout << "Physical Device Initialized...\n";
     CreateLogicalDevice();
+    std::cout << "Logical Device Initialized...\n";
+    CreateSwapChain(window);
+    std::cout << "Swap Chain Initialized...\n";
+
+    std::cout << "\n------------------------------\n\n";
+    std::cout << "Vulkan Initialization Complete\n";
+    std::cout << "\n------------------------------\n\n";
 }
+
 
 void EngineVulkan::CreateInstance(SDL_Window* window)
 {
@@ -46,13 +63,27 @@ void EngineVulkan::CreateInstance(SDL_Window* window)
     SDL_Vulkan_GetInstanceExtensions(window, &sdlExtensionCount, nullptr);
 
     //Get actual extensions from SDL
-    std::vector<const char*> sdlExtensions; //can add additional extensions to this
-    size_t additionalExstensionCount = 0;
-    sdlExtensions.resize(additionalExstensionCount + sdlExtensionCount);
-    SDL_Vulkan_GetInstanceExtensions(window, &sdlExtensionCount, sdlExtensions.data() + additionalExstensionCount);
+    std::vector<const char*> sdlExtensions(sdlExtensionCount); //can add additional extensions to this
+    //size_t additionalExstensionCount = 0;
+
+    //sdlExtensions.resize(/*additionalExstensionCount + */ sdlExtensionCount);
+    SDL_Vulkan_GetInstanceExtensions(window, &sdlExtensionCount, sdlExtensions.data() /* + additionalExstensionCount*/);
+
+    if (enableValidationLayers)
+    {
+        sdlExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+        //additionalExstensionCount++;
+        sdlExtensionCount++;
+    }
+
+    std::cout << "Required Extensions:\n";
+    for (const auto& extension : sdlExtensions)
+    {
+        std::cout << "\t" << extension << std::endl;
+    }
 
     //Pass to Create Info struct
-    cInfo.enabledExtensionCount = sdlExtensionCount;
+    cInfo.enabledExtensionCount = sdlExtensionCount /* + additionalExstensionCount*/;
     cInfo.ppEnabledExtensionNames = sdlExtensions.data();
 
     InitValidationLayers(&cInfo);
@@ -67,6 +98,19 @@ void EngineVulkan::CreateInstance(SDL_Window* window)
         throw std::runtime_error("Failed to create Vulkan Instance");
     }
 }
+
+
+void EngineVulkan::CreateSurface(SDL_Window* window)
+{
+    //SDL's implementation of creating a Vulkan surface
+    if (SDL_Vulkan_CreateSurface(window, vInstance, &surface) == SDL_FALSE)
+    {
+        gpr460::engine->system->ErrorMessage(gpr460::ERROR_CREATE_SURFACE_FAILED);
+        gpr460::engine->system->LogToErrorFile(gpr460::ERROR_CREATE_SURFACE_FAILED);
+        throw std::runtime_error("Failed to create window surface");
+    }
+}
+
 
 void EngineVulkan::InitValidationLayers(VkInstanceCreateInfo* cInfo)
 {
@@ -90,6 +134,7 @@ void EngineVulkan::InitValidationLayers(VkInstanceCreateInfo* cInfo)
         cInfo->enabledLayerCount = 0;
     }
 }
+
 
 void EngineVulkan::ChoosePhysicalDevice()
 {
@@ -136,6 +181,7 @@ void EngineVulkan::ChoosePhysicalDevice()
         std::cout << "Chosen Device:\n\t" << deviceProperties.deviceName << std::endl;
     }
 }
+
 
 void EngineVulkan::CreateLogicalDevice()
 {
@@ -197,16 +243,89 @@ void EngineVulkan::CreateLogicalDevice()
     vkGetDeviceQueue(logicalDevice, indices.presentFamily.value(), 0, &presentQueue);
 }
 
-void EngineVulkan::CreateSurface(SDL_Window* window)
+
+void EngineVulkan::CreateSwapChain(SDL_Window* window)
 {
-    //SDL's implementation of creating a Vulkan surface
-    if (SDL_Vulkan_CreateSurface(window, vInstance, &surface) == SDL_FALSE)
+    //Get details supported by swap chain necessary to determine other factors
+    SwapChainSupportDetails swapChainSupport = QuerySwapChainSupport(physicalDevice);
+
+    //Choose/determine different swap chain details
+    VkSurfaceFormatKHR surfaceFormat = ChooseSwapSurfaceFormat(swapChainSupport.formats);
+    VkPresentModeKHR presentMode = ChooseSwapPresentMode(swapChainSupport.presentModes);
+    VkExtent2D extent = ChooseSwapExtent(swapChainSupport.capabilities, window);
+
+    //Save this data to member variables for later use
+    swapChainImageFormat = surfaceFormat.format;
+    swapChainExtent = extent;
+
+    //Request one more image than minimum so we don't have to wait for driver to complete inernal operations before getting another image
+    uint32_t imageCount = swapChainSupport.capabilities.minImageCount + 1;
+
+    //Ensure we do not exceed maximum image count
+    if (swapChainSupport.capabilities.maxImageCount > 0 && imageCount > swapChainSupport.capabilities.maxImageCount)
     {
-        gpr460::engine->system->ErrorMessage(gpr460::ERROR_CREATE_SURFAE_FAILED);
-        gpr460::engine->system->LogToErrorFile(gpr460::ERROR_CREATE_SURFAE_FAILED);
-        throw std::runtime_error("Failed to create window surface");
+        imageCount = swapChainSupport.capabilities.maxImageCount;
     }
+
+    //Declare create info for swapchain based on previously determined data
+    VkSwapchainCreateInfoKHR cInfo{};
+    cInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+    cInfo.surface = surface;
+    cInfo.minImageCount = imageCount;
+    cInfo.imageFormat = surfaceFormat.format;
+    cInfo.imageColorSpace = surfaceFormat.colorSpace;
+    cInfo.imageExtent = extent;
+    cInfo.imageArrayLayers = 1;
+    cInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+
+    //Get queue families and their indices
+    QueueFamilyIndices indices = FindQueueFamilies(physicalDevice);
+    uint32_t queueFamilyIndices[] = { indices.graphicsFamily.value(), indices.presentFamily.value() };
+
+    //if graphics family and present family are not on the same index, we must draw to one queue then submit to the other (VK_SHARING_MODE_CONCURRENT)
+    if (indices.graphicsFamily != indices.presentFamily)
+    {
+        cInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;    //Ownership of image does not need to be transferred to be used in a different queue
+        cInfo.queueFamilyIndexCount = 2;
+        cInfo.pQueueFamilyIndices = queueFamilyIndices;
+    }
+    else //Otherwise, if they are at the same index, no submission to other queues is necessary (VK_SHARING_MODE_EXCLUSIVE)
+    {
+        //One queue family maintains ownership of image
+        cInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+        //These are optional values
+        cInfo.queueFamilyIndexCount = 0;
+        cInfo.pQueueFamilyIndices = nullptr;
+    }
+
+    //Specify default parameters for how images should be transformed in the swap chain
+    cInfo.preTransform = swapChainSupport.capabilities.currentTransform;
+
+    //Specifies that alpha channel of images in swap chain should be opaque
+    cInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+
+    //Ignore non-visible regions
+    cInfo.clipped = VK_TRUE;
+
+    //Sometimes last swap chain is necessary if swap chain becomes invalid, we don't need it
+    cInfo.oldSwapchain = VK_NULL_HANDLE;
+
+    if (vkCreateSwapchainKHR(logicalDevice, &cInfo, nullptr, &swapChain) != VK_SUCCESS)
+    {
+        gpr460::engine->system->ErrorMessage(gpr460::ERROR_CREATE_SWAPCHAIN_FAILED);
+        gpr460::engine->system->LogToErrorFile(gpr460::ERROR_CREATE_SWAPCHAIN_FAILED);
+        throw std::runtime_error("Failed to create swapchain");
+    }
+
+    //Get count of swapchain images
+    vkGetSwapchainImagesKHR(logicalDevice, swapChain, &imageCount, nullptr);
+
+    //Resize vector of swapchain images to new count and get actual images
+    swapChainImages.resize(imageCount);
+    vkGetSwapchainImagesKHR(logicalDevice, swapChain, &imageCount, swapChainImages.data());
 }
+
 
 bool EngineVulkan::CheckValidationSupport()
 {
@@ -218,9 +337,18 @@ bool EngineVulkan::CheckValidationSupport()
     std::vector<VkLayerProperties> availableLayers(layerCount);
     vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
 
+    std::cout << "Layer Properties:\n";
+    for (const auto& layerProperties : availableLayers)
+    {
+        std::cout << "\t" << layerProperties.layerName << std::endl;
+    }
+
+    std::cout << "Desired Validation Layers:\n";
     //Loop through and check if all layers exist
     for (const char* layerName : validationLayers)
     {
+        std::cout << "\t" << layerName << std::endl;
+
         bool layerFound = false;
 
         //Actual check to see if layer existss
@@ -243,6 +371,7 @@ bool EngineVulkan::CheckValidationSupport()
     return true;
 }
 
+
 bool EngineVulkan::CheckDevice(VkPhysicalDevice device)
 {
     //Get properties
@@ -257,9 +386,38 @@ bool EngineVulkan::CheckDevice(VkPhysicalDevice device)
 
     QueueFamilyIndices indices = FindQueueFamilies(device);
 
+    if (!indices.isComplete())
+    {
+        gpr460::engine->system->ErrorMessage(gpr460::ERROR_QUEUE_FAMILY_INCOMPLETE);
+        gpr460::engine->system->LogToErrorFile(gpr460::ERROR_QUEUE_FAMILY_INCOMPLETE);
+    }
+
+    //Check if extensions are supported
+    bool extensionSupported = CheckDeviceExtensionSupport(device);
+
+    //Check that swap chain returns values in formats and presentModes
+    bool swapChainCapable = false;
+    if (extensionSupported)
+    {
+        SwapChainSupportDetails swapChainSupport = QuerySwapChainSupport(device);
+        swapChainCapable = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
+    }
+    else
+    {
+        gpr460::engine->system->ErrorMessage(gpr460::ERROR_EXTENSIONS_UNSUPPORTED);
+        gpr460::engine->system->LogToErrorFile(gpr460::ERROR_EXTENSIONS_UNSUPPORTED);
+    }
+
+    if (!swapChainCapable)
+    {
+        gpr460::engine->system->ErrorMessage(gpr460::ERROR_SWAP_CHAIN_INADEQUATE);
+        gpr460::engine->system->LogToErrorFile(gpr460::ERROR_SWAP_CHAIN_INADEQUATE);
+    }
+
     //Return true if physical device is a discrete (non-integrated) GPU and has geometry shader feature
-    return deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU && indices.isComplete();
+    return indices.isComplete() && extensionSupported && swapChainCapable;
 }
+
 
 bool EngineVulkan::CheckDeviceExtensionSupport(VkPhysicalDevice device)
 {
@@ -280,9 +438,23 @@ bool EngineVulkan::CheckDeviceExtensionSupport(VkPhysicalDevice device)
         requiredExtensions.erase(extension.extensionName);
     }
 
+    if (requiredExtensions.empty())
+    {
+        std::cout << "All required extensions accounted for\n";
+    }
+    else
+    {
+        std::cout << "Missing Extensions:\n";
+        for (const auto& extension : requiredExtensions)
+        {
+            std::cout << "\t" << extension << std::endl;
+        }
+    }
+
     //If required extensions list is not empty, we have not found everything we need
     return requiredExtensions.empty();
 }
+
 
 QueueFamilyIndices EngineVulkan::FindQueueFamilies(VkPhysicalDevice device)
 {
@@ -325,5 +497,103 @@ QueueFamilyIndices EngineVulkan::FindQueueFamilies(VkPhysicalDevice device)
         i++;
     }
 
+    if (!indices.graphicsFamily.has_value())
+    {
+        std::cout << "Missing graphics family queue\n";
+    }
+    if (!indices.presentFamily.has_value())
+    {
+        std::cout << "Missing present family queue\n";
+    }
+
     return indices;
+}
+
+
+SwapChainSupportDetails EngineVulkan::QuerySwapChainSupport(VkPhysicalDevice device)
+{
+    SwapChainSupportDetails details;
+
+    //Gets capabilities of physical device
+    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &details.capabilities);
+
+    //Check number of formats
+    uint32_t formatCount;
+    vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, nullptr);
+
+    //Get actual formats from GPU
+    if (formatCount != 0)
+    {
+        details.formats.resize(formatCount);
+        vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, details.formats.data());
+    }
+
+    //Get number of present modes
+    uint32_t presentModeCount;
+    vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentModeCount, nullptr);
+
+    //Populate vector of present modes given the count
+    if (presentModeCount != 0)
+    {
+        details.presentModes.resize(presentModeCount);
+        vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentModeCount, details.presentModes.data());
+    }
+
+    return details;
+}
+
+
+VkSurfaceFormatKHR EngineVulkan::ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
+{
+    //Find first format that meets desired parameters for format and color space
+    for (const auto& availableFormat : availableFormats)
+    {
+        if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
+        {
+            return availableFormat;
+        }
+    }
+
+    //If none meet preferences, just take first format
+    return availableFormats[0];
+}
+
+
+VkPresentModeKHR EngineVulkan::ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes)
+{
+    //Check if tripler buffering (VK_PRESENT_MODE_MAILBOX_KHR) is available
+    for (const auto& availablePresentMode : availablePresentModes)
+    {
+        if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR)
+        {
+            return availablePresentMode;
+        }
+    }
+
+    //Guaranteed to be available
+    return VK_PRESENT_MODE_FIFO_KHR;
+}
+
+
+VkExtent2D EngineVulkan::ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, SDL_Window* window)
+{
+    //If width is at max value, this means Vulkan is allowing us to set the width and height in pixels
+    if (capabilities.currentExtent.width != UINT32_MAX)
+    {
+        return capabilities.currentExtent;
+    }
+    else
+    {
+        //Get actual size of window in pixels from SDL
+        int width, height;
+        SDL_GetWindowSize(window, &width, &height);
+
+        VkExtent2D actualExtent = { static_cast<uint32_t>(width), static_cast<uint32_t>(height) };
+
+        //Clamp width and height between the minimum and maximum values supported by the GPU
+        actualExtent.width = std::clamp(actualExtent.width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width);
+        actualExtent.width = std::clamp(actualExtent.height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height);
+
+        return actualExtent;
+    }
 }

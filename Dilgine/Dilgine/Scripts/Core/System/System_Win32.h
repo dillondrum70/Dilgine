@@ -29,8 +29,12 @@ namespace gpr460
 	const gpr460::string ERROR_VALIDATION_LAYER_DNE = L"Error: One or more validation layers were not found";
 	const gpr460::string ERROR_NO_GPU_VULKAN_SUPPORT = L"Error: Failed to find GPUs with Vulkan support";
 	const gpr460::string ERROR_NO_CAPABLE_GPU = L"Error: Failed to find capable GPU";
+	const gpr460::string ERROR_QUEUE_FAMILY_INCOMPLETE = L"Error: Queue families incomplete";
+	const gpr460::string ERROR_EXTENSIONS_UNSUPPORTED = L"Error: One or more extensions are not supported";
+	const gpr460::string ERROR_SWAP_CHAIN_INADEQUATE = L"Error: Swap chain is inadequate";
 	const gpr460::string ERROR_CREATE_LOGICAL_DEVICE_FAILED = L"Error: Creation of Vulkan logical device failed";
-	const gpr460::string ERROR_CREATE_SURFAE_FAILED = L"Error: Creation of Vulkan surface failed";
+	const gpr460::string ERROR_CREATE_SURFACE_FAILED = L"Error: Creation of Vulkan surface failed";
+	const gpr460::string ERROR_CREATE_SWAPCHAIN_FAILED = L"Error: Creation of Vulkan swapchain failed";
 
 	const gpr460::string ERROR_MISSING_GAMEOBJECT_REFERENCE = L"Error: Missing Reference to GameObject";
 	const gpr460::string ERROR_MISSING_TRANSFORM_REFERENCE = L"Error: Missing Reference to Transform Component";

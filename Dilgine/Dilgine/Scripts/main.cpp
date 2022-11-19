@@ -143,16 +143,16 @@ void frameStep()
 
         if (event.type == SDL_KEYDOWN)
         {
-            std::cout << "Key pressed!\n";
-            if (event.key.keysym.sym == SDLK_k)
-            {
-                std::cout << "K pressed!\n";
+            //std::cout << "Key pressed!\n";
+            //if (event.key.keysym.sym == SDLK_k)
+            //{
+            //    std::cout << "K pressed!\n";
 
-                // TODO: Add calls to ErrorMessage and LogToErrorFile here
-                gpr460::engine->system->ErrorMessage(gpr460::ERROR_PRESSED_K);
-                gpr460::engine->system->LogToErrorFile(gpr460::ERROR_PRESSED_K);
-                // DONE
-            }
+            //    // TODO: Add calls to ErrorMessage and LogToErrorFile here
+            //    gpr460::engine->system->ErrorMessage(gpr460::ERROR_PRESSED_K);
+            //    gpr460::engine->system->LogToErrorFile(gpr460::ERROR_PRESSED_K);
+            //    // DONE
+            //}
             if (event.key.keysym.sym == SDLK_ESCAPE)
             {
                 gpr460::engine->quit = true;
