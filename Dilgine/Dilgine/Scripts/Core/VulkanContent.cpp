@@ -9,6 +9,10 @@
 
 void EngineVulkan::Cleanup()
 {
+    if (enableValidationLayers) {
+        DestroyDebugUtilsMessengerEXT(vInstance, debugMessenger, nullptr);
+    }
+
     vkDestroySwapchainKHR(logicalDevice, swapChain, nullptr);
     vkDestroySurfaceKHR(vInstance, surface, nullptr);
     vkDestroyDevice(logicalDevice, nullptr);
@@ -24,6 +28,8 @@ void EngineVulkan::InitVulkan(SDL_Window* window)
 
     CreateInstance(window);
     std::cout << "Vulkan Instance Initialized...\n";
+    CreateDebugMessenger();
+    std::cout << "Debug Messenger Initialized...\n";
     CreateSurface(window);
     std::cout << "Vulkan Surface Initialized...\n";
     ChoosePhysicalDevice();
@@ -86,7 +92,25 @@ void EngineVulkan::CreateInstance(SDL_Window* window)
     cInfo.enabledExtensionCount = sdlExtensionCount /* + additionalExstensionCount*/;
     cInfo.ppEnabledExtensionNames = sdlExtensions.data();
 
+    //Initialize validation layers
     InitValidationLayers(&cInfo);
+
+    //Set instance create info data for debug messenger if validation layers enabled
+    VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
+    if (enableValidationLayers)
+    {
+        cInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
+        cInfo.ppEnabledLayerNames = validationLayers.data();
+
+        PopulateDebugMessengerCreateInfo(debugCreateInfo);
+        cInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*)&debugCreateInfo;
+    }
+    else
+    {
+        cInfo.enabledLayerCount = 0;
+
+        cInfo.pNext = nullptr;
+    }
 
     //Pass in creation info, custom callback (which we don't need), and the actual instance
     VkResult result = vkCreateInstance(&cInfo, nullptr, &vInstance);
@@ -96,6 +120,65 @@ void EngineVulkan::CreateInstance(SDL_Window* window)
         gpr460::engine->system->ErrorMessage(gpr460::ERROR_CREATE_SDL_RENDERER_FAILED);
         gpr460::engine->system->LogToErrorFile(gpr460::ERROR_CREATE_SDL_RENDERER_FAILED);
         throw std::runtime_error("Failed to create Vulkan Instance");
+    }
+}
+
+
+VKAPI_ATTR VkBool32 VKAPI_CALL EngineVulkan::DebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+    VkDebugUtilsMessageTypeFlagsEXT messageType, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData)
+{
+    std::cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
+
+    return VK_FALSE;
+}
+
+
+void EngineVulkan::CreateDebugMessenger()
+{
+    if (!enableValidationLayers) return;
+
+    //Create info for debug messenger, specify callback function that writes to console
+    VkDebugUtilsMessengerCreateInfoEXT createInfo{};
+    
+
+    if (CreateDebugUtilsMessengerEXT(vInstance, &createInfo, nullptr, &debugMessenger) != VK_SUCCESS) {
+        gpr460::engine->system->ErrorMessage(gpr460::ERROR_CREATE_DEBUG_MESSENGER_FAILED);
+        gpr460::engine->system->LogToErrorFile(gpr460::ERROR_CREATE_DEBUG_MESSENGER_FAILED);
+        throw std::runtime_error("Failed to set up debug messenger");
+    }
+}
+
+void EngineVulkan::PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT &createInfo)
+{
+    createInfo = {};
+    createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+    createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+    createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+    createInfo.pfnUserCallback = DebugCallback;
+    createInfo.pUserData = nullptr;
+}
+
+
+VkResult EngineVulkan::CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger) 
+{
+    //Create the debug messenger
+    auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
+    if (func != nullptr) {
+        return func(instance, pCreateInfo, pAllocator, pDebugMessenger);
+    }
+    else {
+        return VK_ERROR_EXTENSION_NOT_PRESENT;
+    }
+}
+
+
+void EngineVulkan::DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator) 
+{
+    //Destroy messenger if it exists
+    auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
+    if (func != nullptr) {
+        func(instance, debugMessenger, pAllocator);
     }
 }
 

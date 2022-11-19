@@ -16,6 +16,7 @@ namespace gpr460 {
 	const gpr460::string ERROR_CREATE_SDL_RENDERER_FAILED = "Error: Creation of SDL_Renderer failed";
 
 	const gpr460::string ERROR_CREATE_VULKAN_INSTANCE_FAILED = "Error: Creation of Vulkan Instance failed";
+	const gpr460::string ERROR_CREATE_DEBUG_MESSENGER_FAILED = "Error: Creation of Vulkan Debug Messenger failed";
 	const gpr460::string ERROR_VALIDATION_LAYER_DNE = "Error: One or more validation layers were not found";
 	const gpr460::string ERROR_NO_GPU_VULKAN_SUPPORT = "Error: Failed to find GPUs with Vulkan support";
 	const gpr460::string ERROR_NO_CAPABLE_GPU = "Error: Failed to find capable GPU";

@@ -40,6 +40,8 @@ public:
 
 private:
 
+	VkDebugUtilsMessengerEXT debugMessenger;
+
 	//Physical graphics card Vulkan will use
 	VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
 
@@ -79,6 +81,7 @@ private:
 #endif
 
 	void CreateInstance(SDL_Window* window);				//Instance everything is done with
+	void CreateDebugMessenger();							//Create messenger for printing validation layer errors
 	void CreateSurface(SDL_Window* window);					//Platform agnostic representation of actual window that is drawn to
 	void InitValidationLayers(VkInstanceCreateInfo* cInfo);	//Debugging symbols
 	void ChoosePhysicalDevice();							//Choose which GPU to use, must support everything we need
@@ -88,6 +91,19 @@ private:
 	//Check if validation layers are supported
 	bool CheckValidationSupport();
 
+	//Callback function for debug messaging
+	static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+		VkDebugUtilsMessageTypeFlagsEXT messageType, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData);
+
+	//Create debug messensger object
+	VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
+		const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger);
+
+	//Populate debug create info struct
+	void PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
+
+	//Destroy debug messenger
+	void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator);
 	
 	bool CheckDevice(VkPhysicalDevice device); //Check properties and supporting features of the passed GPU
 	bool CheckDeviceExtensionSupport(VkPhysicalDevice device);//Check for extension support on a device

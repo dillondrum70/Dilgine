@@ -26,6 +26,7 @@ namespace gpr460
 
 	//Vulkan Errors
 	const gpr460::string ERROR_CREATE_VULKAN_INSTANCE_FAILED = L"Error: Creation of Vulkan Instance failed";
+	const gpr460::string ERROR_CREATE_DEBUG_MESSENGER_FAILED = L"Error: Creation of Vulkan Debug Messenger failed";
 	const gpr460::string ERROR_VALIDATION_LAYER_DNE = L"Error: One or more validation layers were not found";
 	const gpr460::string ERROR_NO_GPU_VULKAN_SUPPORT = L"Error: Failed to find GPUs with Vulkan support";
 	const gpr460::string ERROR_NO_CAPABLE_GPU = L"Error: Failed to find capable GPU";

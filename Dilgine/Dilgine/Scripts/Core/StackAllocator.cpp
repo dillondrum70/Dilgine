@@ -5,12 +5,12 @@ StackAllocator::StackAllocator() :buffer(DBG_NEW char[1024 * 1024 * STACK_BUFFER
 
 StackAllocator::~StackAllocator()
 {
-	/*if (buffer)
+	if (buffer)
 	{
 		delete buffer;
 	}
 	buffer = nullptr;
-	if (base)
+	/*if (base)
 	{
 		delete base;
 	}
