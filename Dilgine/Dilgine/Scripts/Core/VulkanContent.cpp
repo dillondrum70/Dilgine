@@ -9,18 +9,28 @@
 
 void EngineVulkan::Cleanup()
 {
+    for (auto framebuffer : swapChainFramebuffers)
+    {
+        vkDestroyFramebuffer(logicalDevice, framebuffer, nullptr);
+    }
+
+    vkDestroyPipeline(logicalDevice, graphicsPipeline, nullptr);
+    vkDestroyPipelineLayout(logicalDevice, pipelineLayout, nullptr);
+    vkDestroyRenderPass(logicalDevice, renderPass, nullptr);
+
     for (auto imageView : swapChainImageViews)
     {
         vkDestroyImageView(logicalDevice, imageView, nullptr);
     }
 
+    vkDestroySwapchainKHR(logicalDevice, swapChain, nullptr);
+    vkDestroyDevice(logicalDevice, nullptr);
+
     if (enableValidationLayers) {
         DestroyDebugUtilsMessengerEXT(vInstance, debugMessenger, nullptr);
     }
-
-    vkDestroySwapchainKHR(logicalDevice, swapChain, nullptr);
+    
     vkDestroySurfaceKHR(vInstance, surface, nullptr);
-    vkDestroyDevice(logicalDevice, nullptr);
     vkDestroyInstance(vInstance, nullptr);
 }
 
@@ -58,6 +68,10 @@ void EngineVulkan::InitVulkan(SDL_Window* window)
     std::cout << "Initializing Image Views...\n";
     CreateImageViews();
     std::cout << "Image Views Initialized...\n\n";
+    
+    std::cout << "Initializing Render Pass...\n";
+    CreateRenderPass();
+    std::cout << "Render Pass Initialized...\n\n";
 
     std::cout << "Initializing Graphics Pipeline...\n";
     CreateGraphicsPipeline();
@@ -471,6 +485,49 @@ void EngineVulkan::CreateImageViews()
 }
 
 
+void EngineVulkan::CreateRenderPass()
+{
+    VkAttachmentDescription colorAttachment{};
+    colorAttachment.format = swapChainImageFormat;      //Format should match swap chain
+    colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;    //Not multisampling
+    //Determines how data is loaded
+    colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;   //Existing contents of attachment of preserved
+    //Determines how data is stored
+    colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE; //Rendering contents stored in memory and read later
+    //Don't care about stencil load and store, we don't have a stencil buffer
+    colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;  //Images are presented in swap chain
+
+    //Referenced by a subpass
+    VkAttachmentReference colorAttachmentRef{};
+    colorAttachmentRef.attachment = 0;
+    colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+    //A subpass relies on input from last subpass to alter rendering somehow, we just do one
+    VkSubpassDescription subpass{};
+    subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+    subpass.colorAttachmentCount = 1;
+    subpass.pColorAttachments = &colorAttachmentRef;
+
+    VkRenderPassCreateInfo renderPassInfo{};
+    renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+    renderPassInfo.attachmentCount = 1;
+    renderPassInfo.pAttachments = &colorAttachment;
+    renderPassInfo.subpassCount = 1;
+    renderPassInfo.pSubpasses = &subpass;
+
+    if (vkCreateRenderPass(logicalDevice, &renderPassInfo, nullptr, &renderPass) != VK_SUCCESS)
+    {
+        gpr460::engine->system->ErrorMessage(gpr460::ERROR_CREATE_RENDER_PASS_FAILED);
+        gpr460::engine->system->LogToErrorFile(gpr460::ERROR_CREATE_RENDER_PASS_FAILED);
+        throw std::runtime_error("Failed to create render pass");
+    }
+
+}
+
+
 void EngineVulkan::CreateGraphicsPipeline()
 {
     //Read bytecode data in from shader files
@@ -500,9 +557,187 @@ void EngineVulkan::CreateGraphicsPipeline()
     //Array containing all shader stage creation info
     VkPipelineShaderStageCreateInfo shaderStages[] = { vertShaderStageInfo, fragShaderStageInfo };
 
+    //Vertex input state info tells us formtat of vertex data passed to vertex shader
+    VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
+    vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+    vertexInputInfo.vertexBindingDescriptionCount = 0;
+    //vertexInputInfo.pVertexBindingDescriptions = nullptr;
+    vertexInputInfo.vertexAttributeDescriptionCount = 0;
+    //vertexInputInfo.pVertexAttributeDescriptions = nullptr;
+
+    //Define kind of geometery to be drawn and if primitive restart should be enabled
+    VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
+    inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+    inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;   //List of verticies, every 3 is an individual triangle
+    inputAssembly.primitiveRestartEnable = VK_FALSE;
+
+    //Region of framebuffer output is rendered to
+    VkViewport viewport{};
+    viewport.x = 0.0;
+    viewport.y = 0.0;
+    viewport.width = (float)swapChainExtent.width;
+    viewport.height = (float)swapChainExtent.height;
+    viewport.minDepth = 0.0f;
+    viewport.maxDepth = 1.0f;
+
+    //Region of the framebuffer to rasterize
+    VkRect2D scissor{};
+    scissor.offset = { 0,0 };
+    scissor.extent = swapChainExtent;
+
+    //Define viewport state info
+    VkPipelineViewportStateCreateInfo viewportState{};
+    viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+    viewportState.viewportCount = 1;
+    viewportState.pViewports = &viewport;
+    viewportState.scissorCount = 1;
+    viewportState.pScissors = &scissor;
+
+    //Rasterizer - turns geometry into fragments (pixels) that can be fed into fragment shader
+    VkPipelineRasterizationStateCreateInfo rasterizer{};
+    rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+    rasterizer.depthClampEnable = VK_FALSE; //If true, frgaments beyond near and far planes are clamped to them, discarded if false
+    rasterizer.rasterizerDiscardEnable = VK_FALSE;  //If true, no geometry passed to rasterizer, framebuffer output essentially disabled
+    rasterizer.polygonMode = VK_POLYGON_MODE_FILL;  //Polygon area filled with fragments (can be drawn as points or lines but need to enable GPU feature)
+    rasterizer.lineWidth = 1.0f;    //Number of fragments makes line thicker
+    rasterizer.cullMode = VK_CULL_MODE_BACK_BIT; //cull back faces
+    rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE; //Vertices defined clockwise from our current viewpoint are front-facing
+    rasterizer.depthBiasEnable = VK_FALSE;      //If true, you can modify depth values
+    rasterizer.depthBiasConstantFactor = 0.0f;
+    rasterizer.depthBiasClamp = 0.0f;
+    rasterizer.depthBiasSlopeFactor = 0.0f;
+
+    //Multisampling, used in anti-aliasing to blend colors from multiple polygons into one pixel, requires enabling GPU feature
+    VkPipelineMultisampleStateCreateInfo multisampling{};
+    multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+    multisampling.sampleShadingEnable = VK_FALSE;
+    multisampling.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+    multisampling.minSampleShading = 1.0f;
+    multisampling.pSampleMask = nullptr;
+    multisampling.alphaToCoverageEnable = VK_FALSE;
+    multisampling.alphaToOneEnable = VK_FALSE;
+
+    //Color blending - blend fragment shader pixel color with current pixel color, must be passed to blend state
+    VkPipelineColorBlendAttachmentState colorBlendAttachment{};
+    colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | 
+        VK_COLOR_COMPONENT_A_BIT;   //Blend all color channels
+    //Enable blending
+    colorBlendAttachment.blendEnable = VK_TRUE;
+    colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+    colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+    colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
+    colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+    colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+    colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
+
+    VkPipelineColorBlendStateCreateInfo colorBlending{};
+    colorBlending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+    colorBlending.logicOpEnable = VK_FALSE;
+    colorBlending.logicOp = VK_LOGIC_OP_COPY;
+    colorBlending.attachmentCount = 1;
+    colorBlending.pAttachments = &colorBlendAttachment;
+    colorBlending.blendConstants[0] = 0.0f;
+    colorBlending.blendConstants[1] = 0.0f;
+    colorBlending.blendConstants[2] = 0.0f;
+    colorBlending.blendConstants[3] = 0.0f;
+
+    //Dynamic states allow us to change certain properties without recreating the pipeline
+    std::vector<VkDynamicState> dynamicStates = {
+        VK_DYNAMIC_STATE_VIEWPORT,
+        VK_DYNAMIC_STATE_SCISSOR
+    };
+
+    VkPipelineDynamicStateCreateInfo dynamicState{};
+    dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+    dynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
+    dynamicState.pDynamicStates = dynamicStates.data();
+
+    //Info for creating pipeline layout
+    VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
+    pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+    pipelineLayoutInfo.setLayoutCount = 0;
+    pipelineLayoutInfo.pSetLayouts = nullptr;
+    pipelineLayoutInfo.pushConstantRangeCount = 0;
+    pipelineLayoutInfo.pPushConstantRanges = nullptr;
+
+    //Create pipeline layout
+    if (vkCreatePipelineLayout(logicalDevice, &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS)
+    {
+        gpr460::engine->system->ErrorMessage(gpr460::ERROR_CREATE_PIPELINE_LAYOUT_FAILED);
+        gpr460::engine->system->LogToErrorFile(gpr460::ERROR_CREATE_PIPELINE_LAYOUT_FAILED);
+        throw std::runtime_error("Failed to create pipeline layout");
+    }
+
+    //Pass in all info structs and other objects into graphics pipeline info
+    VkGraphicsPipelineCreateInfo pipelineInfo{};
+    pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+    pipelineInfo.stageCount = 2;
+    pipelineInfo.pStages = shaderStages;
+    pipelineInfo.pVertexInputState = &vertexInputInfo;
+    pipelineInfo.pInputAssemblyState = &inputAssembly;
+    pipelineInfo.pViewportState = &viewportState;
+    pipelineInfo.pRasterizationState = &rasterizer;
+    pipelineInfo.pMultisampleState = &multisampling;
+    pipelineInfo.pDepthStencilState = nullptr;          //Not using stencil buffers
+    pipelineInfo.pColorBlendState = &colorBlending;
+    pipelineInfo.pDynamicState = &dynamicState;
+    pipelineInfo.layout = pipelineLayout;
+    pipelineInfo.renderPass = renderPass;
+    pipelineInfo.subpass = 0;
+    pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
+    pipelineInfo.basePipelineIndex = -1;
+
+    //We can pass multiple pipeline infos and create multiple in one call if we want to
+    if (vkCreateGraphicsPipelines(logicalDevice, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline) != VK_SUCCESS)
+    {
+        gpr460::engine->system->ErrorMessage(gpr460::ERROR_CREATE_PIPELINE_FAILED);
+        gpr460::engine->system->LogToErrorFile(gpr460::ERROR_CREATE_PIPELINE_FAILED);
+        throw std::runtime_error("Failed to create graphics pipeline");
+    }
+
     //Destroy shader modules at end of function, no longer needed
     vkDestroyShaderModule(logicalDevice, fragShaderModule, nullptr);
     vkDestroyShaderModule(logicalDevice, vertShaderModule, nullptr);
+}
+
+
+void EngineVulkan::CreateFramebuffers()
+{
+    //Initialized frame buffer size
+    swapChainFramebuffers.resize(swapChainImageViews.size());
+
+    //Create frame buffer from each ImageView
+    for (size_t i = 0; i < swapChainImageViews.size(); i++)
+    {
+        //Create array of attachments for swapchain index
+        VkImageView attachments[] = {
+            swapChainImageViews[i]
+        };
+
+        //Frame buffer creation info
+        VkFramebufferCreateInfo framebufferInfo{};
+        framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+        framebufferInfo.renderPass = renderPass;
+        framebufferInfo.attachmentCount = 1;
+        framebufferInfo.pAttachments = attachments;
+        framebufferInfo.width = swapChainExtent.width;
+        framebufferInfo.height = swapChainExtent.height;
+        framebufferInfo.layers = 1;
+
+        //Create frame buffer
+        if (vkCreateFramebuffer(logicalDevice, &framebufferInfo, nullptr, &swapChainFramebuffers[i]) != VK_SUCCESS)
+        {
+            gpr460::engine->system->ErrorMessage(gpr460::ERROR_CREATE_FRAMEBUFFER_FAILED);
+            gpr460::engine->system->LogToErrorFile(gpr460::ERROR_CREATE_FRAMEBUFFER_FAILED);
+            throw std::runtime_error("Failed to create framebuffers");
+        }
+    }
+}
+
+
+void EngineVulkan::CreateCommandPool()
+{
+
 }
 
 

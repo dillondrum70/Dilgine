@@ -43,32 +43,29 @@ private:
 
 	VkDebugUtilsMessengerEXT debugMessenger;
 
-	//Physical graphics card Vulkan will use
-	VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
-
-	//Logical device interface
-	VkDevice logicalDevice;
+	
+	VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;	//Physical graphics card Vulkan will use
+	VkDevice logicalDevice;								//Logical device interface
 
 	//Use vkGetDeviceQueue(device, indices.graphicsFamily.value(), 0, &graphicsQueue); to get device queue
-	//Graphics queue, accepts command buffer to run on GPU
-	VkQueue graphicsQueue;
-	//Presentation queue
-	VkQueue presentQueue;
+	VkQueue graphicsQueue;								//Graphics queue, accepts command buffer to run on GPU
+	VkQueue presentQueue;								//Presentation queue
 
-	//Represents SDL window, Vulkan is platform agnostic and this allows it to interface with an abstract surface that can render images
-	VkSurfaceKHR surface;
-
-	//Swapchain object
-	VkSwapchainKHR swapChain;
-
-	//Images in swap chain that are referenced during rendering
-	std::vector<VkImage> swapChainImages;
-
-	//store swap chain image info
-	VkFormat swapChainImageFormat;
+	VkSurfaceKHR surface;	//Represents SDL window, Vulkan is platform agnostic and this allows it to interface with an abstract surface that can render images
+	
+	VkSwapchainKHR swapChain;				//Swapchain object
+	std::vector<VkImage> swapChainImages;	//Images in swap chain that are referenced during rendering
+	VkFormat swapChainImageFormat;			//store swap chain image info
 	VkExtent2D swapChainExtent;
-
 	std::vector<VkImageView> swapChainImageViews;
+
+	VkRenderPass renderPass;			//The actual render pass object
+	VkPipelineLayout pipelineLayout;	//Defines how uniforms are passed to shaders
+	VkPipeline graphicsPipeline;		//Graphics pipeline object
+
+	std::vector<VkFramebuffer> swapChainFramebuffers;	//Frames are submitted to this buffer, how and when they are drawn is defined elsewhere
+
+	VkCommandPool commandPool;	//Manage memory used to store command buffers
 
 	//Validation layers to enable
 	const std::vector<const char*> validationLayers = { "VK_LAYER_KHRONOS_validation" };
@@ -91,8 +88,11 @@ private:
 	void CreateLogicalDevice();								//Create logical interface
 	void CreateSwapChain(SDL_Window* window);				//Determine and create parameters for drawing
 	void CreateImageViews();								//The view of an image, specifies how and what part of image to access
+	void CreateRenderPass();								//Handles information regarding rendering
 	void CreateGraphicsPipeline();							//Handles rendering steps like vertex, geometry, and fragment shaders
-
+	void CreateFramebuffers();								//Render pass attachments are used here, references VkImageView objects
+	void CreateCommandPool();								//Manage command buffer memory and allocate command buffers from here
+	
 	//Check if validation layers are supported
 	bool CheckValidationSupport();
 

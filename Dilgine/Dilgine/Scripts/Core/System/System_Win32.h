@@ -39,6 +39,10 @@ namespace gpr460
 	const gpr460::string ERROR_CREATE_IMAGE_VIEW_FAILED = L"Error: Creation of Vulkan image view failed";
 	const gpr460::string ERROR_OPEN_FILE_VULKAN_FAILED = L"Error: Failed to open a file for Vulkan";
 	const gpr460::string ERROR_CREATE_SHADER_MODULE_FAILED = L"Error: Failed to create shader module";
+	const gpr460::string ERROR_CREATE_PIPELINE_LAYOUT_FAILED = L"Error: Failed to create pipeline layout";
+	const gpr460::string ERROR_CREATE_RENDER_PASS_FAILED = L"Error: Failed to create render pass";
+	const gpr460::string ERROR_CREATE_PIPELINE_FAILED = L"Error: Failed to create graphics pipeline";
+	const gpr460::string ERROR_CREATE_FRAMEBUFFER_FAILED = L"Error: Failed to create frame buffer";
 
 	const gpr460::string ERROR_MISSING_GAMEOBJECT_REFERENCE = L"Error: Missing Reference to GameObject";
 	const gpr460::string ERROR_MISSING_TRANSFORM_REFERENCE = L"Error: Missing Reference to Transform Component";
