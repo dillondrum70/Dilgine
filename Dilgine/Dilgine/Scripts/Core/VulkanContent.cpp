@@ -83,6 +83,10 @@ void EngineVulkan::InitVulkan(SDL_Window* window)
     CreateGraphicsPipeline();
     std::cout << "Graphics Pipeline Initialized...\n\n";
 
+    std::cout << "Initializing Frame Buffers...\n";
+    CreateFramebuffers();
+    std::cout << "Frame Buffers Initialized...\n\n";
+
     std::cout << "Initializing Command Pool...\n";
     CreateCommandPool();
     std::cout << "Command Pool Initialized...\n\n";
@@ -90,6 +94,10 @@ void EngineVulkan::InitVulkan(SDL_Window* window)
     std::cout << "Initializing Command Buffer...\n";
     CreateCommandBuffer();
     std::cout << "Command Buffer Initialized...\n\n";
+
+    std::cout << "Initializing Sync Objects...\n";
+    CreateSyncObjects();
+    std::cout << "Sync Objects Initialized...\n\n";
 
     std::cout << "\n------------------------------\n\n";
     std::cout << "Vulkan Initialization Complete\n";
@@ -179,7 +187,12 @@ void EngineVulkan::CreateInstance(SDL_Window* window)
 VKAPI_ATTR VkBool32 VKAPI_CALL EngineVulkan::DebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
     VkDebugUtilsMessageTypeFlagsEXT messageType, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData)
 {
-    std::cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
+    //std::cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
+
+    if (messageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
+    {
+        std::cout << "validation layer: " << pCallbackData->pMessage << std::endl;
+    }
 
     return VK_FALSE;
 }
@@ -191,7 +204,7 @@ void EngineVulkan::CreateDebugMessenger()
 
     //Create info for debug messenger, specify callback function that writes to console
     VkDebugUtilsMessengerCreateInfoEXT createInfo{};
-    
+    PopulateDebugMessengerCreateInfo(createInfo);
 
     if (CreateDebugUtilsMessengerEXT(vInstance, &createInfo, nullptr, &debugMessenger) != VK_SUCCESS) {
         gpr460::engine->system->ErrorMessage(gpr460::ERROR_CREATE_DEBUG_MESSENGER_FAILED);

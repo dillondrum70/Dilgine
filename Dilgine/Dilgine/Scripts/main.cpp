@@ -37,7 +37,7 @@ void Run()
 
     SDL_Init(SDL_INIT_VIDEO);
 
-    window = SDL_CreateWindow("SDL2 Test", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WIDTH, HEIGHT, SDL_WINDOW_SHOWN | SDL_WINDOW_VULKAN);
+    window = SDL_CreateWindow("Dilgine", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WIDTH, HEIGHT, SDL_WINDOW_SHOWN | SDL_WINDOW_VULKAN);
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
     if (!renderer)
@@ -122,6 +122,8 @@ void runMainLoop()
         MainLoopProcesses();
     }
 #endif
+
+    vkDeviceWaitIdle(gpr460::engine->vulkanEngine.logicalDevice);
 }
 
 void frameStep()

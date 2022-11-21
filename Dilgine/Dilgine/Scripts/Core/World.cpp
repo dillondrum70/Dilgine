@@ -189,7 +189,7 @@ void World::Render(SDL_Renderer*& prRenderer)
 	vkResetFences(vulkan.logicalDevice, 1, &vulkan.inFlightFence);
 
 	//Get the next image, don't time out, signal imageAvailableSemaphore when done, save index of image from swapChainImages array
-	uint32_t imageIndex;
+	uint32_t imageIndex = 0;
 	vkAcquireNextImageKHR(vulkan.logicalDevice, vulkan.swapChain, UINT64_MAX, vulkan.imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
 
 	//Reset the command buffer foor new frame
@@ -222,4 +222,28 @@ void World::Render(SDL_Renderer*& prRenderer)
 		gpr460::engine->system->LogToErrorFile(gpr460::ERROR_SUBMIT_DRAW_FAILED);
 		throw std::runtime_error("Failed to submit draw command buffer");
 	}
+
+	VkSubpassDependency dependency{};
+	//dst must always be higher than src, 0 is our one and only index though, we only have one subpasss
+	dependency.srcSubpass = VK_SUBPASS_EXTERNAL;	//Implicitly refers to subpass before current subpass
+	dependency.dstSubpass = 0;	//If VK_SUBPASS_EXTERNAL was used here, it would refer to the subpass after the current one
+	//Prevent color attachment from happening until it is necessary
+	dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
+	//Last step of draw is displaying the generated graphic to the screen using the present queue
+	VkPresentInfoKHR presentInfo{};
+	presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+	//Which semaphores to wait on until presentation can happen
+	presentInfo.waitSemaphoreCount = 1;
+	presentInfo.pWaitSemaphores = signalSemaphores;
+	//swap chains to present images to and index of image for each swap chain, almost always 1
+	VkSwapchainKHR swapChains[] = { vulkan.swapChain };
+	presentInfo.swapchainCount = 1;
+	presentInfo.pSwapchains = swapChains;
+	presentInfo.pImageIndices = &imageIndex;
+	presentInfo.pResults = nullptr;	//Can store VkResult array to check if every swapchain presentation was successful, not needed if only 1, just use return value of the functions
+
+	//Sumbit request to present an image to swap chain
+	vkQueuePresentKHR(vulkan.presentQueue, &presentInfo);
 }
