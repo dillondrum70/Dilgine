@@ -107,5 +107,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Data\level0.dat" />
+    <None Include="shaders\shader.vert" />
+    <None Include="shaders\shdaer.frag" />
+    <None Include="shaders\Fragment\shader.frag" />
+    <None Include="shaders\Vertex\shader.vert" />
   </ItemGroup>
 </Project>

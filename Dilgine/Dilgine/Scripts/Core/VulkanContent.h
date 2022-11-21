@@ -5,6 +5,7 @@
 
 #include <vector>
 #include <optional>
+#include <fstream>
 
 #include "vulkan/vulkan.h"
 
@@ -90,6 +91,7 @@ private:
 	void CreateLogicalDevice();								//Create logical interface
 	void CreateSwapChain(SDL_Window* window);				//Determine and create parameters for drawing
 	void CreateImageViews();								//The view of an image, specifies how and what part of image to access
+	void CreateGraphicsPipeline();							//Handles rendering steps like vertex, geometry, and fragment shaders
 
 	//Check if validation layers are supported
 	bool CheckValidationSupport();
@@ -125,6 +127,12 @@ private:
 
 	//Choosing resolution of swap chain images
 	VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, SDL_Window* window);
+
+	//Read bytes from a file and return a byte array
+	static std::vector<char> ReadFile(const std::string& filename);
+
+	//Creates a shader module from given code
+	VkShaderModule CreateShaderModule(const std::vector<char>& code);
 };
 
 #endif

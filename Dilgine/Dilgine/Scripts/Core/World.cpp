@@ -170,10 +170,10 @@ void World::Update()
 
 void World::Render(SDL_Renderer*& prRenderer)
 {
-	SDL_SetRenderDrawColor(prRenderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
-	SDL_RenderClear(prRenderer);
+	//SDL_SetRenderDrawColor(prRenderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
+	//SDL_RenderClear(prRenderer);
 
-	RectangleRenderer::RenderAll(prRenderer);
+	//RectangleRenderer::RenderAll(prRenderer);
 
-	SDL_RenderPresent(prRenderer);
+	//SDL_RenderPresent(prRenderer);
 }

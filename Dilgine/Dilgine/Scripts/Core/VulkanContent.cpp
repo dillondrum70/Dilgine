@@ -59,6 +59,10 @@ void EngineVulkan::InitVulkan(SDL_Window* window)
     CreateImageViews();
     std::cout << "Image Views Initialized...\n\n";
 
+    std::cout << "Initializing Graphics Pipeline...\n";
+    CreateGraphicsPipeline();
+    std::cout << "Graphics Pipeline Initialized...\n\n";
+
     std::cout << "\n------------------------------\n\n";
     std::cout << "Vulkan Initialization Complete\n";
     std::cout << "\n------------------------------\n\n";
@@ -467,6 +471,41 @@ void EngineVulkan::CreateImageViews()
 }
 
 
+void EngineVulkan::CreateGraphicsPipeline()
+{
+    //Read bytecode data in from shader files
+    auto vertShaderCode = ReadFile("shaders/Vertex/vert.spv");
+    auto fragShaderCode = ReadFile("shaders/Fragment/frag.spv");
+
+    //Create shader modules from bytecode
+    VkShaderModule vertShaderModule = CreateShaderModule(vertShaderCode);
+    VkShaderModule fragShaderModule = CreateShaderModule(fragShaderCode);
+
+    //Shader Stages tell us which pipeline stage a shader is assigned to
+
+    //Create vertex shader stage info
+    VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
+    vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    vertShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT; //Tells us which pipeline stage shader will be used in
+    vertShaderStageInfo.module = vertShaderModule;  //Module containing code
+    vertShaderStageInfo.pName = "main";     //entry point (like int main() in C++)
+
+    //Create fragment shader stage info
+    VkPipelineShaderStageCreateInfo fragShaderStageInfo{};
+    fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    fragShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT; //Tells us which pipeline stage shader will be used in
+    fragShaderStageInfo.module = fragShaderModule;  //Module containing code
+    fragShaderStageInfo.pName = "main";     //entry point (like int main() in C++)
+
+    //Array containing all shader stage creation info
+    VkPipelineShaderStageCreateInfo shaderStages[] = { vertShaderStageInfo, fragShaderStageInfo };
+
+    //Destroy shader modules at end of function, no longer needed
+    vkDestroyShaderModule(logicalDevice, fragShaderModule, nullptr);
+    vkDestroyShaderModule(logicalDevice, vertShaderModule, nullptr);
+}
+
+
 bool EngineVulkan::CheckValidationSupport()
 {
     //Get number of layers
@@ -737,3 +776,49 @@ VkExtent2D EngineVulkan::ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabi
         return actualExtent;
     }
 }
+
+
+std::vector<char> EngineVulkan::ReadFile(const std::string& filename)
+{
+    //Start at end of file (we can allocate a buffer this way, read as binary, no text transformations
+    std::ifstream file(filename, std::ios::ate | std::ios::binary);
+
+    if (!file.is_open())
+    {
+        gpr460::engine->system->ErrorMessage(gpr460::ERROR_OPEN_FILE_VULKAN_FAILED);
+        gpr460::engine->system->LogToErrorFile(gpr460::ERROR_OPEN_FILE_VULKAN_FAILED);
+        throw std::runtime_error("Failed to open file for Vulkan");
+    }
+
+    size_t fileSize = (size_t)file.tellg(); //Get position of input sequence
+    std::vector<char> buffer(fileSize);
+
+    file.seekg(0);  //Set position of input sequence
+    file.read(buffer.data(), fileSize); //Read all bytes at once into buffer
+
+    file.close();
+
+    return buffer;
+}
+
+
+VkShaderModule EngineVulkan::CreateShaderModule(const std::vector<char>& code)
+{
+    //Set up info necessary to create shader module (i.e. the code)
+    VkShaderModuleCreateInfo cInfo{};
+    cInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+    cInfo.codeSize = code.size();
+    cInfo.pCode = reinterpret_cast<const uint32_t*>(code.data());   //uint32_t data must be aligned, but vectors take care of that
+
+    VkShaderModule shaderModule;
+    if (vkCreateShaderModule(logicalDevice, &cInfo, nullptr, &shaderModule) != VK_SUCCESS)
+    {
+        gpr460::engine->system->ErrorMessage(gpr460::ERROR_CREATE_SHADER_MODULE_FAILED);
+        gpr460::engine->system->LogToErrorFile(gpr460::ERROR_CREATE_SHADER_MODULE_FAILED);
+        throw std::runtime_error("Failed to create shader module");
+    }
+
+    return shaderModule;
+}
+
+
