@@ -9,6 +9,12 @@
 
 void EngineVulkan::Cleanup()
 {
+    vkDestroySemaphore(logicalDevice, imageAvailableSemaphore, nullptr);
+    vkDestroySemaphore(logicalDevice, renderFinishedSemaphore, nullptr);
+    vkDestroyFence(logicalDevice, inFlightFence, nullptr);
+
+    vkDestroyCommandPool(logicalDevice, commandPool, nullptr);
+
     for (auto framebuffer : swapChainFramebuffers)
     {
         vkDestroyFramebuffer(logicalDevice, framebuffer, nullptr);
@@ -76,6 +82,14 @@ void EngineVulkan::InitVulkan(SDL_Window* window)
     std::cout << "Initializing Graphics Pipeline...\n";
     CreateGraphicsPipeline();
     std::cout << "Graphics Pipeline Initialized...\n\n";
+
+    std::cout << "Initializing Command Pool...\n";
+    CreateCommandPool();
+    std::cout << "Command Pool Initialized...\n\n";
+
+    std::cout << "Initializing Command Buffer...\n";
+    CreateCommandBuffer();
+    std::cout << "Command Buffer Initialized...\n\n";
 
     std::cout << "\n------------------------------\n\n";
     std::cout << "Vulkan Initialization Complete\n";
@@ -737,7 +751,60 @@ void EngineVulkan::CreateFramebuffers()
 
 void EngineVulkan::CreateCommandPool()
 {
+    QueueFamilyIndices queueFamilyIndices = FindQueueFamilies(physicalDevice);
 
+    //Information needed to create command pool
+    VkCommandPoolCreateInfo poolInfo{};
+    poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+    poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;   //Command buffers can be reordered individually, otherwise all need to be reset
+    poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
+
+    if (vkCreateCommandPool(logicalDevice, &poolInfo, nullptr, &commandPool) != VK_SUCCESS)
+    {
+        gpr460::engine->system->ErrorMessage(gpr460::ERROR_CREATE_FRAMEBUFFER_FAILED);
+        gpr460::engine->system->LogToErrorFile(gpr460::ERROR_CREATE_FRAMEBUFFER_FAILED);
+        throw std::runtime_error("Failed to create command pool");
+    }
+}
+
+
+void EngineVulkan::CreateCommandBuffer()
+{
+    //Creation info for allocation of command buffer
+    VkCommandBufferAllocateInfo allocInfo{};
+    allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    allocInfo.commandPool = commandPool;
+    allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;  //Operations submitted to queue, can't be called from other command buffer
+    allocInfo.commandBufferCount = 1;
+
+    if (vkAllocateCommandBuffers(logicalDevice, &allocInfo, &commandBuffer) != VK_SUCCESS)
+    {
+        gpr460::engine->system->ErrorMessage(gpr460::ERROR_ALLOCATE_COMMAND_BUFFER_FAILED);
+        gpr460::engine->system->LogToErrorFile(gpr460::ERROR_ALLOCATE_COMMAND_BUFFER_FAILED);
+        throw std::runtime_error("Failed to allocate command buffer");
+    }
+}
+
+
+void EngineVulkan::CreateSyncObjects()
+{
+    //Semaphore creation info
+    VkSemaphoreCreateInfo semaphoreInfo{};
+    semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+    //Fence creation info
+    VkFenceCreateInfo fenceInfo{};
+    fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+    fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;     //Start signaled so it does not wait on first frame, no previous frames to wait on
+
+    if (vkCreateSemaphore(logicalDevice, &semaphoreInfo, nullptr, &imageAvailableSemaphore) != VK_SUCCESS ||
+        vkCreateSemaphore(logicalDevice, &semaphoreInfo, nullptr, &renderFinishedSemaphore) != VK_SUCCESS ||
+        vkCreateFence(logicalDevice, &fenceInfo, nullptr, &inFlightFence) != VK_SUCCESS)
+    {
+        gpr460::engine->system->ErrorMessage(gpr460::ERROR_CREATE_SEMAPHORES_AND_FENCES_FAILED);
+        gpr460::engine->system->LogToErrorFile(gpr460::ERROR_CREATE_SEMAPHORES_AND_FENCES_FAILED);
+        throw std::runtime_error("Failed to create semaphores and fences");
+    }
 }
 
 
@@ -1054,6 +1121,74 @@ VkShaderModule EngineVulkan::CreateShaderModule(const std::vector<char>& code)
     }
 
     return shaderModule;
+}
+
+
+void EngineVulkan::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex)
+{
+    //Specific details about command buffer's usage
+    VkCommandBufferBeginInfo beginInfo{};
+    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    beginInfo.flags = 0;
+    beginInfo.pInheritanceInfo = nullptr;
+
+    if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS)
+    {
+        gpr460::engine->system->ErrorMessage(gpr460::ERROR_BEGIN_COMMAND_BUFFER_FAILED);
+        gpr460::engine->system->LogToErrorFile(gpr460::ERROR_BEGIN_COMMAND_BUFFER_FAILED);
+        throw std::runtime_error("Failed to begin recording command buffer");
+    }
+
+    VkRenderPassBeginInfo renderPassInfo{};
+    renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+    renderPassInfo.renderPass = renderPass;
+    renderPassInfo.framebuffer = swapChainFramebuffers[imageIndex]; //Bind swapchain
+    //Size of render area
+    renderPassInfo.renderArea.offset = { 0, 0 };
+    renderPassInfo.renderArea.extent = swapChainExtent;
+    //Define values used for clearing screen (clear to black)
+    VkClearValue clearColor = { {{0.0f, 0.0f, 0.0f, 1.0f}} };
+    renderPassInfo.clearValueCount = 1;
+    renderPassInfo.pClearValues = &clearColor;
+
+    //Begin the render pass, INLINE means commands will be inlined into primary command buffer, no secondary command buffers executed
+    vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+    //Bind pipeline to command buffer
+    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
+
+    //Set viewport
+    VkViewport viewport{};
+    viewport.x = 0.0f;
+    viewport.y = 0.0f;
+    viewport.width = static_cast<float>(swapChainExtent.width);
+    viewport.height = static_cast<float>(swapChainExtent.height);
+    viewport.minDepth = 0.0f;
+    viewport.maxDepth = 1.0f;
+    vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+
+    //Set scissor
+    VkRect2D scissor{};
+    scissor.offset = { 0,0 };
+    scissor.extent = swapChainExtent;
+    vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+
+    //vertex count
+    //instance count
+    //first vertex
+    //first instance
+    vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+
+    //End render pass
+    vkCmdEndRenderPass(commandBuffer);
+
+    //Check if command buffer ended properly
+    if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
+    {
+        gpr460::engine->system->ErrorMessage(gpr460::ERROR_RECORD_COMMAND_BUFFER_FAILED);
+        gpr460::engine->system->LogToErrorFile(gpr460::ERROR_RECORD_COMMAND_BUFFER_FAILED);
+        throw std::runtime_error("Failed to record command buffer");
+    }
 }
 
 

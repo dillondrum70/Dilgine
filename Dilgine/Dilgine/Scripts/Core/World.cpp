@@ -4,6 +4,7 @@
 //#include <windows.h>
 
 #include "SDL2/SDL.h"
+#include "vulkan/vulkan.h"
 
 const std::string path = "..\\Dilgine\\Data\\level0.dat";
 
@@ -176,4 +177,49 @@ void World::Render(SDL_Renderer*& prRenderer)
 	//RectangleRenderer::RenderAll(prRenderer);
 
 	//SDL_RenderPresent(prRenderer);
+
+	//Reference to vulkan engine
+	EngineVulkan& vulkan = gpr460::engine->vulkanEngine;
+
+	//First frame's fence (inside of EngineVulkan) is set to signaled since there are no previous frames to pull from
+	//Wait on host for any or all fences to be signaled, we wait for all with VK_TRUE, shouldn't time out so we have UINT64_MAX
+	vkWaitForFences(vulkan.logicalDevice, 1, &vulkan.inFlightFence, VK_TRUE, UINT64_MAX);
+
+	//Must manually reset to an unsignaled state afterwards
+	vkResetFences(vulkan.logicalDevice, 1, &vulkan.inFlightFence);
+
+	//Get the next image, don't time out, signal imageAvailableSemaphore when done, save index of image from swapChainImages array
+	uint32_t imageIndex;
+	vkAcquireNextImageKHR(vulkan.logicalDevice, vulkan.swapChain, UINT64_MAX, vulkan.imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
+
+	//Reset the command buffer foor new frame
+	vkResetCommandBuffer(vulkan.commandBuffer, 0);
+
+	//Record the commands to buffer
+	vulkan.RecordCommandBuffer(vulkan.commandBuffer, imageIndex);
+
+	//Info to submit command buffer
+	VkSubmitInfo submitInfo{};
+	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+
+	//Tell command buffer which semaphores to waiton before execution in which stages
+	VkSemaphore waitSemaphores[] = { vulkan.imageAvailableSemaphore };
+	VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+	submitInfo.waitSemaphoreCount = 1;
+	submitInfo.pWaitSemaphores = waitSemaphores;
+	submitInfo.pWaitDstStageMask = waitStages;
+	submitInfo.commandBufferCount = 1;
+	submitInfo.pCommandBuffers = &vulkan.commandBuffer;
+	//Semaphores to signal when command buffer is done
+	VkSemaphore signalSemaphores[] = { vulkan.renderFinishedSemaphore };
+	submitInfo.signalSemaphoreCount = 1;
+	submitInfo.pSignalSemaphores = signalSemaphores;
+
+	//Submit command buffer to graphics queue to be run on GPU
+	if (vkQueueSubmit(vulkan.graphicsQueue, 1, &submitInfo, vulkan.inFlightFence) != VK_SUCCESS)
+	{
+		gpr460::engine->system->ErrorMessage(gpr460::ERROR_SUBMIT_DRAW_FAILED);
+		gpr460::engine->system->LogToErrorFile(gpr460::ERROR_SUBMIT_DRAW_FAILED);
+		throw std::runtime_error("Failed to submit draw command buffer");
+	}
 }

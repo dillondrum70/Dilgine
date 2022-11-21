@@ -33,6 +33,12 @@ namespace gpr460 {
 	const gpr460::string ERROR_CREATE_RENDER_PASS_FAILED = "Error: Failed to create render pass";
 	const gpr460::string ERROR_CREATE_PIPELINE_FAILED = "Error: Failed to create graphics pipeline";
 	const gpr460::string ERROR_CREATE_FRAMEBUFFER_FAILED = "Error: Failed to create frame buffer";
+	const gpr460::string ERROR_CREATE_COMMAND_POOL_FAILED = "Error: Failed to create command pool";
+	const gpr460::string ERROR_ALLOCATE_COMMAND_BUFFER_FAILED = "Error: Failed to allocate command buffer";
+	const gpr460::string ERROR_BEGIN_COMMAND_BUFFER_FAILED = "Error: Failed to begin command buffer";
+	const gpr460::string ERROR_RECORD_COMMAND_BUFFER_FAILED = "Error: Failed to record command buffer";
+	const gpr460::string ERROR_CREATE_SEMAPHORES_AND_FENCES_FAILED = "Error: Failed to create semaphores and fences";
+	const gpr460::string ERROR_SUBMIT_DRAW_FAILED = "Error: Failed to submit draw command buffer";
 
 	const gpr460::string ERROR_MISSING_GAMEOBJECT_REFERENCE = "Error: Missing Reference to GameObject";
 	const gpr460::string ERROR_MISSING_TRANSFORM_REFERENCE = "Error: Missing Reference to Transform Component";

@@ -30,8 +30,22 @@ struct SwapChainSupportDetails
 class EngineVulkan
 {
 public:
-	//Vulkan Instance
-	VkInstance vInstance;
+	
+	VkInstance vInstance;		//Vulkan Instance
+	VkDevice logicalDevice;		//Logical device interface
+
+	//Use vkGetDeviceQueue(device, indices.graphicsFamily.value(), 0, &graphicsQueue); to get device queue
+	VkQueue graphicsQueue;								//Graphics queue, accepts command buffer to run on GPU
+	VkQueue presentQueue;								//Presentation queue
+
+	VkSwapchainKHR swapChain;				//Swapchain object
+
+	VkCommandBuffer commandBuffer;	//Commands to change anything are submitted to this buffer
+
+	//Used to synchronize GPU processes, i.e. can't run render until we have image
+	VkSemaphore imageAvailableSemaphore;
+	VkSemaphore renderFinishedSemaphore;
+	VkFence inFlightFence;		//Pauses CPU until GPU finishes specified process
 
 	//Initialize Vulkan
 	void InitVulkan(SDL_Window* window);
@@ -39,21 +53,19 @@ public:
 	//Destroy relevant items
 	void Cleanup();
 
+	//Sumbit command to command buffer
+	void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
+
 private:
 
 	VkDebugUtilsMessengerEXT debugMessenger;
 
 	
 	VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;	//Physical graphics card Vulkan will use
-	VkDevice logicalDevice;								//Logical device interface
-
-	//Use vkGetDeviceQueue(device, indices.graphicsFamily.value(), 0, &graphicsQueue); to get device queue
-	VkQueue graphicsQueue;								//Graphics queue, accepts command buffer to run on GPU
-	VkQueue presentQueue;								//Presentation queue
 
 	VkSurfaceKHR surface;	//Represents SDL window, Vulkan is platform agnostic and this allows it to interface with an abstract surface that can render images
 	
-	VkSwapchainKHR swapChain;				//Swapchain object
+	
 	std::vector<VkImage> swapChainImages;	//Images in swap chain that are referenced during rendering
 	VkFormat swapChainImageFormat;			//store swap chain image info
 	VkExtent2D swapChainExtent;
@@ -92,6 +104,8 @@ private:
 	void CreateGraphicsPipeline();							//Handles rendering steps like vertex, geometry, and fragment shaders
 	void CreateFramebuffers();								//Render pass attachments are used here, references VkImageView objects
 	void CreateCommandPool();								//Manage command buffer memory and allocate command buffers from here
+	void CreateCommandBuffer();								//All operations that are to be done are stored here
+	void CreateSyncObjects();								//Create Semaphores and Fences
 	
 	//Check if validation layers are supported
 	bool CheckValidationSupport();
