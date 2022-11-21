@@ -9,6 +9,11 @@
 
 void EngineVulkan::Cleanup()
 {
+    for (auto imageView : swapChainImageViews)
+    {
+        vkDestroyImageView(logicalDevice, imageView, nullptr);
+    }
+
     if (enableValidationLayers) {
         DestroyDebugUtilsMessengerEXT(vInstance, debugMessenger, nullptr);
     }
@@ -26,18 +31,33 @@ void EngineVulkan::InitVulkan(SDL_Window* window)
     std::cout << "Initializing Vulkan...\n";
     std::cout << "\n------------------------------\n\n";
 
+    std::cout << "Initializing Vulkan Instance...\n";
     CreateInstance(window);
-    std::cout << "Vulkan Instance Initialized...\n";
+    std::cout << "Vulkan Instance Initialized...\n\n";
+
+    std::cout << "Initializing Debug Messenger...\n";
     CreateDebugMessenger();
-    std::cout << "Debug Messenger Initialized...\n";
+    std::cout << "Debug Messenger Initialized...\n\n";
+
+    std::cout << "Initializing Vulkan Surface...\n";
     CreateSurface(window);
-    std::cout << "Vulkan Surface Initialized...\n";
+    std::cout << "Vulkan Surface Initialized...\n\n";
+
+    std::cout << "Initializing Physical Device...\n";
     ChoosePhysicalDevice();
-    std::cout << "Physical Device Initialized...\n";
+    std::cout << "Physical Device Initialized...\n\n";
+
+    std::cout << "Initializing Logical Device...\n";
     CreateLogicalDevice();
-    std::cout << "Logical Device Initialized...\n";
+    std::cout << "Logical Device Initialized...\n\n";
+
+    std::cout << "Initializing Swap Chain...\n";
     CreateSwapChain(window);
-    std::cout << "Swap Chain Initialized...\n";
+    std::cout << "Swap Chain Initialized...\n\n";
+
+    std::cout << "Initializing Image Views...\n";
+    CreateImageViews();
+    std::cout << "Image Views Initialized...\n\n";
 
     std::cout << "\n------------------------------\n\n";
     std::cout << "Vulkan Initialization Complete\n";
@@ -407,6 +427,43 @@ void EngineVulkan::CreateSwapChain(SDL_Window* window)
     //Resize vector of swapchain images to new count and get actual images
     swapChainImages.resize(imageCount);
     vkGetSwapchainImagesKHR(logicalDevice, swapChain, &imageCount, swapChainImages.data());
+}
+
+
+void EngineVulkan::CreateImageViews()
+{
+    //Initialize array size
+    swapChainImageViews.resize(swapChainImages.size());
+
+    //Loop through each image
+    for (size_t i = 0; i < swapChainImages.size(); i++)
+    {
+        VkImageViewCreateInfo cInfo{};
+        cInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+        cInfo.image = swapChainImages[i];
+        cInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;     //Here, you specify how to interpret, i.e. 1D, 2D, 3D texture
+        cInfo.format = swapChainImageFormat;
+
+        //Swizzle color channels, here, you might give every component the same value as the red channel for grayscale
+        cInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;     
+        cInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+        cInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+        cInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+
+        //Subresource lets us define what image is for, parts of image we need
+        cInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;  
+        cInfo.subresourceRange.baseMipLevel = 0;
+        cInfo.subresourceRange.levelCount = 1;
+        cInfo.subresourceRange.baseArrayLayer = 0;
+        cInfo.subresourceRange.layerCount = 1;
+
+        if (vkCreateImageView(logicalDevice, &cInfo, nullptr, &swapChainImageViews[i]) != VK_SUCCESS)
+        {
+            gpr460::engine->system->ErrorMessage(gpr460::ERROR_CREATE_IMAGE_VIEW_FAILED);
+            gpr460::engine->system->LogToErrorFile(gpr460::ERROR_CREATE_IMAGE_VIEW_FAILED);
+            throw std::runtime_error("Failed to create Image Views");
+        }
+    }
 }
 
 

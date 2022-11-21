@@ -36,6 +36,7 @@ namespace gpr460
 	const gpr460::string ERROR_CREATE_LOGICAL_DEVICE_FAILED = L"Error: Creation of Vulkan logical device failed";
 	const gpr460::string ERROR_CREATE_SURFACE_FAILED = L"Error: Creation of Vulkan surface failed";
 	const gpr460::string ERROR_CREATE_SWAPCHAIN_FAILED = L"Error: Creation of Vulkan swapchain failed";
+	const gpr460::string ERROR_CREATE_IMAGE_VIEW_FAILED = L"Error: Creation of Vulkan image view failed";
 
 	const gpr460::string ERROR_MISSING_GAMEOBJECT_REFERENCE = L"Error: Missing Reference to GameObject";
 	const gpr460::string ERROR_MISSING_TRANSFORM_REFERENCE = L"Error: Missing Reference to Transform Component";

@@ -67,6 +67,8 @@ private:
 	VkFormat swapChainImageFormat;
 	VkExtent2D swapChainExtent;
 
+	std::vector<VkImageView> swapChainImageViews;
+
 	//Validation layers to enable
 	const std::vector<const char*> validationLayers = { "VK_LAYER_KHRONOS_validation" };
 
@@ -87,6 +89,7 @@ private:
 	void ChoosePhysicalDevice();							//Choose which GPU to use, must support everything we need
 	void CreateLogicalDevice();								//Create logical interface
 	void CreateSwapChain(SDL_Window* window);				//Determine and create parameters for drawing
+	void CreateImageViews();								//The view of an image, specifies how and what part of image to access
 
 	//Check if validation layers are supported
 	bool CheckValidationSupport();
