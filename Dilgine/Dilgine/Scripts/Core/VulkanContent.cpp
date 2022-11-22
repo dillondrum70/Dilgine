@@ -789,45 +789,28 @@ void EngineVulkan::CreateCommandPool()
 
 void EngineVulkan::CreateVertexBuffer()
 {
-    VkBufferCreateInfo bufferInfo{};
-    bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-    bufferInfo.size = sizeof(vertices[0]) * vertices.size();    //Size of buffer is size of vertex * number of vertices
-    bufferInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
-    bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE; //Buffer is owned only by graphics queue
+    VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
 
-    if (vkCreateBuffer(logicalDevice, &bufferInfo, nullptr, &vertexBuffer) != VK_SUCCESS)
-    {
-        gpr460::engine->system->ErrorMessage(gpr460::ERROR_CREATE_VERTEX_BUFFER_FAILED);
-        gpr460::engine->system->LogToErrorFile(gpr460::ERROR_CREATE_VERTEX_BUFFER_FAILED);
-        throw std::runtime_error("Failed to create vertex buffer");
-    }
-
-    VkMemoryRequirements memRequirements;	//Specifies how memory should be allocated
-    vkGetBufferMemoryRequirements(logicalDevice, vertexBuffer, &memRequirements);
-
-    //Information about allocating 
-    VkMemoryAllocateInfo allocInfo{};
-    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-    allocInfo.allocationSize = memRequirements.size;    //Size of memory to allocate
-    allocInfo.memoryTypeIndex = FindMemoryType(memRequirements.memoryTypeBits,
-        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);    //Type of memory to allocate
-
-    //Allocate vertex buffer memory
-    if (vkAllocateMemory(logicalDevice, &allocInfo, nullptr, &vertexBufferMemory) != VK_SUCCESS)
-    {
-        gpr460::engine->system->ErrorMessage(gpr460::ERROR_ALLOCATE_VERTEX_BUFFER_FAILED);
-        gpr460::engine->system->LogToErrorFile(gpr460::ERROR_ALLOCATE_VERTEX_BUFFER_FAILED);
-        throw std::runtime_error("Failed to allocate vertex buffer memory");
-    }
-
-    //Bind vertex buffer to its memory
-    vkBindBufferMemory(logicalDevice, vertexBuffer, vertexBufferMemory, 0);
+    VkBuffer stagingBuffer;
+    VkDeviceMemory stagingBufferMemory;
+    //Create memory buffer to copy vertex data into
+    CreateBuffer(bufferSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
 
     //Access a portion of memory, copies vertex data to mapped memory, then unmaps buffer memory
     void* data = nullptr;
-    vkMapMemory(logicalDevice, vertexBufferMemory, 0, bufferInfo.size, 0, &data);
-    memcpy(data, vertices.data(), (size_t)bufferInfo.size);
-    vkUnmapMemory(logicalDevice, vertexBufferMemory);
+    vkMapMemory(logicalDevice, stagingBufferMemory, 0, bufferSize, 0, &data);
+    memcpy(data, vertices.data(), (size_t)bufferSize);
+    vkUnmapMemory(logicalDevice, stagingBufferMemory);
+
+    //Can be used as destination buffer in memory transfer
+    CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertexBuffer, vertexBufferMemory);
+
+    //Copy staging buffer to vertex buffer
+    CopyBuffer(stagingBuffer, vertexBuffer, bufferSize);
+
+    //Free memory
+    vkDestroyBuffer(logicalDevice, stagingBuffer, nullptr);
+    vkFreeMemory(logicalDevice, stagingBufferMemory, nullptr);
 }
 
 
@@ -1352,6 +1335,91 @@ uint32_t EngineVulkan::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags
     gpr460::engine->system->ErrorMessage(gpr460::ERROR_FIND_MEMORY_TYPE_FAILED);
     gpr460::engine->system->LogToErrorFile(gpr460::ERROR_FIND_MEMORY_TYPE_FAILED);
     throw std::runtime_error("Failed to find suitable memory type");
+}
+
+
+void EngineVulkan::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory)
+{
+    VkBufferCreateInfo bufferInfo{};
+    bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    bufferInfo.size = size;
+    bufferInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+    bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE; //Buffer is owned only by graphics queue
+
+    if (vkCreateBuffer(logicalDevice, &bufferInfo, nullptr, &buffer) != VK_SUCCESS)
+    {
+        gpr460::engine->system->ErrorMessage(gpr460::ERROR_CREATE_BUFFER_FAILED);
+        gpr460::engine->system->LogToErrorFile(gpr460::ERROR_CREATE_BUFFER_FAILED);
+        throw std::runtime_error("Failed to create buffer");
+    }
+
+    VkMemoryRequirements memRequirements;	//Specifies how memory should be allocated
+    vkGetBufferMemoryRequirements(logicalDevice, buffer, &memRequirements);
+
+    //Information about allocating 
+    VkMemoryAllocateInfo allocInfo{};
+    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    allocInfo.allocationSize = memRequirements.size;    //Size of memory to allocate
+    allocInfo.memoryTypeIndex = FindMemoryType(memRequirements.memoryTypeBits,
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);    //Type of memory to allocate
+
+    //Allocate vertex buffer memory
+    if (vkAllocateMemory(logicalDevice, &allocInfo, nullptr, &bufferMemory) != VK_SUCCESS)
+    {
+        gpr460::engine->system->ErrorMessage(gpr460::ERROR_ALLOCATE_BUFFER_FAILED);
+        gpr460::engine->system->LogToErrorFile(gpr460::ERROR_ALLOCATE_BUFFER_FAILED);
+        throw std::runtime_error("Failed to allocate buffer memory");
+    }
+
+    //Bind vertex buffer to its memory
+    vkBindBufferMemory(logicalDevice, buffer, bufferMemory, 0);
+}
+
+
+void EngineVulkan::CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
+{
+    VkCommandBufferAllocateInfo allocInfo{};
+    allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;   //Memory transfers are conducted with command buffers
+    allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    allocInfo.commandPool = commandPool;
+    allocInfo.commandBufferCount = 1;
+
+    
+    //Allocate space for command buffer
+    //NOTE: In larger productions, multiple objects should be made in a single allocation by using offsets to differentiate
+    //This is because many GPUs have a set limit on the number of allocations they have which can be low, around 4096 on the NVIDIA GTX 1080
+    VkCommandBuffer commandBuffer;
+    vkAllocateCommandBuffers(logicalDevice, &allocInfo, &commandBuffer);
+
+    VkCommandBufferBeginInfo beginInfo{};
+    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+    //Begin writing to command buffer
+    vkBeginCommandBuffer(commandBuffer, &beginInfo);
+
+    //Copy buffer to copy information from source buffer to destination buffer
+    VkBufferCopy copyRegion{};
+    copyRegion.srcOffset = 0;
+    copyRegion.dstOffset = 0;
+    copyRegion.size = size;
+    vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
+
+    //Stop writing to command buffer
+    vkEndCommandBuffer(commandBuffer);
+
+    //Information to submit command buffer to graphics queue
+    VkSubmitInfo submitInfo{};
+    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submitInfo.commandBufferCount = 1;
+    submitInfo.pCommandBuffers = &commandBuffer;
+
+    //Submit command buffer to graphics queue then wait for the queue to finish (idle)
+    vkQueueSubmit(graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
+    vkQueueWaitIdle(graphicsQueue);
+
+    //Free memory
+    vkFreeCommandBuffers(logicalDevice, commandPool, 1, &commandBuffer);
 }
 
 
