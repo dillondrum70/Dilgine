@@ -12,6 +12,7 @@ void EngineVulkan::Cleanup()
     CleanupSwapChain();
 
     vkDestroyBuffer(logicalDevice, vertexBuffer, nullptr);
+    vkFreeMemory(logicalDevice, vertexBufferMemory, nullptr);
 
     vkDestroyPipeline(logicalDevice, graphicsPipeline, nullptr);
     vkDestroyPipelineLayout(logicalDevice, pipelineLayout, nullptr);
@@ -793,17 +794,6 @@ void EngineVulkan::CreateVertexBuffer()
     bufferInfo.size = sizeof(vertices[0]) * vertices.size();    //Size of buffer is size of vertex * number of vertices
     bufferInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
     bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE; //Buffer is owned only by graphics queue
-    
-    VkMemoryRequirements memRequirements;	//Specifies how memory should be allocated
-    vkGetBufferMemoryRequirements(logicalDevice, vertexBuffer, &memRequirements);
-
-    VkMemoryAllocateInfo allocInfo{};
-    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-    allocInfo.allocationSize = memRequirements.size;    //Size of memory to allocate
-    allocInfo.memoryTypeIndex = FindMemoryType(memRequirements.memoryTypeBits, 
-        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);    //Type of memory to allocate
-
-
 
     if (vkCreateBuffer(logicalDevice, &bufferInfo, nullptr, &vertexBuffer) != VK_SUCCESS)
     {
@@ -811,6 +801,33 @@ void EngineVulkan::CreateVertexBuffer()
         gpr460::engine->system->LogToErrorFile(gpr460::ERROR_CREATE_VERTEX_BUFFER_FAILED);
         throw std::runtime_error("Failed to create vertex buffer");
     }
+
+    VkMemoryRequirements memRequirements;	//Specifies how memory should be allocated
+    vkGetBufferMemoryRequirements(logicalDevice, vertexBuffer, &memRequirements);
+
+    //Information about allocating 
+    VkMemoryAllocateInfo allocInfo{};
+    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    allocInfo.allocationSize = memRequirements.size;    //Size of memory to allocate
+    allocInfo.memoryTypeIndex = FindMemoryType(memRequirements.memoryTypeBits,
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);    //Type of memory to allocate
+
+    //Allocate vertex buffer memory
+    if (vkAllocateMemory(logicalDevice, &allocInfo, nullptr, &vertexBufferMemory) != VK_SUCCESS)
+    {
+        gpr460::engine->system->ErrorMessage(gpr460::ERROR_ALLOCATE_VERTEX_BUFFER_FAILED);
+        gpr460::engine->system->LogToErrorFile(gpr460::ERROR_ALLOCATE_VERTEX_BUFFER_FAILED);
+        throw std::runtime_error("Failed to allocate vertex buffer memory");
+    }
+
+    //Bind vertex buffer to its memory
+    vkBindBufferMemory(logicalDevice, vertexBuffer, vertexBufferMemory, 0);
+
+    //Access a portion of memory, copies vertex data to mapped memory, then unmaps buffer memory
+    void* data = nullptr;
+    vkMapMemory(logicalDevice, vertexBufferMemory, 0, bufferInfo.size, 0, &data);
+    memcpy(data, vertices.data(), (size_t)bufferInfo.size);
+    vkUnmapMemory(logicalDevice, vertexBufferMemory);
 }
 
 
@@ -1228,11 +1245,16 @@ void EngineVulkan::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t i
     scissor.extent = swapChainExtent;
     vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
+    //Bind vertex buffers to command buffer
+    VkBuffer vertexBuffers[] = { vertexBuffer };
+    VkDeviceSize offsets[] = { 0 };
+    vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+
     //vertex count
     //instance count
     //first vertex
     //first instance
-    vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+    vkCmdDraw(commandBuffer, static_cast<uint32_t>(vertices.size()), 1, 0, 0);
 
     //End render pass
     vkCmdEndRenderPass(commandBuffer);
@@ -1321,7 +1343,7 @@ uint32_t EngineVulkan::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags
     for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++)
     {
         //Check if bit is set and it is not only non-zero, but matches desired properties
-        if (typeFilter & (1 << i) && (memProperties.memoryTypes[i].propertyFlags * properties) == properties)
+        if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties)
         {
             return i;
         }

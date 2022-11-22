@@ -52,6 +52,7 @@ namespace gpr460
 	const gpr460::string ERROR_PRESENT_SWAPCHAIN_IMAGE_FAILED = L"Error: Failed to present swapchain image";
 	const gpr460::string ERROR_CREATE_VERTEX_BUFFER_FAILED = L"Error: Failed to create vertex buffer";
 	const gpr460::string ERROR_FIND_MEMORY_TYPE_FAILED = L"Error: Failed to find memory type";
+	const gpr460::string ERROR_ALLOCATE_VERTEX_BUFFER_FAILED = L"Error: Failed to allocate vertex buffer memory";
 
 	const gpr460::string ERROR_MISSING_GAMEOBJECT_REFERENCE = L"Error: Missing Reference to GameObject";
 	const gpr460::string ERROR_MISSING_TRANSFORM_REFERENCE = L"Error: Missing Reference to Transform Component";

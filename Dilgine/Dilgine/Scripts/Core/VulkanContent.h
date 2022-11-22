@@ -62,7 +62,7 @@ struct Vertex
 		attributeDescriptions[1].binding = 0;
 		attributeDescriptions[1].location = 1;
 		attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-		attributeDescriptions[1].offset = offsetof(Vertex, position);
+		attributeDescriptions[1].offset = offsetof(Vertex, color);
 
 		return attributeDescriptions;
 	}
@@ -96,7 +96,8 @@ public:
 	std::vector <VkFence> inFlightFences;		//Pauses CPU until GPU finishes specified process
 
 	VkBuffer vertexBuffer;	//Stores list of vertices that define triangles
-	
+	VkDeviceMemory vertexBufferMemory;	//Memory for vertex buffer
+
 	bool framebufferResized = false;
 
 	uint32_t currentFrame = 0;
