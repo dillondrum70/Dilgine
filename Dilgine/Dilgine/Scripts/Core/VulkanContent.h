@@ -6,9 +6,11 @@
 #include <vector>
 #include <optional>
 #include <fstream>
+#include <array>
 
 #include "vulkan/vulkan.h"
 #include "SDL2/SDL.h"
+#include "glm/glm.hpp"
 
 const int MAX_FRAMES_IN_FLIGHT = 2;
 
@@ -28,6 +30,49 @@ struct SwapChainSupportDetails
 	VkSurfaceCapabilitiesKHR capabilities;			//Minimum and maximum capabilities of swap chain
 	std::vector<VkSurfaceFormatKHR> formats;		//Surface formats
 	std::vector<VkPresentModeKHR> presentModes;		//Available presentation modes
+};
+
+struct Vertex
+{
+	glm::vec2 position;
+	glm::vec3 color;
+
+	//Defines how to pass Vertex data format
+	static VkVertexInputBindingDescription GetBindingDescription()
+	{
+		//Define rate to load data from memory, bytes  betweend data entries
+		VkVertexInputBindingDescription bindingDescription{};
+		bindingDescription.binding = 0;
+		bindingDescription.stride = sizeof(Vertex);
+		bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;	//Move to next data entry after each vertex
+
+		return bindingDescription;
+	}
+
+	//How to handle vertex input
+	static std::array<VkVertexInputAttributeDescription, 2> GetAttributeDescriptions()
+	{
+		//Two  descriptions tell us how to extract vertex attribute from vertex data in binding description, one for position, one for color
+		std::array<VkVertexInputAttributeDescription, 2> attributeDescriptions{};
+		attributeDescriptions[0].binding = 0;							//Which binding the per-vertex data comes from
+		attributeDescriptions[0].location = 0;							//location directive of input in vertex shader
+		attributeDescriptions[0].format = VK_FORMAT_R32G32_SFLOAT;		//Type of data, R32G32 is same as vec2, 2 x 32 bit values
+		attributeDescriptions[0].offset = offsetof(Vertex, position);	//Number of bytes since start of per-vertex data to read from
+
+		attributeDescriptions[1].binding = 0;
+		attributeDescriptions[1].location = 1;
+		attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
+		attributeDescriptions[1].offset = offsetof(Vertex, position);
+
+		return attributeDescriptions;
+	}
+};
+
+//Vertex data, position-color pairs
+const std::vector<Vertex> vertices = {
+		{{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+		{{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
+		{{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
 };
 
 class EngineVulkan
