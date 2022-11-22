@@ -9,27 +9,21 @@
 
 void EngineVulkan::Cleanup()
 {
-    vkDestroySemaphore(logicalDevice, imageAvailableSemaphore, nullptr);
-    vkDestroySemaphore(logicalDevice, renderFinishedSemaphore, nullptr);
-    vkDestroyFence(logicalDevice, inFlightFence, nullptr);
-
-    vkDestroyCommandPool(logicalDevice, commandPool, nullptr);
-
-    for (auto framebuffer : swapChainFramebuffers)
-    {
-        vkDestroyFramebuffer(logicalDevice, framebuffer, nullptr);
-    }
+    CleanupSwapChain();
 
     vkDestroyPipeline(logicalDevice, graphicsPipeline, nullptr);
     vkDestroyPipelineLayout(logicalDevice, pipelineLayout, nullptr);
     vkDestroyRenderPass(logicalDevice, renderPass, nullptr);
 
-    for (auto imageView : swapChainImageViews)
+    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
     {
-        vkDestroyImageView(logicalDevice, imageView, nullptr);
+        vkDestroySemaphore(logicalDevice, imageAvailableSemaphores[i], nullptr);
+        vkDestroySemaphore(logicalDevice, renderFinishedSemaphores[i], nullptr);
+        vkDestroyFence(logicalDevice, inFlightFences[i], nullptr);
     }
 
-    vkDestroySwapchainKHR(logicalDevice, swapChain, nullptr);
+    vkDestroyCommandPool(logicalDevice, commandPool, nullptr);
+
     vkDestroyDevice(logicalDevice, nullptr);
 
     if (enableValidationLayers) {
@@ -92,7 +86,7 @@ void EngineVulkan::InitVulkan(SDL_Window* window)
     std::cout << "Command Pool Initialized...\n\n";
 
     std::cout << "Initializing Command Buffer...\n";
-    CreateCommandBuffer();
+    CreateCommandBuffers();
     std::cout << "Command Buffer Initialized...\n\n";
 
     std::cout << "Initializing Sync Objects...\n";
@@ -781,26 +775,32 @@ void EngineVulkan::CreateCommandPool()
 }
 
 
-void EngineVulkan::CreateCommandBuffer()
+void EngineVulkan::CreateCommandBuffers()
 {
+    commandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
+
     //Creation info for allocation of command buffer
     VkCommandBufferAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     allocInfo.commandPool = commandPool;
     allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;  //Operations submitted to queue, can't be called from other command buffer
-    allocInfo.commandBufferCount = 1;
+    allocInfo.commandBufferCount = (uint32_t)commandBuffers.size();
 
-    if (vkAllocateCommandBuffers(logicalDevice, &allocInfo, &commandBuffer) != VK_SUCCESS)
+    if (vkAllocateCommandBuffers(logicalDevice, &allocInfo, commandBuffers.data()) != VK_SUCCESS)
     {
         gpr460::engine->system->ErrorMessage(gpr460::ERROR_ALLOCATE_COMMAND_BUFFER_FAILED);
         gpr460::engine->system->LogToErrorFile(gpr460::ERROR_ALLOCATE_COMMAND_BUFFER_FAILED);
-        throw std::runtime_error("Failed to allocate command buffer");
+        throw std::runtime_error("Failed to allocate command buffers");
     }
 }
 
 
 void EngineVulkan::CreateSyncObjects()
 {
+    imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
+    renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
+    inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
+
     //Semaphore creation info
     VkSemaphoreCreateInfo semaphoreInfo{};
     semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
@@ -810,13 +810,16 @@ void EngineVulkan::CreateSyncObjects()
     fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
     fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;     //Start signaled so it does not wait on first frame, no previous frames to wait on
 
-    if (vkCreateSemaphore(logicalDevice, &semaphoreInfo, nullptr, &imageAvailableSemaphore) != VK_SUCCESS ||
-        vkCreateSemaphore(logicalDevice, &semaphoreInfo, nullptr, &renderFinishedSemaphore) != VK_SUCCESS ||
-        vkCreateFence(logicalDevice, &fenceInfo, nullptr, &inFlightFence) != VK_SUCCESS)
+    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
     {
-        gpr460::engine->system->ErrorMessage(gpr460::ERROR_CREATE_SEMAPHORES_AND_FENCES_FAILED);
-        gpr460::engine->system->LogToErrorFile(gpr460::ERROR_CREATE_SEMAPHORES_AND_FENCES_FAILED);
-        throw std::runtime_error("Failed to create semaphores and fences");
+        if (vkCreateSemaphore(logicalDevice, &semaphoreInfo, nullptr, &imageAvailableSemaphores[i]) != VK_SUCCESS ||
+            vkCreateSemaphore(logicalDevice, &semaphoreInfo, nullptr, &renderFinishedSemaphores[i]) != VK_SUCCESS ||
+            vkCreateFence(logicalDevice, &fenceInfo, nullptr, &inFlightFences[i]) != VK_SUCCESS)
+        {
+            gpr460::engine->system->ErrorMessage(gpr460::ERROR_CREATE_SEMAPHORES_AND_FENCES_FAILED);
+            gpr460::engine->system->LogToErrorFile(gpr460::ERROR_CREATE_SEMAPHORES_AND_FENCES_FAILED);
+            throw std::runtime_error("Failed to create semaphores and fences");
+        }
     }
 }
 
@@ -1202,6 +1205,70 @@ void EngineVulkan::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t i
         gpr460::engine->system->LogToErrorFile(gpr460::ERROR_RECORD_COMMAND_BUFFER_FAILED);
         throw std::runtime_error("Failed to record command buffer");
     }
+}
+
+
+void EngineVulkan::CleanupSwapChain()
+{
+    //Destroy frame buffers first
+    for (size_t i = 0; i < swapChainFramebuffers.size(); i++)
+    {
+        vkDestroyFramebuffer(logicalDevice, swapChainFramebuffers[i], nullptr);
+    }
+
+    //Destroy image views (frame buffers depend on these and therefore must be destroyed first)
+    for (size_t i = 0; i < swapChainImageViews.size(); i++)
+    {
+        vkDestroyImageView(logicalDevice, swapChainImageViews[i], nullptr);
+    }
+
+    //Destroy swapchain last
+    vkDestroySwapchainKHR(logicalDevice, swapChain, nullptr);
+}
+
+
+void EngineVulkan::RecreateSwapChain(SDL_Window* window)
+{
+    //Check minimized, lock Vulkan in a loop if extents are 0 that way it can't attempt a draw and error
+    int width = 0, height = 0;
+    SDL_Vulkan_GetDrawableSize(window, &width, &height);
+    while (width == 0 || height == 0)
+    {
+        //Check extents
+        SDL_Vulkan_GetDrawableSize(window, &width, &height);
+
+        //Wait for an event to check next, don't need to waste processing power on infinite loop
+        SDL_Event sdlEvent;
+        SDL_WaitEvent(&sdlEvent);   //Waiting here allows window to be un-minimized, if we didn't wait, it would update too quickly and minimize the window when un-minimized
+    }
+
+    //Wait until logical device is idle so we don't recreate swap chain in the middle of a process
+    vkDeviceWaitIdle(logicalDevice);
+
+    //Destroy current swapchain
+    CleanupSwapChain();
+
+    //Recreate swapchain and members dependent on it
+    CreateSwapChain(window);
+    CreateImageViews();
+    CreateFramebuffers();
+}
+
+
+int EngineVulkan::FramebufferResizeCallback(void* data, SDL_Event* sdlEvent)
+{
+    //check if event was a window resized event
+    if (sdlEvent->type == SDL_WINDOWEVENT &&
+        sdlEvent->window.event == SDL_WINDOWEVENT_RESIZED)
+    {
+        SDL_Window* win = SDL_GetWindowFromID(sdlEvent->window.windowID);
+        if (win == (SDL_Window*)data)
+        {
+            gpr460::engine->vulkanEngine.framebufferResized = true;
+        }
+    }
+
+    return 0;
 }
 
 

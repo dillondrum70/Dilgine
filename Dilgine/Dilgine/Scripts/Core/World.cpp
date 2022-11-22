@@ -13,6 +13,8 @@ void World::Init(SDL_Window* pWindow)
 	int width, height;
 	SDL_GetWindowSize(pWindow, &width, &height);
 
+	window = pWindow;
+
 	/*TCHAR buffer[MAX_PATH] = { 0 };
 	GetModuleFileName(NULL, buffer, MAX_PATH);
 	std::wstring::size_type pos = std::wstring(buffer).find_last_of(L"\\/");
@@ -183,40 +185,54 @@ void World::Render(SDL_Renderer*& prRenderer)
 
 	//First frame's fence (inside of EngineVulkan) is set to signaled since there are no previous frames to pull from
 	//Wait on host for any or all fences to be signaled, we wait for all with VK_TRUE, shouldn't time out so we have UINT64_MAX
-	vkWaitForFences(vulkan.logicalDevice, 1, &vulkan.inFlightFence, VK_TRUE, UINT64_MAX);
-
-	//Must manually reset to an unsignaled state afterwards
-	vkResetFences(vulkan.logicalDevice, 1, &vulkan.inFlightFence);
+	vkWaitForFences(vulkan.logicalDevice, 1, &vulkan.inFlightFences[vulkan.currentFrame], VK_TRUE, UINT64_MAX);
 
 	//Get the next image, don't time out, signal imageAvailableSemaphore when done, save index of image from swapChainImages array
 	uint32_t imageIndex = 0;
-	vkAcquireNextImageKHR(vulkan.logicalDevice, vulkan.swapChain, UINT64_MAX, vulkan.imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
+	VkResult result = vkAcquireNextImageKHR(vulkan.logicalDevice, vulkan.swapChain, UINT64_MAX, vulkan.imageAvailableSemaphores[vulkan.currentFrame], VK_NULL_HANDLE, &imageIndex);
+	
+	//Need to recreate swapchain and restart render process if out of date
+	if (result == VK_ERROR_OUT_OF_DATE_KHR)
+	{
+		vulkan.RecreateSwapChain(window);
+		return;
+	}
+	else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
+	{
+		gpr460::engine->system->ErrorMessage(gpr460::ERROR_ACQUIRE_SWAPCHAIN_IMAGE_FAILED);
+		gpr460::engine->system->LogToErrorFile(gpr460::ERROR_ACQUIRE_SWAPCHAIN_IMAGE_FAILED);
+		throw std::runtime_error("Failed to acquire swapchain image");
+	}
+
+	//Must manually reset to an unsignaled state afterwards
+	//Do so after out of date check to avoid a deadlock where nothing is executed because the fence resets us before reaching the check since nothing would have been done last frame
+	vkResetFences(vulkan.logicalDevice, 1, &vulkan.inFlightFences[vulkan.currentFrame]);
 
 	//Reset the command buffer foor new frame
-	vkResetCommandBuffer(vulkan.commandBuffer, 0);
+	vkResetCommandBuffer(vulkan.commandBuffers[vulkan.currentFrame], 0);
 
 	//Record the commands to buffer
-	vulkan.RecordCommandBuffer(vulkan.commandBuffer, imageIndex);
+	vulkan.RecordCommandBuffer(vulkan.commandBuffers[vulkan.currentFrame], imageIndex);
 
 	//Info to submit command buffer
 	VkSubmitInfo submitInfo{};
 	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
 	//Tell command buffer which semaphores to waiton before execution in which stages
-	VkSemaphore waitSemaphores[] = { vulkan.imageAvailableSemaphore };
+	VkSemaphore waitSemaphores[] = { vulkan.imageAvailableSemaphores[vulkan.currentFrame] };
 	VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
 	submitInfo.waitSemaphoreCount = 1;
 	submitInfo.pWaitSemaphores = waitSemaphores;
 	submitInfo.pWaitDstStageMask = waitStages;
 	submitInfo.commandBufferCount = 1;
-	submitInfo.pCommandBuffers = &vulkan.commandBuffer;
+	submitInfo.pCommandBuffers = &vulkan.commandBuffers[vulkan.currentFrame];
 	//Semaphores to signal when command buffer is done
-	VkSemaphore signalSemaphores[] = { vulkan.renderFinishedSemaphore };
+	VkSemaphore signalSemaphores[] = { vulkan.renderFinishedSemaphores[vulkan.currentFrame] };
 	submitInfo.signalSemaphoreCount = 1;
 	submitInfo.pSignalSemaphores = signalSemaphores;
 
 	//Submit command buffer to graphics queue to be run on GPU
-	if (vkQueueSubmit(vulkan.graphicsQueue, 1, &submitInfo, vulkan.inFlightFence) != VK_SUCCESS)
+	if (vkQueueSubmit(vulkan.graphicsQueue, 1, &submitInfo, vulkan.inFlightFences[vulkan.currentFrame]) != VK_SUCCESS)
 	{
 		gpr460::engine->system->ErrorMessage(gpr460::ERROR_SUBMIT_DRAW_FAILED);
 		gpr460::engine->system->LogToErrorFile(gpr460::ERROR_SUBMIT_DRAW_FAILED);
@@ -245,5 +261,21 @@ void World::Render(SDL_Renderer*& prRenderer)
 	presentInfo.pResults = nullptr;	//Can store VkResult array to check if every swapchain presentation was successful, not needed if only 1, just use return value of the functions
 
 	//Sumbit request to present an image to swap chain
-	vkQueuePresentKHR(vulkan.presentQueue, &presentInfo);
+	result = vkQueuePresentKHR(vulkan.presentQueue, &presentInfo);
+
+	//Recreate swapchain if problem occurs, if anything other than these errors occurs (and it is not successful), error
+	if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || vulkan.framebufferResized)
+	{
+		vulkan.framebufferResized = false;	//Done after semaphores are set and checked to avoud a signaled semaphore not being waited on
+		vulkan.RecreateSwapChain(window);
+	}
+	else if (result != VK_SUCCESS)
+	{
+		gpr460::engine->system->ErrorMessage(gpr460::ERROR_PRESENT_SWAPCHAIN_IMAGE_FAILED);
+		gpr460::engine->system->LogToErrorFile(gpr460::ERROR_PRESENT_SWAPCHAIN_IMAGE_FAILED);
+		throw std::runtime_error("Failed to present swapchain image");
+	}
+
+	//Increment and wrap frame index
+	vulkan.currentFrame = (vulkan.currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 }

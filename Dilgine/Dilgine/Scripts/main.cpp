@@ -37,7 +37,7 @@ void Run()
 
     SDL_Init(SDL_INIT_VIDEO);
 
-    window = SDL_CreateWindow("Dilgine", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WIDTH, HEIGHT, SDL_WINDOW_SHOWN | SDL_WINDOW_VULKAN);
+    window = SDL_CreateWindow("Dilgine", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WIDTH, HEIGHT, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_VULKAN );
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
     if (!renderer)
@@ -72,6 +72,7 @@ void Run()
     gpr460::engine->world = world;
 
     gpr460::engine->vulkanEngine.InitVulkan(window);
+    SDL_AddEventWatch(gpr460::engine->vulkanEngine.FramebufferResizeCallback, window);  //Add framebuffer resize event, will tell vulkan when SDL_Window resized
 
     world->Init(window);
 

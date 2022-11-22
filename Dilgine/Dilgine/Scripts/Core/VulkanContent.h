@@ -8,6 +8,9 @@
 #include <fstream>
 
 #include "vulkan/vulkan.h"
+#include "SDL2/SDL.h"
+
+const int MAX_FRAMES_IN_FLIGHT = 2;
 
 struct SDL_Window;
 
@@ -40,12 +43,16 @@ public:
 
 	VkSwapchainKHR swapChain;				//Swapchain object
 
-	VkCommandBuffer commandBuffer;	//Commands to change anything are submitted to this buffer
+	std::vector<VkCommandBuffer> commandBuffers;	//Commands to change anything are submitted to this buffer
 
 	//Used to synchronize GPU processes, i.e. can't run render until we have image
-	VkSemaphore imageAvailableSemaphore;
-	VkSemaphore renderFinishedSemaphore;
-	VkFence inFlightFence;		//Pauses CPU until GPU finishes specified process
+	std::vector <VkSemaphore> imageAvailableSemaphores;
+	std::vector <VkSemaphore> renderFinishedSemaphores;
+	std::vector <VkFence> inFlightFences;		//Pauses CPU until GPU finishes specified process
+
+	bool framebufferResized = false;
+
+	uint32_t currentFrame = 0;
 
 	//Initialize Vulkan
 	void InitVulkan(SDL_Window* window);
@@ -55,6 +62,12 @@ public:
 
 	//Sumbit command to command buffer
 	void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
+
+	//Recreate swapchain in the case that it is invalidated, i.e. resized
+	void RecreateSwapChain(SDL_Window* window);
+
+	//Callback for when framebuffer is resized, data will be an SDL_Window* and sdlEvent will be WINDOW_EVENT type with WINDOWEVENT_RESIZED event
+	static int FramebufferResizeCallback(void* data, SDL_Event* sdlEvent);
 
 private:
 
@@ -104,7 +117,7 @@ private:
 	void CreateGraphicsPipeline();							//Handles rendering steps like vertex, geometry, and fragment shaders
 	void CreateFramebuffers();								//Render pass attachments are used here, references VkImageView objects
 	void CreateCommandPool();								//Manage command buffer memory and allocate command buffers from here
-	void CreateCommandBuffer();								//All operations that are to be done are stored here
+	void CreateCommandBuffers();								//All operations that are to be done are stored here
 	void CreateSyncObjects();								//Create Semaphores and Fences
 	
 	//Check if validation layers are supported
@@ -147,6 +160,9 @@ private:
 
 	//Creates a shader module from given code
 	VkShaderModule CreateShaderModule(const std::vector<char>& code);
+
+	//Cleanup last swapchain before recreation
+	void CleanupSwapChain();
 };
 
 #endif

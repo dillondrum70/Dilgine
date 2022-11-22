@@ -25,6 +25,8 @@ struct Components
 class World
 {
 private:
+	SDL_Window* window = nullptr;	//Necessary to store here to pass to Vulkan
+
 	GameObject gameObjects[gpr460::MAX_GAMEOBJECTS];
 
 	Components components;
