@@ -11,6 +11,8 @@ void EngineVulkan::Cleanup()
 {
     CleanupSwapChain();
 
+    vkDestroyBuffer(logicalDevice, vertexBuffer, nullptr);
+
     vkDestroyPipeline(logicalDevice, graphicsPipeline, nullptr);
     vkDestroyPipelineLayout(logicalDevice, pipelineLayout, nullptr);
     vkDestroyRenderPass(logicalDevice, renderPass, nullptr);
@@ -84,6 +86,10 @@ void EngineVulkan::InitVulkan(SDL_Window* window)
     std::cout << "Initializing Command Pool...\n";
     CreateCommandPool();
     std::cout << "Command Pool Initialized...\n\n";
+
+    std::cout << "Initializing Vertex Buffer...\n";
+    CreateVertexBuffer();
+    std::cout << "Vertex Buffer Initialized...\n\n";
 
     std::cout << "Initializing Command Buffer...\n";
     CreateCommandBuffers();
@@ -780,6 +786,34 @@ void EngineVulkan::CreateCommandPool()
 }
 
 
+void EngineVulkan::CreateVertexBuffer()
+{
+    VkBufferCreateInfo bufferInfo{};
+    bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    bufferInfo.size = sizeof(vertices[0]) * vertices.size();    //Size of buffer is size of vertex * number of vertices
+    bufferInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+    bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE; //Buffer is owned only by graphics queue
+    
+    VkMemoryRequirements memRequirements;	//Specifies how memory should be allocated
+    vkGetBufferMemoryRequirements(logicalDevice, vertexBuffer, &memRequirements);
+
+    VkMemoryAllocateInfo allocInfo{};
+    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    allocInfo.allocationSize = memRequirements.size;    //Size of memory to allocate
+    allocInfo.memoryTypeIndex = FindMemoryType(memRequirements.memoryTypeBits, 
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);    //Type of memory to allocate
+
+
+
+    if (vkCreateBuffer(logicalDevice, &bufferInfo, nullptr, &vertexBuffer) != VK_SUCCESS)
+    {
+        gpr460::engine->system->ErrorMessage(gpr460::ERROR_CREATE_VERTEX_BUFFER_FAILED);
+        gpr460::engine->system->LogToErrorFile(gpr460::ERROR_CREATE_VERTEX_BUFFER_FAILED);
+        throw std::runtime_error("Failed to create vertex buffer");
+    }
+}
+
+
 void EngineVulkan::CreateCommandBuffers()
 {
     commandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
@@ -1274,6 +1308,28 @@ int EngineVulkan::FramebufferResizeCallback(void* data, SDL_Event* sdlEvent)
     }
 
     return 0;
+}
+
+
+uint32_t EngineVulkan::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
+{
+    //Get memory properties of the GPU
+    VkPhysicalDeviceMemoryProperties memProperties;
+    vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);
+
+    //Iterate of bitmask filter of memory types and determine if corresponding bit is set
+    for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++)
+    {
+        //Check if bit is set and it is not only non-zero, but matches desired properties
+        if (typeFilter & (1 << i) && (memProperties.memoryTypes[i].propertyFlags * properties) == properties)
+        {
+            return i;
+        }
+    }
+
+    gpr460::engine->system->ErrorMessage(gpr460::ERROR_FIND_MEMORY_TYPE_FAILED);
+    gpr460::engine->system->LogToErrorFile(gpr460::ERROR_FIND_MEMORY_TYPE_FAILED);
+    throw std::runtime_error("Failed to find suitable memory type");
 }
 
 

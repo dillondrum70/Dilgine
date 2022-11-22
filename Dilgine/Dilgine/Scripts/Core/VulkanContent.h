@@ -95,6 +95,8 @@ public:
 	std::vector <VkSemaphore> renderFinishedSemaphores;
 	std::vector <VkFence> inFlightFences;		//Pauses CPU until GPU finishes specified process
 
+	VkBuffer vertexBuffer;	//Stores list of vertices that define triangles
+	
 	bool framebufferResized = false;
 
 	uint32_t currentFrame = 0;
@@ -162,7 +164,8 @@ private:
 	void CreateGraphicsPipeline();							//Handles rendering steps like vertex, geometry, and fragment shaders
 	void CreateFramebuffers();								//Render pass attachments are used here, references VkImageView objects
 	void CreateCommandPool();								//Manage command buffer memory and allocate command buffers from here
-	void CreateCommandBuffers();								//All operations that are to be done are stored here
+	void CreateVertexBuffer();								//Buffer of vertices that define triangles
+	void CreateCommandBuffers();							//All operations that are to be done are stored here
 	void CreateSyncObjects();								//Create Semaphores and Fences
 	
 	//Check if validation layers are supported
@@ -208,6 +211,9 @@ private:
 
 	//Cleanup last swapchain before recreation
 	void CleanupSwapChain();
+
+	//GPUs offer different types of memory to allocate from
+	uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 };
 
 #endif
