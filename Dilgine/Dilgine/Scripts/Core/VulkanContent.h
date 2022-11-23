@@ -68,11 +68,19 @@ struct Vertex
 	}
 };
 
-//Vertex data, position-color pairs
+//Vertex data, position-color pairs, don't need repeats
 const std::vector<Vertex> vertices = {
-		{{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
-		{{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
-		{{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
+		{{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},	//0
+		{{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},	//1
+		{{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},		//2
+		{{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}		//3
+};
+
+//Index buffer, allows us to take predefined vertices and order them as a standard vertex buffer would be
+//Clockwise order, 3 indices per triangle, indices map directly to indices defined in verticies vector
+const std::vector<uint16_t> indices = {
+	0, 1, 2,
+	2, 3, 0
 };
 
 class EngineVulkan
@@ -95,8 +103,10 @@ public:
 	std::vector <VkSemaphore> renderFinishedSemaphores;
 	std::vector <VkFence> inFlightFences;		//Pauses CPU until GPU finishes specified process
 
-	VkBuffer vertexBuffer;	//Stores list of vertices that define triangles
-	VkDeviceMemory vertexBufferMemory;	//Memory for vertex buffer
+	VkBuffer vertexBuffer;	//Stores list of each individual vertex in a mesh, no repeats
+	VkDeviceMemory vertexBufferMemory;	//Memory for vertex buffer, sometimes we may want to destroy a buffer, but keep the memory allocated to construct something new in the same location
+	VkBuffer indexBuffer;	//Stores list of indices in vertex array that define triangles
+	VkDeviceMemory indexBufferMemory;	//Memory for index buffer
 
 	bool framebufferResized = false;
 
@@ -165,7 +175,8 @@ private:
 	void CreateGraphicsPipeline();							//Handles rendering steps like vertex, geometry, and fragment shaders
 	void CreateFramebuffers();								//Render pass attachments are used here, references VkImageView objects
 	void CreateCommandPool();								//Manage command buffer memory and allocate command buffers from here
-	void CreateVertexBuffer();								//Buffer of vertices that define triangles
+	void CreateVertexBuffer();								//Buffer of vertices that define mesh
+	void CreateIndexBuffer();								//Buffer of indices corresponding to vertices arrary, 3-tuples of verticies make triangles
 	void CreateCommandBuffers();							//All operations that are to be done are stored here
 	void CreateSyncObjects();								//Create Semaphores and Fences
 	

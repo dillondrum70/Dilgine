@@ -7,9 +7,14 @@
 #include <limits>
 #include <algorithm>
 
+//Remember to always destroy in the reverse order things are created in case some things have dependencies on subsequently created systems
+//(That is the case for many of these structures)
 void EngineVulkan::Cleanup()
 {
     CleanupSwapChain();
+
+    vkDestroyBuffer(logicalDevice, indexBuffer, nullptr);
+    vkFreeMemory(logicalDevice, indexBufferMemory, nullptr);
 
     vkDestroyBuffer(logicalDevice, vertexBuffer, nullptr);
     vkFreeMemory(logicalDevice, vertexBufferMemory, nullptr);
@@ -91,6 +96,10 @@ void EngineVulkan::InitVulkan(SDL_Window* window)
     std::cout << "Initializing Vertex Buffer...\n";
     CreateVertexBuffer();
     std::cout << "Vertex Buffer Initialized...\n\n";
+
+    std::cout << "Initializing Index Buffer...\n";
+    CreateIndexBuffer();
+    std::cout << "Index Buffer Initialized...\n\n";
 
     std::cout << "Initializing Command Buffer...\n";
     CreateCommandBuffers();
@@ -793,8 +802,8 @@ void EngineVulkan::CreateVertexBuffer()
 
     VkBuffer stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
-    //Create memory buffer to copy vertex data into
-    CreateBuffer(bufferSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+    //Create memory buffer to copy vertex data into, this buffer will be copied into vertex buffer, hence the TRANSER_SRC_BIT
+    CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
 
     //Access a portion of memory, copies vertex data to mapped memory, then unmaps buffer memory
     void* data = nullptr;
@@ -809,6 +818,34 @@ void EngineVulkan::CreateVertexBuffer()
     CopyBuffer(stagingBuffer, vertexBuffer, bufferSize);
 
     //Free memory
+    vkDestroyBuffer(logicalDevice, stagingBuffer, nullptr);
+    vkFreeMemory(logicalDevice, stagingBufferMemory, nullptr);
+}
+
+
+void EngineVulkan::CreateIndexBuffer()
+{
+    //Byte size of buffer
+    VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
+
+    //Construct and allocate staging buffer just like you would when creating vertex buffer
+    VkBuffer stagingBuffer;
+    VkDeviceMemory stagingBufferMemory;
+    CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+
+    //Copy index data into staging buffer
+    void* data;
+    vkMapMemory(logicalDevice, stagingBufferMemory, 0, bufferSize, 0, &data);
+    memcpy(data, indices.data(), (size_t)bufferSize);
+    vkUnmapMemory(logicalDevice, stagingBufferMemory);
+
+    //Create index buffer
+    CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, indexBuffer, indexBufferMemory);
+
+    //Copy staging buffer into index buffer
+    CopyBuffer(stagingBuffer, indexBuffer, bufferSize);
+
+    //Free staging memory
     vkDestroyBuffer(logicalDevice, stagingBuffer, nullptr);
     vkFreeMemory(logicalDevice, stagingBufferMemory, nullptr);
 }
@@ -1233,11 +1270,25 @@ void EngineVulkan::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t i
     VkDeviceSize offsets[] = { 0 };
     vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
 
-    //vertex count
-    //instance count
-    //first vertex
-    //first instance
-    vkCmdDraw(commandBuffer, static_cast<uint32_t>(vertices.size()), 1, 0, 0);
+    //Bind index buffer to command buffer
+    vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT16);
+
+    //Param1 = Command Buffer
+    //Param2 = vertex count
+    //Param3 = instance count
+    //Param4 = first vertex
+    //Param5 = first instance
+    //Execute command buffer operations
+    //vkCmdDraw(commandBuffer, static_cast<uint32_t>(vertices.size()), 1, 0, 0);
+
+    //Param1 = Command Buffer, command buffer into which command is recorded
+    //Param2 = index count, number of vertices to draw
+    //Param3 = instance count, number of instances to draw
+    //Param4 = first vertex, base index within index buffer
+    //Param5 = vertex offset, added to vertex index before indexing into vertex buffer
+    //Param6 = first instance, ID of first instance to draw
+    //Execute command buffer operations with index array
+    vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
 
     //End render pass
     vkCmdEndRenderPass(commandBuffer);
@@ -1343,7 +1394,7 @@ void EngineVulkan::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkM
     VkBufferCreateInfo bufferInfo{};
     bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
     bufferInfo.size = size;
-    bufferInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+    bufferInfo.usage = usage;
     bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE; //Buffer is owned only by graphics queue
 
     if (vkCreateBuffer(logicalDevice, &bufferInfo, nullptr, &buffer) != VK_SUCCESS)
@@ -1360,8 +1411,7 @@ void EngineVulkan::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkM
     VkMemoryAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     allocInfo.allocationSize = memRequirements.size;    //Size of memory to allocate
-    allocInfo.memoryTypeIndex = FindMemoryType(memRequirements.memoryTypeBits,
-        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);    //Type of memory to allocate
+    allocInfo.memoryTypeIndex = FindMemoryType(memRequirements.memoryTypeBits, properties);    //Type of memory to allocate
 
     //Allocate vertex buffer memory
     if (vkAllocateMemory(logicalDevice, &allocInfo, nullptr, &bufferMemory) != VK_SUCCESS)
