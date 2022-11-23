@@ -83,11 +83,25 @@ const std::vector<uint16_t> indices = {
 	2, 3, 0
 };
 
+//To translate C++ to GLM structures, data must be aligned
+//This is aligned by default
+//N = 4 bytes, 1 x 32 bit float
+//Scalar - aligned by N (4 bytes)
+//Vec2 - aligned by 2N
+//vec3/vec4 - aligned by 4N
+//mat4 - same as vec4
+//Nested Structure - base alignment of members rounded up to multiple of 16
+//Use "alignas(# of bytes)" to align
+//i.e.
+//glm::vec2 foo
+//alignas(16) glm::mat4 bar
+//Safe to always align
+
 //Model-View Projection
 struct UniformBufferObject {
-	glm::mat4 model;
-	glm::mat4 view;
-	glm::mat4 proj;
+	alignas(16) glm::mat4 model;
+	alignas(16) glm::mat4 view;
+	alignas(16) glm::mat4 proj;
 };
 
 class EngineVulkan
@@ -120,6 +134,9 @@ public:
 	std::vector<VkBuffer> uniformBuffers;
 	std::vector<VkDeviceMemory> uniformBuffersMemory;
 	std::vector<void*> uniformBuffersMapped;
+
+	VkDescriptorPool descriptorPool;	//Where descriptors are taken from
+	std::vector<VkDescriptorSet> descriptorSets;
 
 	bool framebufferResized = false;
 
@@ -192,6 +209,8 @@ private:
 	void CreateVertexBuffer();								//Buffer of vertices that define mesh
 	void CreateIndexBuffer();								//Buffer of indices corresponding to vertices arrary, 3-tuples of verticies make triangles
 	void CreateUniformBuffers();							//Create all uniform buffers, i.e. model-view projection matrix buffer
+	void CreateDescriptorPool();							//Pool that descriptor sets are allocated to
+	void CreateDescriptorSets();							//
 	void CreateCommandBuffers();							//All operations that are to be done are stored here
 	void CreateSyncObjects();								//Create Semaphores and Fences
 	

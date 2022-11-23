@@ -19,6 +19,7 @@ void EngineVulkan::Cleanup()
         vkFreeMemory(logicalDevice, uniformBuffersMemory[i], nullptr);
     }
 
+    vkDestroyDescriptorPool(logicalDevice, descriptorPool, nullptr);
     vkDestroyDescriptorSetLayout(logicalDevice, descriptorSetLayout, nullptr);
 
     vkDestroyBuffer(logicalDevice, indexBuffer, nullptr);
@@ -116,6 +117,14 @@ void EngineVulkan::InitVulkan(SDL_Window* window)
     std::cout << "Initializing Uniform Buffers...\n";
     CreateUniformBuffers();
     std::cout << "Uniform Buffers Initialized...\n\n";
+
+    std::cout << "Initializing Descriptor Pool...\n";
+    CreateDescriptorPool();
+    std::cout << "Descriptor Pool Initialized...\n\n";
+
+    std::cout << "Initializing Descriptor Sets...\n";
+    CreateDescriptorSets();
+    std::cout << "Descriptor Sets Initialized...\n\n";
 
     std::cout << "Initializing Command Buffer...\n";
     CreateCommandBuffers();
@@ -685,7 +694,9 @@ void EngineVulkan::CreateGraphicsPipeline()
     rasterizer.polygonMode = VK_POLYGON_MODE_FILL;  //Polygon area filled with fragments (can be drawn as points or lines but need to enable GPU feature)
     rasterizer.lineWidth = 1.0f;    //Number of fragments makes line thicker
     rasterizer.cullMode = VK_CULL_MODE_BACK_BIT; //cull back faces
-    rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE; //Vertices defined clockwise from our current viewpoint are front-facing
+    //Vertices defined counter-clockwise from our current viewpoint are front-facing
+    //NOTE: We must define our vertices in a clockwise order because we then flip them around in the projection matrix due to glm
+    rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE; 
     rasterizer.depthBiasEnable = VK_FALSE;      //If true, you can modify depth values
     rasterizer.depthBiasConstantFactor = 0.0f;
     rasterizer.depthBiasClamp = 0.0f;
@@ -911,6 +922,77 @@ void EngineVulkan::CreateUniformBuffers()
         //Map the memory, this is a pointer we can write data to later
         //We don't want to map memory every time we update the memory because that takes time
         vkMapMemory(logicalDevice, uniformBuffersMemory[i], 0, bufferSize, 0, &uniformBuffersMapped[i]);
+    }
+}
+
+
+void EngineVulkan::CreateDescriptorPool()
+{
+    //Size of descriptor pool
+    VkDescriptorPoolSize poolSize{};
+    poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    poolSize.descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+    
+    //Creation info for descriptor pool
+    VkDescriptorPoolCreateInfo poolInfo{};
+    poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+    poolInfo.poolSizeCount = 1;
+    poolInfo.pPoolSizes = &poolSize;
+    poolInfo.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT); //Max number of descriptor sets is number of frames we have
+
+    if (vkCreateDescriptorPool(logicalDevice, &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS)
+    {
+        gpr460::engine->system->ErrorMessage(gpr460::ERROR_CREATE_DESCRIPTOR_POOL_FAILED);
+        gpr460::engine->system->LogToErrorFile(gpr460::ERROR_CREATE_DESCRIPTOR_POOL_FAILED);
+        throw std::runtime_error("Faild to create descriptor pool");
+    }
+}
+
+
+void EngineVulkan::CreateDescriptorSets()
+{
+    //Allocation info for descriptor sets
+    std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, descriptorSetLayout);
+    VkDescriptorSetAllocateInfo allocInfo{};
+    allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+    allocInfo.descriptorPool = descriptorPool;
+    allocInfo.descriptorSetCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+    allocInfo.pSetLayouts = layouts.data();
+
+    //Allocate space for descriptor sets
+    descriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
+    if (vkAllocateDescriptorSets(logicalDevice, &allocInfo, descriptorSets.data()) != VK_SUCCESS)
+    {
+        gpr460::engine->system->ErrorMessage(gpr460::ERROR_ALLOCATE_DESCRIPTOR_SETS_FAILED);
+        gpr460::engine->system->LogToErrorFile(gpr460::ERROR_ALLOCATE_DESCRIPTOR_SETS_FAILED);
+        throw std::runtime_error("Failed to allocate descriptor sets!");
+    }
+
+    //For each descriptor set, populate the descriptor
+    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+    {
+        //Info for descriptor set buffer
+        VkDescriptorBufferInfo bufferInfo{};
+        bufferInfo.buffer = uniformBuffers[i];
+        bufferInfo.offset = 0;
+        bufferInfo.range = sizeof(UniformBufferObject);
+
+        //Need to update descriptor sets,
+        VkWriteDescriptorSet descriptorWrite{};
+        descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        //Specify which descriptor set and its binding are destination
+        descriptorWrite.dstSet = descriptorSets[i];
+        descriptorWrite.dstBinding = 0;
+        descriptorWrite.dstArrayElement = 0;
+        descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        descriptorWrite.descriptorCount = 1;    //How many array elements to update
+        descriptorWrite.pBufferInfo = &bufferInfo;
+        descriptorWrite.pImageInfo = nullptr;
+        descriptorWrite.pTexelBufferView = nullptr;
+
+        //Apply the actual updates
+        vkUpdateDescriptorSets(logicalDevice, 1, &descriptorWrite, 0, nullptr);
+
     }
 }
 
@@ -1336,6 +1418,9 @@ void EngineVulkan::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t i
 
     //Bind index buffer to command buffer
     vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT16);
+
+    //Not unique to graphics pipeline, specify which pipeline (graphics or compute) to give it to
+    vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[currentFrame], 0, nullptr);
 
     //Param1 = Command Buffer
     //Param2 = vertex count
