@@ -53,6 +53,7 @@ namespace gpr460
 	const gpr460::string ERROR_CREATE_BUFFER_FAILED = L"Error: Failed to create buffer";
 	const gpr460::string ERROR_FIND_MEMORY_TYPE_FAILED = L"Error: Failed to find memory type";
 	const gpr460::string ERROR_ALLOCATE_BUFFER_FAILED = L"Error: Failed to allocate buffer memory";
+	const gpr460::string ERROR_CREATE_DESCRIPTOR_SET_LAYOUT_FAILED = L"Error: Failed to create descriptor set layout";
 
 	const gpr460::string ERROR_MISSING_GAMEOBJECT_REFERENCE = L"Error: Missing Reference to GameObject";
 	const gpr460::string ERROR_MISSING_TRANSFORM_REFERENCE = L"Error: Missing Reference to Transform Component";

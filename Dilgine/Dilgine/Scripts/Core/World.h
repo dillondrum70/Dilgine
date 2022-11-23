@@ -64,6 +64,8 @@ public:
 	void Update();
 
 	void Render(SDL_Renderer*& prRenderer);
+
+	void UpdateUniformBuffer(uint32_t currentImage);
 };
 
 #endif

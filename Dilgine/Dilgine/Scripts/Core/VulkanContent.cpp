@@ -13,6 +13,14 @@ void EngineVulkan::Cleanup()
 {
     CleanupSwapChain();
 
+    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+    {
+        vkDestroyBuffer(logicalDevice, uniformBuffers[i], nullptr);
+        vkFreeMemory(logicalDevice, uniformBuffersMemory[i], nullptr);
+    }
+
+    vkDestroyDescriptorSetLayout(logicalDevice, descriptorSetLayout, nullptr);
+
     vkDestroyBuffer(logicalDevice, indexBuffer, nullptr);
     vkFreeMemory(logicalDevice, indexBufferMemory, nullptr);
 
@@ -81,6 +89,10 @@ void EngineVulkan::InitVulkan(SDL_Window* window)
     CreateRenderPass();
     std::cout << "Render Pass Initialized...\n\n";
 
+    std::cout << "Initializing Descriptor Set Layout...\n";
+    CreateDescriptorSetLayout();
+    std::cout << "Descriptor Set Layout Initialized...\n\n";
+
     std::cout << "Initializing Graphics Pipeline...\n";
     CreateGraphicsPipeline();
     std::cout << "Graphics Pipeline Initialized...\n\n";
@@ -100,6 +112,10 @@ void EngineVulkan::InitVulkan(SDL_Window* window)
     std::cout << "Initializing Index Buffer...\n";
     CreateIndexBuffer();
     std::cout << "Index Buffer Initialized...\n\n";
+
+    std::cout << "Initializing Uniform Buffers...\n";
+    CreateUniformBuffers();
+    std::cout << "Uniform Buffers Initialized...\n\n";
 
     std::cout << "Initializing Command Buffer...\n";
     CreateCommandBuffers();
@@ -565,6 +581,32 @@ void EngineVulkan::CreateRenderPass()
 }
 
 
+void EngineVulkan::CreateDescriptorSetLayout()
+{
+    //Layout binding for model-view projection
+    VkDescriptorSetLayoutBinding uboLayoutBinding{};
+    uboLayoutBinding.binding = 0;
+    uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;    //Descriptor is a uniform buffer
+    uboLayoutBinding.descriptorCount = 1;
+    uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;   //Descriptor is used during vertex shader stage
+    uboLayoutBinding.pImmutableSamplers = nullptr;  //Used for descriptors related to image sampling
+
+    //Info to create and bind descriptor layout
+    VkDescriptorSetLayoutCreateInfo layoutInfo{};
+    layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+    layoutInfo.bindingCount = 1;
+    layoutInfo.pBindings = &uboLayoutBinding;
+
+    //Create layout
+    if (vkCreateDescriptorSetLayout(logicalDevice, &layoutInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS)
+    {
+        gpr460::engine->system->ErrorMessage(gpr460::ERROR_CREATE_DESCRIPTOR_SET_LAYOUT_FAILED);
+        gpr460::engine->system->LogToErrorFile(gpr460::ERROR_CREATE_DESCRIPTOR_SET_LAYOUT_FAILED);
+        throw std::runtime_error("Failed to create descriptor set layout");
+    }
+}
+
+
 void EngineVulkan::CreateGraphicsPipeline()
 {
     //Read bytecode data in from shader files
@@ -697,8 +739,8 @@ void EngineVulkan::CreateGraphicsPipeline()
     //Info for creating pipeline layout
     VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
     pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-    pipelineLayoutInfo.setLayoutCount = 0;
-    pipelineLayoutInfo.pSetLayouts = nullptr;
+    pipelineLayoutInfo.setLayoutCount = 1;
+    pipelineLayoutInfo.pSetLayouts = &descriptorSetLayout;  //Descriptor Set Layout for Model-View Projection matrix
     pipelineLayoutInfo.pushConstantRangeCount = 0;
     pipelineLayoutInfo.pPushConstantRanges = nullptr;
 
@@ -848,6 +890,28 @@ void EngineVulkan::CreateIndexBuffer()
     //Free staging memory
     vkDestroyBuffer(logicalDevice, stagingBuffer, nullptr);
     vkFreeMemory(logicalDevice, stagingBufferMemory, nullptr);
+}
+
+
+void EngineVulkan::CreateUniformBuffers()
+{
+    VkDeviceSize bufferSize = sizeof(UniformBufferObject);
+
+    //Resize arrays, 1 for each frame in flight
+    uniformBuffers.resize(MAX_FRAMES_IN_FLIGHT);
+    uniformBuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
+    uniformBuffersMapped.resize(MAX_FRAMES_IN_FLIGHT);
+
+    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+    {
+        //Create uniform buffer
+        CreateBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+            uniformBuffers[i], uniformBuffersMemory[i]);
+
+        //Map the memory, this is a pointer we can write data to later
+        //We don't want to map memory every time we update the memory because that takes time
+        vkMapMemory(logicalDevice, uniformBuffersMemory[i], 0, bufferSize, 0, &uniformBuffersMapped[i]);
+    }
 }
 
 

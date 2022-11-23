@@ -3,8 +3,14 @@
 #include "System.h"
 //#include <windows.h>
 
+#define GLM_FORCE_RADIANS
+
 #include "SDL2/SDL.h"
 #include "vulkan/vulkan.h"
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+
+#include <chrono>
 
 const std::string path = "..\\Dilgine\\Data\\level0.dat";
 
@@ -204,6 +210,9 @@ void World::Render(SDL_Renderer*& prRenderer)
 		throw std::runtime_error("Failed to acquire swapchain image");
 	}
 
+	//Update the uniform buffer
+	UpdateUniformBuffer(vulkan.currentFrame);
+
 	//Must manually reset to an unsignaled state afterwards
 	//Do so after out of date check to avoid a deadlock where nothing is executed because the fence resets us before reaching the check since nothing would have been done last frame
 	vkResetFences(vulkan.logicalDevice, 1, &vulkan.inFlightFences[vulkan.currentFrame]);
@@ -278,4 +287,30 @@ void World::Render(SDL_Renderer*& prRenderer)
 
 	//Increment and wrap frame index
 	vulkan.currentFrame = (vulkan.currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+}
+
+
+void World::UpdateUniformBuffer(uint32_t currentImage)
+{
+	//Calculate time since started rendering, independent of frame rate
+	static auto startTime = std::chrono::high_resolution_clock::now();
+
+	auto currentTime = std::chrono::high_resolution_clock::now();
+	float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
+
+	VkExtent2D extents = gpr460::engine->vulkanEngine.swapChainExtent;
+
+	UniformBufferObject ubo{};
+	//Calculate model matrix, takes transformation, rotation, and rotation axis, rotates 90 degrees per second
+	ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));	
+
+	//View matrix (eye position, center look position, up vector), looks from above at a 45 degree angle
+	ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));	
+
+	//Projection matrix, (Y field of view, aspect ratio, near clip, far clip), 45 degree vertical field of view
+	ubo.proj = glm::perspective(glm::radians(45.0f), extents.width / (float)extents.height, 0.1f, 10.0f);	
+	ubo.proj[1][1] *= -1;	//glm designed for OpenGL where Y clip coordinate is inverted, must undo the invert done by glm, otherwise, image is rendered upside-down
+
+	//Copy memory to uniform buffers mapped
+	memcpy(gpr460::engine->vulkanEngine.uniformBuffersMapped[currentImage], &ubo, sizeof(ubo));
 }

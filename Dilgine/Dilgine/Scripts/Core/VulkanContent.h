@@ -83,6 +83,13 @@ const std::vector<uint16_t> indices = {
 	2, 3, 0
 };
 
+//Model-View Projection
+struct UniformBufferObject {
+	glm::mat4 model;
+	glm::mat4 view;
+	glm::mat4 proj;
+};
+
 class EngineVulkan
 {
 public:
@@ -94,7 +101,8 @@ public:
 	VkQueue graphicsQueue;								//Graphics queue, accepts command buffer to run on GPU
 	VkQueue presentQueue;								//Presentation queue
 
-	VkSwapchainKHR swapChain;				//Swapchain object
+	VkSwapchainKHR swapChain;		//Swapchain object
+	VkExtent2D swapChainExtent;		//Extents of camera
 
 	std::vector<VkCommandBuffer> commandBuffers;	//Commands to change anything are submitted to this buffer
 
@@ -107,6 +115,11 @@ public:
 	VkDeviceMemory vertexBufferMemory;	//Memory for vertex buffer, sometimes we may want to destroy a buffer, but keep the memory allocated to construct something new in the same location
 	VkBuffer indexBuffer;	//Stores list of indices in vertex array that define triangles
 	VkDeviceMemory indexBufferMemory;	//Memory for index buffer
+
+	//Memory buffers and memory to handle uniform buffers
+	std::vector<VkBuffer> uniformBuffers;
+	std::vector<VkDeviceMemory> uniformBuffersMemory;
+	std::vector<void*> uniformBuffersMapped;
 
 	bool framebufferResized = false;
 
@@ -139,10 +152,10 @@ private:
 	
 	std::vector<VkImage> swapChainImages;	//Images in swap chain that are referenced during rendering
 	VkFormat swapChainImageFormat;			//store swap chain image info
-	VkExtent2D swapChainExtent;
 	std::vector<VkImageView> swapChainImageViews;
 
 	VkRenderPass renderPass;			//The actual render pass object
+	VkDescriptorSetLayout descriptorSetLayout;	//Layout for descriptor set (model-view projection matrix descriptor)
 	VkPipelineLayout pipelineLayout;	//Defines how uniforms are passed to shaders
 	VkPipeline graphicsPipeline;		//Graphics pipeline object
 
@@ -172,11 +185,13 @@ private:
 	void CreateSwapChain(SDL_Window* window);				//Determine and create parameters for drawing
 	void CreateImageViews();								//The view of an image, specifies how and what part of image to access
 	void CreateRenderPass();								//Handles information regarding rendering
+	void CreateDescriptorSetLayout();						//Binding model-view projection matrix
 	void CreateGraphicsPipeline();							//Handles rendering steps like vertex, geometry, and fragment shaders
 	void CreateFramebuffers();								//Render pass attachments are used here, references VkImageView objects
 	void CreateCommandPool();								//Manage command buffer memory and allocate command buffers from here
 	void CreateVertexBuffer();								//Buffer of vertices that define mesh
 	void CreateIndexBuffer();								//Buffer of indices corresponding to vertices arrary, 3-tuples of verticies make triangles
+	void CreateUniformBuffers();							//Create all uniform buffers, i.e. model-view projection matrix buffer
 	void CreateCommandBuffers();							//All operations that are to be done are stored here
 	void CreateSyncObjects();								//Create Semaphores and Fences
 	
