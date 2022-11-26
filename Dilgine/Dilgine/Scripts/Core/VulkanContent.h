@@ -45,6 +45,7 @@ struct Vertex
 {
 	glm::vec2 position;
 	glm::vec3 color;
+	glm::vec2 texCoord;
 
 	//Defines how to pass Vertex data format
 	static VkVertexInputBindingDescription GetBindingDescription()
@@ -59,10 +60,10 @@ struct Vertex
 	}
 
 	//How to handle vertex input
-	static std::array<VkVertexInputAttributeDescription, 2> GetAttributeDescriptions()
+	static std::array<VkVertexInputAttributeDescription, 3> GetAttributeDescriptions()
 	{
 		//Two  descriptions tell us how to extract vertex attribute from vertex data in binding description, one for position, one for color
-		std::array<VkVertexInputAttributeDescription, 2> attributeDescriptions{};
+		std::array<VkVertexInputAttributeDescription, 3> attributeDescriptions{};
 		attributeDescriptions[0].binding = 0;							//Which binding the per-vertex data comes from
 		attributeDescriptions[0].location = 0;							//location directive of input in vertex shader
 		attributeDescriptions[0].format = VK_FORMAT_R32G32_SFLOAT;		//Type of data, R32G32 is same as vec2, 2 x 32 bit values
@@ -73,16 +74,21 @@ struct Vertex
 		attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
 		attributeDescriptions[1].offset = offsetof(Vertex, color);
 
+		attributeDescriptions[2].binding = 0;
+		attributeDescriptions[2].location = 2;
+		attributeDescriptions[2].format = VK_FORMAT_R32G32_SFLOAT;
+		attributeDescriptions[2].offset = offsetof(Vertex, texCoord);
+
 		return attributeDescriptions;
 	}
 };
 
 //Vertex data, position-color pairs, don't need repeats
 const std::vector<Vertex> vertices = {
-		{{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},	//0
-		{{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},	//1
-		{{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},		//2
-		{{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}		//3
+		{{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},	//0
+		{{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},	//1
+		{{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},	//2
+		{{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}}	//3
 };
 
 //Index buffer, allows us to take predefined vertices and order them as a standard vertex buffer would be
@@ -191,6 +197,8 @@ private:
 
 	VkImage textureImage;	//Vulkan image data type for textures
 	VkDeviceMemory textureImageMemory;	//Memory location for image
+	VkImageView textureImageView;	//ImageView through which we access the image
+	VkSampler textureSampler;	//Samples values from texture
 
 	//Validation layers to enable
 	const std::vector<const char*> validationLayers = { "VK_LAYER_KHRONOS_validation" };
@@ -219,6 +227,8 @@ private:
 	void CreateFramebuffers();								//Render pass attachments are used here, references VkImageView objects
 	void CreateCommandPool();								//Manage command buffer memory and allocate command buffers from here
 	void CreateTextureImage();								//Image used for texturing object
+	void CreateTextureImageView();							//Images are accessed through ImageViews
+	void CreateTextureSampler();							//Sample VkImage for colors
 	void CreateVertexBuffer();								//Buffer of vertices that define mesh
 	void CreateIndexBuffer();								//Buffer of indices corresponding to vertices arrary, 3-tuples of verticies make triangles
 	void CreateUniformBuffers();							//Create all uniform buffers, i.e. model-view projection matrix buffer
@@ -295,6 +305,9 @@ private:
 
 	//Copies data buffer to a VkImage
 	void CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
+
+	//Create an image view to access an image
+	VkImageView CreateImageView(VkImage image, VkFormat format);
 };
 
 #endif

@@ -50,6 +50,8 @@ namespace gpr460 {
 	const gpr460::string ERROR_CREATE_TEXTURE_IMAGE_FAILED = "Error: Failed to create texture image";
 	const gpr460::string ERROR_ALLOCATE_TEXTURE_IMAGE_FAILED = "Error: Failed to allocate texture image memory";
 	const gpr460::string ERROR_UNSUPPORTED_LAYOUT_TRANSITION_FAILED = "Error: Unsupported layout transition";
+	const gpr460::string ERROR_CREATE_TEXTURE_IMAGE_VIEW_FAILED = "Error: Failed to create texture image view";
+	const gpr460::string ERROR_CREATE_TEXTURE_SAMPLER_FAILED = "Error: Failed to create texture sampler";
 
 	const gpr460::string ERROR_MISSING_GAMEOBJECT_REFERENCE = "Error: Missing Reference to GameObject";
 	const gpr460::string ERROR_MISSING_TRANSFORM_REFERENCE = "Error: Missing Reference to Transform Component";

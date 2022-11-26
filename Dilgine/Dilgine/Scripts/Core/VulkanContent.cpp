@@ -15,6 +15,8 @@ void EngineVulkan::Cleanup()
 {
     CleanupSwapChain();
 
+    vkDestroySampler(logicalDevice, textureSampler, nullptr);
+    vkDestroyImageView(logicalDevice, textureImageView, nullptr);
     vkDestroyImage(logicalDevice, textureImage, nullptr);
     vkFreeMemory(logicalDevice, textureImageMemory, nullptr);
 
@@ -114,6 +116,14 @@ void EngineVulkan::InitVulkan(SDL_Window* window)
     std::cout << "Initializing Texture Image...\n";
     CreateTextureImage();
     std::cout << "Texture Image Initialized...\n\n";
+
+    std::cout << "Initializing Texture Image View...\n";
+    CreateTextureImageView();
+    std::cout << "Texture Image View Initialized...\n\n";
+
+    std::cout << "Initializing Texture Sampler...\n";
+    CreateTextureSampler();
+    std::cout << "Texture Sampler Initialized...\n\n";
 
     std::cout << "Initializing Vertex Buffer...\n";
     CreateVertexBuffer();
@@ -399,6 +409,7 @@ void EngineVulkan::CreateLogicalDevice()
 
     //Info about device's features
     VkPhysicalDeviceFeatures deviceFeatures{};
+    deviceFeatures.samplerAnisotropy = VK_TRUE; //Make sure anisotropic filtering is an optional device feature
 
     //Required create info for device
     VkDeviceCreateInfo cInfo{};
@@ -527,31 +538,7 @@ void EngineVulkan::CreateImageViews()
     //Loop through each image
     for (size_t i = 0; i < swapChainImages.size(); i++)
     {
-        VkImageViewCreateInfo cInfo{};
-        cInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-        cInfo.image = swapChainImages[i];
-        cInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;     //Here, you specify how to interpret, i.e. 1D, 2D, 3D texture
-        cInfo.format = swapChainImageFormat;
-
-        //Swizzle color channels, here, you might give every component the same value as the red channel for grayscale
-        cInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;     
-        cInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
-        cInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
-        cInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
-
-        //Subresource lets us define what image is for, parts of image we need
-        cInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;  
-        cInfo.subresourceRange.baseMipLevel = 0;
-        cInfo.subresourceRange.levelCount = 1;
-        cInfo.subresourceRange.baseArrayLayer = 0;
-        cInfo.subresourceRange.layerCount = 1;
-
-        if (vkCreateImageView(logicalDevice, &cInfo, nullptr, &swapChainImageViews[i]) != VK_SUCCESS)
-        {
-            gpr460::engine->system->ErrorMessage(gpr460::ERROR_CREATE_IMAGE_VIEW_FAILED);
-            gpr460::engine->system->LogToErrorFile(gpr460::ERROR_CREATE_IMAGE_VIEW_FAILED);
-            throw std::runtime_error("Failed to create Image Views");
-        }
+        swapChainImageViews[i] = CreateImageView(swapChainImages[i], swapChainImageFormat);
     }
 }
 
@@ -609,11 +596,21 @@ void EngineVulkan::CreateDescriptorSetLayout()
     uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;   //Descriptor is used during vertex shader stage
     uboLayoutBinding.pImmutableSamplers = nullptr;  //Used for descriptors related to image sampling
 
+    //Layout binding for texture sampler
+    VkDescriptorSetLayoutBinding samplerLayoutBinding{};
+    samplerLayoutBinding.binding = 1;
+    samplerLayoutBinding.descriptorCount = 1;
+    samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    samplerLayoutBinding.pImmutableSamplers = nullptr;
+    samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+    //Store all layout bindings
+    std::array<VkDescriptorSetLayoutBinding, 2> bindings = { uboLayoutBinding, samplerLayoutBinding };
     //Info to create and bind descriptor layout
     VkDescriptorSetLayoutCreateInfo layoutInfo{};
     layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-    layoutInfo.bindingCount = 1;
-    layoutInfo.pBindings = &uboLayoutBinding;
+    layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
+    layoutInfo.pBindings = bindings.data();
 
     //Create layout
     if (vkCreateDescriptorSetLayout(logicalDevice, &layoutInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS)
@@ -919,6 +916,53 @@ void EngineVulkan::CreateTextureImage()
 }
 
 
+void EngineVulkan::CreateTextureImageView()
+{
+    textureImageView = CreateImageView(textureImage, VK_FORMAT_R8G8B8A8_SRGB);
+}
+
+
+void EngineVulkan::CreateTextureSampler()
+{
+    VkSamplerCreateInfo samplerInfo{};
+    samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+    //Specify how to interpolate texels when magnified or minified (i.e. should it have hard pixels or blur)
+    samplerInfo.magFilter = VK_FILTER_LINEAR;
+    samplerInfo.minFilter = VK_FILTER_LINEAR;
+    //Repeats image when tiling if it's too small
+    samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    //Determine GPU ability for highest anisotropy
+    VkPhysicalDeviceProperties properties{};
+    vkGetPhysicalDeviceProperties(physicalDevice, &properties);
+    samplerInfo.anisotropyEnable = VK_TRUE;
+    samplerInfo.maxAnisotropy = properties.limits.maxSamplerAnisotropy;
+    //Determines base color when sampling past bounds of image
+    samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+    //Determines if sampling [0, texWidth] or [0, 1)
+    samplerInfo.unnormalizedCoordinates = VK_FALSE;
+    //Mostly used for "percentage-closer filtering"
+    samplerInfo.compareEnable = VK_FALSE;
+    samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
+    //We do not have mipmapping yet
+    samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+    samplerInfo.mipLodBias = 0.0f;
+    samplerInfo.minLod = 0.0f;
+    samplerInfo.maxLod = 0.0f;
+    //We've already checked if device supports anisotropy when it was created
+    samplerInfo.anisotropyEnable = VK_TRUE;
+    samplerInfo.maxAnisotropy = 1.0f;
+
+    if (vkCreateSampler(logicalDevice, &samplerInfo, nullptr, &textureSampler) != VK_SUCCESS)
+    {
+        gpr460::engine->system->ErrorMessage(gpr460::ERROR_CREATE_TEXTURE_SAMPLER_FAILED);
+        gpr460::engine->system->LogToErrorFile(gpr460::ERROR_CREATE_TEXTURE_SAMPLER_FAILED);
+        throw std::runtime_error("Failed to create texture sampler");
+    }
+}
+
+
 void EngineVulkan::CreateVertexBuffer()
 {
     VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
@@ -999,15 +1043,17 @@ void EngineVulkan::CreateUniformBuffers()
 void EngineVulkan::CreateDescriptorPool()
 {
     //Size of descriptor pool
-    VkDescriptorPoolSize poolSize{};
-    poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    poolSize.descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+    std::array<VkDescriptorPoolSize, 2> poolSizes{};
+    poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    poolSizes[0].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+    poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    poolSizes[1].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
     
     //Creation info for descriptor pool
     VkDescriptorPoolCreateInfo poolInfo{};
     poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-    poolInfo.poolSizeCount = 1;
-    poolInfo.pPoolSizes = &poolSize;
+    poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
+    poolInfo.pPoolSizes = poolSizes.data();
     poolInfo.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT); //Max number of descriptor sets is number of frames we have
 
     if (vkCreateDescriptorPool(logicalDevice, &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS)
@@ -1047,22 +1093,37 @@ void EngineVulkan::CreateDescriptorSets()
         bufferInfo.offset = 0;
         bufferInfo.range = sizeof(UniformBufferObject);
 
+        VkDescriptorImageInfo imageInfo{};
+        imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        imageInfo.imageView = textureImageView;
+        imageInfo.sampler = textureSampler;
+
         //Need to update descriptor sets,
-        VkWriteDescriptorSet descriptorWrite{};
-        descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
+        descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
         //Specify which descriptor set and its binding are destination
-        descriptorWrite.dstSet = descriptorSets[i];
-        descriptorWrite.dstBinding = 0;
-        descriptorWrite.dstArrayElement = 0;
-        descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        descriptorWrite.descriptorCount = 1;    //How many array elements to update
-        descriptorWrite.pBufferInfo = &bufferInfo;
-        descriptorWrite.pImageInfo = nullptr;
-        descriptorWrite.pTexelBufferView = nullptr;
+        descriptorWrites[0].dstSet = descriptorSets[i];
+        descriptorWrites[0].dstBinding = 0;
+        descriptorWrites[0].dstArrayElement = 0;
+        descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        descriptorWrites[0].descriptorCount = 1;    //How many array elements to update
+        descriptorWrites[0].pBufferInfo = &bufferInfo;
+        descriptorWrites[0].pImageInfo = nullptr;
+        descriptorWrites[0].pTexelBufferView = nullptr;
+
+        //Texture sampler descriptor writes
+        descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        descriptorWrites[1].dstSet = descriptorSets[i];
+        descriptorWrites[1].dstBinding = 1;
+        descriptorWrites[1].dstArrayElement = 0;
+        descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        descriptorWrites[1].descriptorCount = 1;    //How many array elements to update
+        descriptorWrites[1].pBufferInfo = nullptr;
+        descriptorWrites[1].pImageInfo = &imageInfo;
+        descriptorWrites[1].pTexelBufferView = nullptr;
 
         //Apply the actual updates
-        vkUpdateDescriptorSets(logicalDevice, 1, &descriptorWrite, 0, nullptr);
-
+        vkUpdateDescriptorSets(logicalDevice, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
     }
 }
 
@@ -1203,8 +1264,12 @@ bool EngineVulkan::CheckDevice(VkPhysicalDevice device)
         gpr460::engine->system->LogToErrorFile(gpr460::ERROR_SWAP_CHAIN_INADEQUATE);
     }
 
+    //Check anisotropy supported
+    VkPhysicalDeviceFeatures deviceFeatures;
+    vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
+
     //Return true if physical device is a discrete (non-integrated) GPU and has geometry shader feature
-    return indices.isComplete() && extensionSupported && swapChainCapable;
+    return indices.isComplete() && extensionSupported && swapChainCapable && deviceFeatures.samplerAnisotropy;
 }
 
 
@@ -1845,4 +1910,29 @@ void EngineVulkan::CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t wi
     );
 
     EndSingleTimeCommands(commandBuffer);
+}
+
+
+VkImageView EngineVulkan::CreateImageView(VkImage image, VkFormat format)
+{
+    VkImageViewCreateInfo viewInfo{};
+    viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+    viewInfo.image = image;
+    viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+    viewInfo.format = format;
+    viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    viewInfo.subresourceRange.baseMipLevel = 0;
+    viewInfo.subresourceRange.levelCount = 1;
+    viewInfo.subresourceRange.baseArrayLayer = 0;
+    viewInfo.subresourceRange.layerCount = 1;
+
+    VkImageView imageView;
+    if (vkCreateImageView(logicalDevice, &viewInfo, nullptr, &imageView) != VK_SUCCESS)
+    {
+        gpr460::engine->system->ErrorMessage(gpr460::ERROR_CREATE_TEXTURE_IMAGE_VIEW_FAILED);
+        gpr460::engine->system->LogToErrorFile(gpr460::ERROR_CREATE_TEXTURE_IMAGE_VIEW_FAILED);
+        throw std::runtime_error("Failed to create texture image view");
+    }
+
+    return imageView;
 }
