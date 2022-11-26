@@ -8,6 +8,15 @@
 #include <fstream>
 #include <array>
 
+////////////// GLM Defines /////////////////
+#define GLM_FORCE_RADIANS
+//Saves us from worrying about data alignment most of the time
+//Does not work on nested structures
+#define GLM_FORCE_DEFAULT_ALIGNED_GENTYPES	
+
+////////////// STB Defines /////////////////
+#define STB_IMAGE_IMPLEMENTATION
+
 #include "vulkan/vulkan.h"
 #include "SDL2/SDL.h"
 #include "glm/glm.hpp"
@@ -180,6 +189,9 @@ private:
 
 	VkCommandPool commandPool;	//Manage memory used to store command buffers
 
+	VkImage textureImage;	//Vulkan image data type for textures
+	VkDeviceMemory textureImageMemory;	//Memory location for image
+
 	//Validation layers to enable
 	const std::vector<const char*> validationLayers = { "VK_LAYER_KHRONOS_validation" };
 
@@ -206,6 +218,7 @@ private:
 	void CreateGraphicsPipeline();							//Handles rendering steps like vertex, geometry, and fragment shaders
 	void CreateFramebuffers();								//Render pass attachments are used here, references VkImageView objects
 	void CreateCommandPool();								//Manage command buffer memory and allocate command buffers from here
+	void CreateTextureImage();								//Image used for texturing object
 	void CreateVertexBuffer();								//Buffer of vertices that define mesh
 	void CreateIndexBuffer();								//Buffer of indices corresponding to vertices arrary, 3-tuples of verticies make triangles
 	void CreateUniformBuffers();							//Create all uniform buffers, i.e. model-view projection matrix buffer
@@ -266,6 +279,22 @@ private:
 
 	//Copy data in one buffer to another
 	void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
+
+	//Create image, allocate, and bind memory
+	void CreateImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, 
+		VkImage& image, VkDeviceMemory& imageMemory);
+
+	//Reorder and rexecute command buffer, begin command buffer
+	VkCommandBuffer BeginSingleTimeCommands();
+
+	//End command buffer
+	void EndSingleTimeCommands(VkCommandBuffer commandBuffer);
+
+	//Put image in correct layout
+	void TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
+
+	//Copies data buffer to a VkImage
+	void CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
 };
 
 #endif

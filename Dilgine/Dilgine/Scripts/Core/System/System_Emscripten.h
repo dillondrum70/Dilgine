@@ -9,7 +9,7 @@
 namespace gpr460 {
 
 	//error constants
-	const gpr460::string ERROR_PRESSED_K = "Error: User pressed k";
+	const gpr460::string ERROR_ERROR_LOGGING_FAILED = L"Error: Error logging failed";
 	const gpr460::string FILENAME_LEVEL0 = "level0.dat";
 
 	const gpr460::string ERROR_MISSING_ENGINE_RENDERER = "Error: Could not get SDL_Renderer* renderer on engine";
@@ -46,6 +46,10 @@ namespace gpr460 {
 	const gpr460::string ERROR_CREATE_DESCRIPTOR_SET_LAYOUT_FAILED = "Error: Failed to create descriptor set layout";
 	const gpr460::string ERROR_CREATE_DESCRIPTOR_POOL_FAILED = "Error: Failed to create descriptor pool";
 	const gpr460::string ERROR_ALLOCATE_DESCRIPTOR_SETS_FAILED = "Error: Failed to allocate descriptor sets";
+	const gpr460::string ERROR_LOAD_TEXTURE_IMAGE_FAILED = "Error: Failed to load texture image";
+	const gpr460::string ERROR_CREATE_TEXTURE_IMAGE_FAILED = "Error: Failed to create texture image";
+	const gpr460::string ERROR_ALLOCATE_TEXTURE_IMAGE_FAILED = "Error: Failed to allocate texture image memory";
+	const gpr460::string ERROR_UNSUPPORTED_LAYOUT_TRANSITION_FAILED = "Error: Unsupported layout transition";
 
 	const gpr460::string ERROR_MISSING_GAMEOBJECT_REFERENCE = "Error: Missing Reference to GameObject";
 	const gpr460::string ERROR_MISSING_TRANSFORM_REFERENCE = "Error: Missing Reference to Transform Component";

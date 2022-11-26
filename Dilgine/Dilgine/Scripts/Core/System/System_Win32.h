@@ -14,6 +14,7 @@
 
 namespace gpr460
 {
+
 	//filenames
 	const gpr460::string FILENAME_ERROR = L"GameErrors.txt";
 	const gpr460::string FILENAME_LEVEL0 = L"level0.dat";
@@ -56,6 +57,10 @@ namespace gpr460
 	const gpr460::string ERROR_CREATE_DESCRIPTOR_SET_LAYOUT_FAILED = L"Error: Failed to create descriptor set layout";
 	const gpr460::string ERROR_CREATE_DESCRIPTOR_POOL_FAILED = L"Error: Failed to create descriptor pool";
 	const gpr460::string ERROR_ALLOCATE_DESCRIPTOR_SETS_FAILED = L"Error: Failed to allocate descriptor sets";
+	const gpr460::string ERROR_LOAD_TEXTURE_IMAGE_FAILED = L"Error: Failed to load texture image";
+	const gpr460::string ERROR_CREATE_TEXTURE_IMAGE_FAILED = L"Error: Failed to create texture image";
+	const gpr460::string ERROR_ALLOCATE_TEXTURE_IMAGE_FAILED = L"Error: Failed to allocate texture image memory";
+	const gpr460::string ERROR_UNSUPPORTED_LAYOUT_TRANSITION_FAILED = L"Error: Unsupported layout transition";
 
 	const gpr460::string ERROR_MISSING_GAMEOBJECT_REFERENCE = L"Error: Missing Reference to GameObject";
 	const gpr460::string ERROR_MISSING_TRANSFORM_REFERENCE = L"Error: Missing Reference to Transform Component";

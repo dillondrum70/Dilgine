@@ -1,6 +1,12 @@
 #include "System.h"
 #include "VulkanContent.h"
 
+//Vulkan - Low Level Graphics Backend
+//SDL - Higher level, used mainly to talk with Windows and create a window
+//GLSL - Shader language used
+//GLM - Data types that align with those used in GLSL so things like matrices can be created and passed to GLSL
+//STB - Image manipulation, used for textures
+
 void Run();
 void runMainLoop();
 void frameStep();

@@ -3,11 +3,6 @@
 #include "System.h"
 //#include <windows.h>
 
-#define GLM_FORCE_RADIANS
-//Saves us from worrying about data alignment most of the time
-//Does not work on nested structures
-#define GLM_FORCE_DEFAULT_ALIGNED_GENTYPES	
-
 #include "SDL2/SDL.h"
 #include "vulkan/vulkan.h"
 #include "glm/glm.hpp"

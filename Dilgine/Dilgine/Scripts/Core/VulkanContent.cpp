@@ -2,6 +2,8 @@
 
 #include "System.h"
 
+#include "stb_image.h"
+
 #include <set>
 #include <cstdint>
 #include <limits>
@@ -12,6 +14,9 @@
 void EngineVulkan::Cleanup()
 {
     CleanupSwapChain();
+
+    vkDestroyImage(logicalDevice, textureImage, nullptr);
+    vkFreeMemory(logicalDevice, textureImageMemory, nullptr);
 
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
     {
@@ -105,6 +110,10 @@ void EngineVulkan::InitVulkan(SDL_Window* window)
     std::cout << "Initializing Command Pool...\n";
     CreateCommandPool();
     std::cout << "Command Pool Initialized...\n\n";
+
+    std::cout << "Initializing Texture Image...\n";
+    CreateTextureImage();
+    std::cout << "Texture Image Initialized...\n\n";
 
     std::cout << "Initializing Vertex Buffer...\n";
     CreateVertexBuffer();
@@ -849,6 +858,67 @@ void EngineVulkan::CreateCommandPool()
 }
 
 
+void EngineVulkan::CreateTextureImage()
+{
+    std::cout << "FEATURE UNFINISHED\n";
+    std::cout << "To Do:\n";
+    std::cout << "\tFilename storage\n";
+    std::cout << "\tLoading of multiple textures by filename\n";
+
+    //Out variables
+    int texWidth, texHeight, texChannels;
+    //Load in image and its information
+    //If using \ instead of /, make sure to use \\ 
+    stbi_uc* pixels = stbi_load("Assets/Images/SquarePaul.png", &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+    
+    //4 bytes per pixel, width x height pixels
+    //colors defined in 32 bytes 32 bit color, 8 bits per channel (rgba)
+    VkDeviceSize imageSize = texWidth * texHeight * 4;
+
+    if (!pixels)
+    {
+        gpr460::engine->system->ErrorMessage(gpr460::ERROR_LOAD_TEXTURE_IMAGE_FAILED);
+        gpr460::engine->system->LogToErrorFile(gpr460::ERROR_LOAD_TEXTURE_IMAGE_FAILED);
+        throw std::runtime_error("Failed to load texture image");
+    }
+
+    //Need buffer in host visible memory to map it
+    VkBuffer stagingBuffer;
+    VkDeviceMemory stagingBufferMemory;
+
+    //Create staging buffer as transfer buffer with image data
+    CreateBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+
+    //Map memory
+    void* data;
+    vkMapMemory(logicalDevice, stagingBufferMemory, 0, imageSize, 0, &data);
+    memcpy(data, pixels, static_cast<size_t>(imageSize));
+    vkUnmapMemory(logicalDevice, stagingBufferMemory);
+
+    //Free image memory
+    stbi_image_free(pixels);
+
+    //Create texture image
+    //NOTE: It is possible that a GPU might not support this format, however it is so popular that for the sake of this system, we will not be checking
+    //Same format as stb, VK_FORMAT_R8G8B8A8_SRGB
+    CreateImage(texWidth, texHeight, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, 
+        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage, textureImageMemory);
+    
+    //Transition image layout for texture image, TRANSFER_DST_OPTIMAL
+    TransitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+
+    //Copy staging buffer to texture image
+    CopyBufferToImage(stagingBuffer, textureImage, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
+
+    //Need to prepare for shader access, SHADER_READ_ONLY_OPTIMAL
+    TransitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+    //Destroy and free temporary staging values
+    vkDestroyBuffer(logicalDevice, stagingBuffer, nullptr);
+    vkFreeMemory(logicalDevice, stagingBufferMemory, nullptr);
+}
+
+
 void EngineVulkan::CreateVertexBuffer()
 {
     VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
@@ -1577,13 +1647,78 @@ void EngineVulkan::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkM
 
 void EngineVulkan::CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
 {
+    VkCommandBuffer commandBuffer = BeginSingleTimeCommands();
+
+    //Copy buffer to copy information from source buffer to destination buffer
+    VkBufferCopy copyRegion{};
+    copyRegion.srcOffset = 0;
+    copyRegion.dstOffset = 0;
+    copyRegion.size = size;
+    vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
+
+    EndSingleTimeCommands(commandBuffer);
+}
+
+
+void EngineVulkan::CreateImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, 
+    VkImage& image, VkDeviceMemory& imageMemory)
+{
+    //Info needed to create a vulkan image
+    VkImageCreateInfo imageInfo{};
+    imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+    imageInfo.imageType = VK_IMAGE_TYPE_2D;
+    imageInfo.extent.width = width;
+    imageInfo.extent.height = height;
+    imageInfo.extent.depth = 1;
+    imageInfo.mipLevels = 1;
+    imageInfo.arrayLayers = 1;
+    imageInfo.format = format; 
+    imageInfo.tiling = tiling; //Tiling order is defined by implementation, LINEAR is row-major order
+    imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;    //Not usable by GPU, first pass discards texels, PREINITIALIZED is same but will preserve texels
+    imageInfo.usage = usage;
+    imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+    imageInfo.flags = 0;
+
+    if (vkCreateImage(logicalDevice, &imageInfo, nullptr, &image) != VK_SUCCESS)
+    {
+        gpr460::engine->system->ErrorMessage(gpr460::ERROR_CREATE_TEXTURE_IMAGE_FAILED);
+        gpr460::engine->system->LogToErrorFile(gpr460::ERROR_CREATE_TEXTURE_IMAGE_FAILED);
+        throw std::runtime_error("Failed to create image");
+    }
+
+    //Binding memory works the same as any other buffer, just with functions specific to the Image data type
+    //Load texture memory requirements
+    VkMemoryRequirements memRequirements;
+    vkGetImageMemoryRequirements(logicalDevice, image, &memRequirements);
+
+    //Set allocation info
+    VkMemoryAllocateInfo allocInfo{};
+    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    allocInfo.allocationSize = memRequirements.size;
+    allocInfo.memoryTypeIndex = FindMemoryType(memRequirements.memoryTypeBits, properties);
+
+    if (vkAllocateMemory(logicalDevice, &allocInfo, nullptr, &imageMemory) != VK_SUCCESS)
+    {
+        gpr460::engine->system->ErrorMessage(gpr460::ERROR_ALLOCATE_TEXTURE_IMAGE_FAILED);
+        gpr460::engine->system->LogToErrorFile(gpr460::ERROR_ALLOCATE_TEXTURE_IMAGE_FAILED);
+        throw std::runtime_error("Failed to allocate image memory");
+    }
+
+    //Bind image to image memory
+    vkBindImageMemory(logicalDevice, image, imageMemory, 0);
+}
+
+
+VkCommandBuffer EngineVulkan::BeginSingleTimeCommands()
+{
     VkCommandBufferAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;   //Memory transfers are conducted with command buffers
     allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
     allocInfo.commandPool = commandPool;
     allocInfo.commandBufferCount = 1;
 
-    
+
     //Allocate space for command buffer
     //NOTE: In larger productions, multiple objects should be made in a single allocation by using offsets to differentiate
     //This is because many GPUs have a set limit on the number of allocations they have which can be low, around 4096 on the NVIDIA GTX 1080
@@ -1597,13 +1732,12 @@ void EngineVulkan::CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSi
     //Begin writing to command buffer
     vkBeginCommandBuffer(commandBuffer, &beginInfo);
 
-    //Copy buffer to copy information from source buffer to destination buffer
-    VkBufferCopy copyRegion{};
-    copyRegion.srcOffset = 0;
-    copyRegion.dstOffset = 0;
-    copyRegion.size = size;
-    vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
+    return commandBuffer;
+}
 
+
+void EngineVulkan::EndSingleTimeCommands(VkCommandBuffer commandBuffer)
+{
     //Stop writing to command buffer
     vkEndCommandBuffer(commandBuffer);
 
@@ -1622,3 +1756,93 @@ void EngineVulkan::CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSi
 }
 
 
+void EngineVulkan::TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout)
+{
+    //Begin
+    VkCommandBuffer commandBuffer = BeginSingleTimeCommands();
+
+    VkPipelineStageFlags sourceStage;
+    VkPipelineStageFlags destinationStage;
+
+    //Common way to handle layout transition
+    VkImageMemoryBarrier barrier{};
+    barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    barrier.oldLayout = oldLayout;
+    barrier.newLayout = newLayout;
+    //Used if transferring ownership
+    barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrier.image = image;
+    barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    barrier.subresourceRange.baseMipLevel = 0;
+    barrier.subresourceRange.levelCount = 1;
+    barrier.subresourceRange.baseArrayLayer = 0;
+    barrier.subresourceRange.layerCount = 1;
+    //Transfer happens in this stage, writing
+    if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
+    {
+        barrier.srcAccessMask = 0;
+        barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+
+        sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+        destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+    }
+    //Image is read by shader after being written
+    else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+    {
+        barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+        barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+        sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+        destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+    }
+    else
+    {
+        gpr460::engine->system->ErrorMessage(gpr460::ERROR_UNSUPPORTED_LAYOUT_TRANSITION_FAILED);
+        gpr460::engine->system->LogToErrorFile(gpr460::ERROR_UNSUPPORTED_LAYOUT_TRANSITION_FAILED);
+        throw std::invalid_argument("Unsupported layout transition");
+    }
+
+    //Values depend on old and new layout
+    vkCmdPipelineBarrier(
+        commandBuffer,
+        sourceStage, destinationStage,
+        0,
+        0, nullptr,
+        0, nullptr,
+        1, &barrier
+    );
+
+    //End
+    EndSingleTimeCommands(commandBuffer);
+}
+
+
+void EngineVulkan::CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height)
+{
+    VkCommandBuffer commandBuffer = BeginSingleTimeCommands();
+
+    //Specify the padding of data between pixels, we have none
+    VkBufferImageCopy region{};
+    region.bufferOffset = 0;
+    region.bufferRowLength = 0;
+    region.bufferImageHeight = 0;
+    region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    region.imageSubresource.mipLevel = 0;
+    region.imageSubresource.baseArrayLayer = 0;
+    region.imageSubresource.layerCount = 1;
+    region.imageOffset = { 0, 0, 0 };
+    region.imageExtent = { width, height, 1 };
+
+    //Copy data buffer to VkImage
+    vkCmdCopyBufferToImage(
+        commandBuffer,
+        buffer,
+        image,
+        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,   //Transfer data
+        1,
+        &region
+    );
+
+    EndSingleTimeCommands(commandBuffer);
+}
