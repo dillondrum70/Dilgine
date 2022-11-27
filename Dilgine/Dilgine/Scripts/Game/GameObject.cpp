@@ -28,7 +28,7 @@ GameObject::~GameObject()
 	}*/
 }
 
-void GameObject::CreateTransform(GameObject& rObj, Vector2 vPos)
+void GameObject::CreateTransform(GameObject& rObj, Vector3 vPos)
 {
 	World* world = gpr460::engine->world;
 	if (world->activeTransforms + 1 >= gpr460::MAX_GAMEOBJECTS)

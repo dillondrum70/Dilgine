@@ -1,5 +1,6 @@
 #include "PlayerController.h"
 #include "GameObject.h"
+#include "Vector2.h"
 
 #include "SDL2/SDL.h"
 #include "System.h"
@@ -36,8 +37,8 @@ void PlayerController::UpdateAll()
 			const Uint8* keyboardState = SDL_GetKeyboardState(NULL);
 
 			Vector2 input = Vector2(keyboardState[SDL_SCANCODE_RIGHT] - keyboardState[SDL_SCANCODE_LEFT], keyboardState[SDL_SCANCODE_DOWN] - keyboardState[SDL_SCANCODE_UP]);
-
-			transform->position += input * components.playerControllerComponents[i].speed;
+			
+			transform->position += Vector3(input.x, input.y, 0) * components.playerControllerComponents[i].speed;
 		}
 		else
 		{

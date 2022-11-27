@@ -15,6 +15,13 @@
 //(That is the case for many of these structures)
 void EngineVulkan::Cleanup()
 {
+    for (const std::vector<uint16_t>* indexArray : allIndices)
+    {
+        indexArray = nullptr;
+    }
+
+    allIndices.clear();
+
     vkDestroyImageView(logicalDevice, depthImageView, nullptr);
     vkDestroyImage(logicalDevice, depthImage, nullptr);
     vkFreeMemory(logicalDevice, depthImageMemory, nullptr);
@@ -67,6 +74,8 @@ void EngineVulkan::Cleanup()
 
 void EngineVulkan::InitVulkan(SDL_Window* window)
 {
+    allIndices.push_back(&cubeIndices);
+
     std::cout << "\n------------------------------\n\n";
     std::cout << "Initializing Vulkan...\n";
     std::cout << "\n------------------------------\n\n";
@@ -139,9 +148,9 @@ void EngineVulkan::InitVulkan(SDL_Window* window)
     CreateVertexBuffer();
     std::cout << "Vertex Buffer Initialized...\n\n";
 
-    std::cout << "Initializing Index Buffer...\n";
-    CreateIndexBuffer();
-    std::cout << "Index Buffer Initialized...\n\n";
+    std::cout << "Initializing Index Buffers...\n";
+    CreateIndexBuffers(allIndices);
+    std::cout << "Index Buffers Initialized...\n\n";
 
     std::cout << "Initializing Uniform Buffers...\n";
     CreateUniformBuffers();
@@ -1063,31 +1072,34 @@ void EngineVulkan::CreateVertexBuffer()
 }
 
 
-void EngineVulkan::CreateIndexBuffer()
+void EngineVulkan::CreateIndexBuffers(std::vector<const std::vector<uint16_t>*> indicesListList)
 {
-    //Byte size of buffer
-    VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
+    for (const std::vector<uint16_t>* indices : indicesListList)
+    {
+        //Byte size of buffer
+        VkDeviceSize bufferSize = sizeof(indices[0]) * indices->size();
 
-    //Construct and allocate staging buffer just like you would when creating vertex buffer
-    VkBuffer stagingBuffer;
-    VkDeviceMemory stagingBufferMemory;
-    CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+        //Construct and allocate staging buffer just like you would when creating vertex buffer
+        VkBuffer stagingBuffer;
+        VkDeviceMemory stagingBufferMemory;
+        CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
 
-    //Copy index data into staging buffer
-    void* data;
-    vkMapMemory(logicalDevice, stagingBufferMemory, 0, bufferSize, 0, &data);
-    memcpy(data, indices.data(), (size_t)bufferSize);
-    vkUnmapMemory(logicalDevice, stagingBufferMemory);
+        //Copy index data into staging buffer
+        void* data;
+        vkMapMemory(logicalDevice, stagingBufferMemory, 0, bufferSize, 0, &data);
+        memcpy(data, indices->data(), (size_t)bufferSize);
+        vkUnmapMemory(logicalDevice, stagingBufferMemory);
 
-    //Create index buffer
-    CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, indexBuffer, indexBufferMemory);
+        //Create index buffer
+        CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, indexBuffer, indexBufferMemory);
 
-    //Copy staging buffer into index buffer
-    CopyBuffer(stagingBuffer, indexBuffer, bufferSize);
+        //Copy staging buffer into index buffer
+        CopyBuffer(stagingBuffer, indexBuffer, bufferSize);
 
-    //Free staging memory
-    vkDestroyBuffer(logicalDevice, stagingBuffer, nullptr);
-    vkFreeMemory(logicalDevice, stagingBufferMemory, nullptr);
+        //Free staging memory
+        vkDestroyBuffer(logicalDevice, stagingBuffer, nullptr);
+        vkFreeMemory(logicalDevice, stagingBufferMemory, nullptr);
+    }
 }
 
 
@@ -1647,7 +1659,7 @@ void EngineVulkan::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t i
     //Param5 = vertex offset, added to vertex index before indexing into vertex buffer
     //Param6 = first instance, ID of first instance to draw
     //Execute command buffer operations with index array
-    vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
+    vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(cubeIndices.size()), 1, 0, 0, 0);
 
     //End render pass
     vkCmdEndRenderPass(commandBuffer);

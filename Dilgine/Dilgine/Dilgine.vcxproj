@@ -26,6 +26,7 @@
     <ClCompile Include="Scripts\Core\World.cpp" />
     <ClCompile Include="Scripts\Game\Components\CollisionColorChanger.cpp" />
     <ClCompile Include="Scripts\Game\Components\Component.cpp" />
+    <ClCompile Include="Scripts\Game\Components\CubeRendererComponent.cpp" />
     <ClCompile Include="Scripts\Game\Components\PlayerController.cpp" />
     <ClCompile Include="Scripts\Game\Components\RectangleCollider.cpp" />
     <ClCompile Include="Scripts\Game\Components\RectangleRenderer.cpp" />
@@ -45,6 +46,7 @@
     <ClInclude Include="Scripts\Core\World.h" />
     <ClInclude Include="Scripts\Game\Components\CollisionColorChanger.h" />
     <ClInclude Include="Scripts\Game\Components\Component.h" />
+    <ClInclude Include="Scripts\Game\Components\CubeRendererComponent.h" />
     <ClInclude Include="Scripts\Game\Components\PlayerController.h" />
     <ClInclude Include="Scripts\Game\Components\RectangleCollider.h" />
     <ClInclude Include="Scripts\Game\Components\RectangleRenderer.h" />

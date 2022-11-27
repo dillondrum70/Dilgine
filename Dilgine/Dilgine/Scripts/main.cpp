@@ -167,6 +167,13 @@ void frameStep()
                 gpr460::engine->quit = true;
             }
         }
+
+        //Manipulate camera for testing
+        if (event.type == SDL_MOUSEMOTION && event.motion.state && SDL_BUTTON_LMASK)
+        {
+            gpr460::engine->world->mouseX -= event.motion.xrel;
+            gpr460::engine->world->mouseY += event.motion.yrel;
+        }
     }
 
     gpr460::engine->world->Update();

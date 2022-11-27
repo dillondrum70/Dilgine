@@ -85,27 +85,73 @@ struct Vertex
 	}
 };
 
-//Vertex data, position-color pairs, don't need repeats
+//Vertex data, position-color, and texture coordinates, don't need repeats
+//Positive Directions: Left, Forward, Up
+//Z is the vertical axis, Y is the front/back axis, z is left/right
 const std::vector<Vertex> vertices = {
-		{{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},	//0
-		{{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},	//1
-		{{0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},	//2
-		{{-0.5f, 0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}},	//3
+		//Top Face
+		{{-0.5f, -0.5f, 0.5f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},	//0 - Right, Back, Top
+		{{0.5f, -0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},	//1 - Left, Back Top
+		{{0.5f, 0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},		//2 - Left, Front, Top
+		{{-0.5f, 0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}},	//3 - Right, Front, Top
 
-		{{-0.5f, -0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},	//4 - 
-		{{0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},	//5
-		{{0.5f, 0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},	//6
-		{{-0.5f, 0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}}	//7
+		//Bottom Face
+		{{-0.5f, -0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},	//4 - Right, Back, Bottom
+		{{0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},	//5 - Left, Back, Bottom
+		{{0.5f, 0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},	//6 - Left, Front, Bottom
+		{{-0.5f, 0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}},	//7 - Right, Front, Bottom
+
+		//Front Face
+		{{0.5f, 0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f}},		//8 - Left, Front, Top
+		{{-0.5f, 0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 0.0f}},	//9 - Right, Front, Top
+		{{0.5f, 0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},	//10 - Left, Font, Bottom
+		{{-0.5f, 0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}},	//11 - Right, Front, Bottom
+
+		//Back Face
+		{{0.5f, -0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f}},	//12 - Left, Back, Top
+		{{-0.5f, -0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 0.0f}},	//13 - Right, Back, Top
+		{{0.5f, -0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},	//14 - Left, Back, Bottom
+		{{-0.5f, -0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}},	//15 - Right, Back, Bottom
+
+		//Left Face
+		{{0.5f, -0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},	//16 - Left, Back, Top
+		{{0.5f, 0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f}},		//17 - Left, Front, Top
+		{{0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 1.0f}},	//18 - Left, Back, Bottom
+		{{0.5f, 0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},	//19 - Left, Front, Bottom
+
+		//Right Face
+		{{-0.5f, -0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},	//20 - Right, Back, Top
+		{{-0.5f, 0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f}},	//21 - Right, Front, Top
+		{{-0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 1.0f}},	//22 - Right, Back, Bottom
+		{{-0.5f, 0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}}	//23 - Right, Front, Bottom
 };
 
 //Index buffer, allows us to take predefined vertices and order them as a standard vertex buffer would be
-//Clockwise order, 3 indices per triangle, indices map directly to indices defined in verticies vector
-const std::vector<uint16_t> indices = {
+//Counter-clockwise order, 3 indices per triangle, indices map directly to indices defined in verticies vector
+const std::vector<uint16_t> cubeIndices = {
+	//Top face
 	0, 1, 2,
 	2, 3, 0,
 
-	4, 5, 6,
-	6, 7, 4
+	//Bottom Face
+	6, 5, 4,
+	4, 7, 6,
+
+	//Front Face
+	10, 9, 8,
+	10, 11, 9,
+
+	//Back Face
+	12, 13, 14,
+	13, 15, 14,
+
+	//Left Face
+	16, 18, 17,
+	18, 19, 17,
+
+	//Right Face
+	21, 22, 20,
+	21, 23, 22
 };
 
 //To translate C++ to GLM structures, data must be aligned
@@ -184,6 +230,9 @@ public:
 
 private:
 
+	//Holds index array of every model
+	std::vector<const std::vector<uint16_t>*> allIndices;
+
 	VkDebugUtilsMessengerEXT debugMessenger;
 
 	
@@ -245,7 +294,7 @@ private:
 	void CreateTextureImageView();							//Images are accessed through ImageViews
 	void CreateTextureSampler();							//Sample VkImage for colors
 	void CreateVertexBuffer();								//Buffer of vertices that define mesh
-	void CreateIndexBuffer();								//Buffer of indices corresponding to vertices arrary, 3-tuples of verticies make triangles
+	void CreateIndexBuffers(std::vector<const std::vector<uint16_t>*> indicesListList);	//Buffer of indices corresponding to vertices arrary, 3-tuples of verticies make triangles
 	void CreateUniformBuffers();							//Create all uniform buffers, i.e. model-view projection matrix buffer
 	void CreateDescriptorPool();							//Pool that descriptor sets are allocated to
 	void CreateDescriptorSets();							//

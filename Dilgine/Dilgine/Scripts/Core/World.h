@@ -42,6 +42,13 @@ public:
 	int activePlayerControllers = 0;
 	int activeColorChange = 0;
 
+	/////////////
+	//float lastMouseX = 2;
+	//float lastMouseY = 2;
+	float mouseX = 0;
+	float mouseY = 80;
+	////////////
+
 	World() { }
 	~World() { CleanUp(); }
 	

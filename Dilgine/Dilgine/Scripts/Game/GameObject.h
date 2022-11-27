@@ -42,7 +42,7 @@ public:
     void SetPlayer(PlayerController* vControl) { player = vControl; }
     void SetColorChanger(CollisionColorChanger* vChange) { colorChanger = vChange; }
 
-    void CreateTransform(GameObject& rObj, Vector2 vPos);
+    void CreateTransform(GameObject& rObj, Vector3 vPos);
     void CreateRectangleRenderer(GameObject& rObj, int vWidth, int vheight, Vector3 vColor);
     void CreateRectangleCollider(GameObject& rObj, int vWidth, int vHeight);
     void CreatePlayerController(GameObject& rObj, int vSpeed);

@@ -1,6 +1,6 @@
 #ifndef TRANSFORM_H
 #define TRANSFORM_H
-#include "Vector2.h"
+#include "Vector3.h"
 
 #include <iostream>
 
@@ -13,12 +13,12 @@ public:
 
 	static void Deserialize(GameObject& gameObject, std::istream& stream);
 
-	static void Create(GameObject& gameObject, Vector2 pos);
+	static void Create(GameObject& gameObject, Vector3 pos);
 
-	Vector2 position;
+	Vector3 position;
 
-	Transform() { position = Vector2(0); }
-	Transform(Vector2 vPos) { position = vPos; }
+	Transform() { position = Vector3(0); }
+	Transform(Vector3 vPos) { position = vPos; }
 
 	friend std::ostream& operator<<(std::ostream& os, const Transform& t) { os << t.position;  return os; }
 };
