@@ -294,7 +294,7 @@ private:
 	void CreateTextureImageView();							//Images are accessed through ImageViews
 	void CreateTextureSampler();							//Sample VkImage for colors
 	void CreateVertexBuffer();								//Buffer of vertices that define mesh
-	void CreateIndexBuffers(std::vector<const std::vector<uint16_t>*> indicesListList);	//Buffer of indices corresponding to vertices arrary, 3-tuples of verticies make triangles
+	void CreateIndexBuffers(std::vector<const std::vector<uint16_t>*> indicesList);	//Buffer of indices corresponding to vertices arrary, 3-tuples of verticies make triangles
 	void CreateUniformBuffers();							//Create all uniform buffers, i.e. model-view projection matrix buffer
 	void CreateDescriptorPool();							//Pool that descriptor sets are allocated to
 	void CreateDescriptorSets();							//

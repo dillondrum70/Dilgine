@@ -44,22 +44,22 @@ void CollisionColorChanger::UpdateAll()
 			{
 				GameObject* object2 = rectCollider[j].GetGameObject();
 				if (object2 && (!changed[i] || !changed[j]) && object1->GetCollider() && object2->GetCollider() &&
-					object1->GetRenderer() && object2->GetRenderer() &&
+					object1->GetRectRenderer() && object2->GetRectRenderer() &&
 					object1->GetColorChanger() && object2->GetColorChanger())
 				{
 					if (object1->GetCollider()->CheckCollision(*object2->GetCollider()))
 					{
-						object1->GetRenderer()->color = object1->GetColorChanger()->color;
-						object2->GetRenderer()->color = object2->GetColorChanger()->color;
+						object1->GetRectRenderer()->color = object1->GetColorChanger()->color;
+						object2->GetRectRenderer()->color = object2->GetColorChanger()->color;
 						changed[i] = true;
 						changed[j] = true;
 					}
 					else
 					{
 						if (!changed[i])
-							object1->GetRenderer()->color = object1->GetRenderer()->baseColor;
+							object1->GetRectRenderer()->color = object1->GetRectRenderer()->baseColor;
 						if (!changed[j])
-							object2->GetRenderer()->color = object2->GetRenderer()->baseColor;
+							object2->GetRectRenderer()->color = object2->GetRectRenderer()->baseColor;
 					}
 				}
 			}

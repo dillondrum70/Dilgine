@@ -1072,9 +1072,9 @@ void EngineVulkan::CreateVertexBuffer()
 }
 
 
-void EngineVulkan::CreateIndexBuffers(std::vector<const std::vector<uint16_t>*> indicesListList)
+void EngineVulkan::CreateIndexBuffers(std::vector<const std::vector<uint16_t>*> indicesList)
 {
-    for (const std::vector<uint16_t>* indices : indicesListList)
+    for (const std::vector<uint16_t>* indices : indicesList)
     {
         //Byte size of buffer
         VkDeviceSize bufferSize = sizeof(indices[0]) * indices->size();

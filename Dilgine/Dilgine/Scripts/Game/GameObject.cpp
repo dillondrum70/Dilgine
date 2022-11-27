@@ -52,7 +52,7 @@ void GameObject::CreateRectangleRenderer(GameObject& rObj, int vWidth, int vheig
 	}
 
 	world->GetComponents().rectRendererComponents[world->activeRectRenderers] = RectangleRenderer(vWidth, vheight, vColor, &(world->GetGameObjects()[world->activeGameObjects]));
-	rObj.SetRenderer(&(world->GetComponents().rectRendererComponents[world->activeRectRenderers]));
+	rObj.SetRectRenderer(&(world->GetComponents().rectRendererComponents[world->activeRectRenderers]));
 	world->activeRectRenderers++;
 }
 
@@ -96,6 +96,20 @@ void GameObject::CreateCollisionColorChange(GameObject& rObj, Vector3 vColor)
 	world->GetComponents().colorChangeComponents[world->activeColorChange] = CollisionColorChanger(vColor, &(world->GetGameObjects()[world->activeGameObjects]));
 	rObj.SetColorChanger(&(world->GetComponents().colorChangeComponents[world->activeColorChange]));
 	world->activeColorChange++;
+}
+
+void GameObject::CreateCubeRenderer(GameObject& rObj, int vWidth, int vheight)
+{
+	World* world = gpr460::engine->world;
+	if (world->activeCubeRenderers + 1 >= gpr460::MAX_GAMEOBJECTS)
+	{
+		gpr460::engine->system->ErrorMessage(gpr460::ERROR_COMPONENT_OVERFLOW);
+		gpr460::engine->system->LogToErrorFile(gpr460::ERROR_COMPONENT_OVERFLOW);
+	}
+
+	world->GetComponents().cubeRendererComponents[world->activeCubeRenderers] = CubeRenderer(vWidth, vheight, &(world->GetGameObjects()[world->activeGameObjects]));
+	rObj.SetCubeRenderer(&(world->GetComponents().cubeRendererComponents[world->activeCubeRenderers]));
+	world->activeCubeRenderers++;
 }
 
 /*RectangleRenderer* GameObject::CreateRenderer(int vWidth, int vHeight, Vector3 vColor)

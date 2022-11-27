@@ -6,6 +6,7 @@
 #include "RectangleCollider.h"
 #include "RectangleRenderer.h"
 #include "Transform.h"
+#include "CubeRendererComponent.h"
 
 #include <vector>
 
@@ -17,10 +18,11 @@ public:
 	GameObject()
 	{
         transform = nullptr;
-        renderer = nullptr; 
+        rectRenderer = nullptr; 
         collider = nullptr; 
         player = nullptr;
         colorChanger = nullptr;
+        cubeRenderer = nullptr;
 	}
 
     ~GameObject();
@@ -31,33 +33,36 @@ public:
     //CollisionColorChanger CreateCollisionColorChanger(Vector3 vColor, GameObject* vGameObject);
 
     Transform* GetTransform() { return transform; }
-    RectangleRenderer* GetRenderer() { return renderer; }
+    RectangleRenderer* GetRectRenderer() { return rectRenderer; }
     RectangleCollider* GetCollider() { return collider; }
     PlayerController* GetPlayer() { return player; }
     CollisionColorChanger* GetColorChanger() { return colorChanger; }
+    CubeRenderer* GetCubeRenderer() { return cubeRenderer; }
 
     void SetTransform(Transform* vTrans) { transform = vTrans; }
-    void SetRenderer(RectangleRenderer* vRend) { renderer = vRend; }
+    void SetRectRenderer(RectangleRenderer* vRend) { rectRenderer = vRend; }
     void SetCollider(RectangleCollider* vCol) { collider = vCol; }
     void SetPlayer(PlayerController* vControl) { player = vControl; }
     void SetColorChanger(CollisionColorChanger* vChange) { colorChanger = vChange; }
+    void SetCubeRenderer(CubeRenderer* vRend) { cubeRenderer = vRend; }
 
     void CreateTransform(GameObject& rObj, Vector3 vPos);
     void CreateRectangleRenderer(GameObject& rObj, int vWidth, int vheight, Vector3 vColor);
     void CreateRectangleCollider(GameObject& rObj, int vWidth, int vHeight);
     void CreatePlayerController(GameObject& rObj, int vSpeed);
     void CreateCollisionColorChange(GameObject& rObj, Vector3 vColor);
+    void CreateCubeRenderer(GameObject& rObj, int vWidth, int vheight);
 
     //void Update(std::vector<GameObject>& gameObjects);
     //void Render(SDL_Renderer*& prRenderer);
 
 protected:
     Transform* transform;
-    RectangleRenderer* renderer;
+    RectangleRenderer* rectRenderer;
     RectangleCollider* collider;
     PlayerController* player;
     CollisionColorChanger* colorChanger;
-
+    CubeRenderer* cubeRenderer;
 };
 
 #endif
