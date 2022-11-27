@@ -246,14 +246,6 @@ void World::Render(SDL_Renderer*& prRenderer)
 		throw std::runtime_error("Failed to submit draw command buffer");
 	}
 
-	VkSubpassDependency dependency{};
-	//dst must always be higher than src, 0 is our one and only index though, we only have one subpasss
-	dependency.srcSubpass = VK_SUBPASS_EXTERNAL;	//Implicitly refers to subpass before current subpass
-	dependency.dstSubpass = 0;	//If VK_SUBPASS_EXTERNAL was used here, it would refer to the subpass after the current one
-	//Prevent color attachment from happening until it is necessary
-	dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-	dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-
 	//Last step of draw is displaying the generated graphic to the screen using the present queue
 	VkPresentInfoKHR presentInfo{};
 	presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;

@@ -14,6 +14,8 @@
 //Does not work on nested structures
 #define GLM_FORCE_DEFAULT_ALIGNED_GENTYPES	
 
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+
 ////////////// STB Defines /////////////////
 #define STB_IMAGE_IMPLEMENTATION
 
@@ -43,7 +45,7 @@ struct SwapChainSupportDetails
 
 struct Vertex
 {
-	glm::vec2 position;
+	glm::vec3 position;
 	glm::vec3 color;
 	glm::vec2 texCoord;
 
@@ -66,7 +68,7 @@ struct Vertex
 		std::array<VkVertexInputAttributeDescription, 3> attributeDescriptions{};
 		attributeDescriptions[0].binding = 0;							//Which binding the per-vertex data comes from
 		attributeDescriptions[0].location = 0;							//location directive of input in vertex shader
-		attributeDescriptions[0].format = VK_FORMAT_R32G32_SFLOAT;		//Type of data, R32G32 is same as vec2, 2 x 32 bit values
+		attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;		//Type of data, R32G32 is same as vec2, 2 x 32 bit values
 		attributeDescriptions[0].offset = offsetof(Vertex, position);	//Number of bytes since start of per-vertex data to read from
 
 		attributeDescriptions[1].binding = 0;
@@ -85,17 +87,25 @@ struct Vertex
 
 //Vertex data, position-color pairs, don't need repeats
 const std::vector<Vertex> vertices = {
-		{{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},	//0
-		{{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},	//1
-		{{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},	//2
-		{{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}}	//3
+		{{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},	//0
+		{{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},	//1
+		{{0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},	//2
+		{{-0.5f, 0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}},	//3
+
+		{{-0.5f, -0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},	//4 - 
+		{{0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},	//5
+		{{0.5f, 0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},	//6
+		{{-0.5f, 0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}}	//7
 };
 
 //Index buffer, allows us to take predefined vertices and order them as a standard vertex buffer would be
 //Clockwise order, 3 indices per triangle, indices map directly to indices defined in verticies vector
 const std::vector<uint16_t> indices = {
 	0, 1, 2,
-	2, 3, 0
+	2, 3, 0,
+
+	4, 5, 6,
+	6, 7, 4
 };
 
 //To translate C++ to GLM structures, data must be aligned
@@ -195,6 +205,10 @@ private:
 
 	VkCommandPool commandPool;	//Manage memory used to store command buffers
 
+	VkImage depthImage;	//Image of depth information
+	VkDeviceMemory depthImageMemory;	//Memory location of depth image
+	VkImageView depthImageView;	//Image view to access depth image
+
 	VkImage textureImage;	//Vulkan image data type for textures
 	VkDeviceMemory textureImageMemory;	//Memory location for image
 	VkImageView textureImageView;	//ImageView through which we access the image
@@ -226,6 +240,7 @@ private:
 	void CreateGraphicsPipeline();							//Handles rendering steps like vertex, geometry, and fragment shaders
 	void CreateFramebuffers();								//Render pass attachments are used here, references VkImageView objects
 	void CreateCommandPool();								//Manage command buffer memory and allocate command buffers from here
+	void CreateDepthResources();							//Objects needed to acquire depth in view (Objects that are further away are not rendered on top of closer objects)
 	void CreateTextureImage();								//Image used for texturing object
 	void CreateTextureImageView();							//Images are accessed through ImageViews
 	void CreateTextureSampler();							//Sample VkImage for colors
@@ -307,7 +322,16 @@ private:
 	void CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
 
 	//Create an image view to access an image
-	VkImageView CreateImageView(VkImage image, VkFormat format);
+	VkImageView CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
+
+	//Used to find depth formats supported by the GPU, can be found to find any formats that support given features
+	VkFormat FindSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
+
+	//Find depth format supported by GPU
+	VkFormat FindDepthFormat();
+
+	//Lets us know if depth format contains stencil component
+	bool HasStencilComponent(VkFormat format);
 };
 
 #endif
