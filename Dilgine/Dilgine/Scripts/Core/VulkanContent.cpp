@@ -2,25 +2,28 @@
 
 #include "System.h"
 
+#include "SDL2/SDL.h"
 #include "glm/gtc/matrix_transform.hpp"
-
 #include "stb_image.h"
+
+#include "tiny_obj_loader.h"
 
 #include <set>
 #include <cstdint>
 #include <limits>
 #include <algorithm>
+#include <unordered_map>
 
 //Remember to always destroy in the reverse order things are created in case some things have dependencies on subsequently created systems
 //(That is the case for many of these structures)
 void EngineVulkan::Cleanup()
 {
-    for (const std::vector<uint16_t>* indexArray : allIndices)
+    /*for (const std::vector<uint16_t>* indexArray : allIndices)
     {
         indexArray = nullptr;
     }
 
-    allIndices.clear();
+    allIndices.clear();*/
 
     vkDestroyImageView(logicalDevice, depthImageView, nullptr);
     vkDestroyImage(logicalDevice, depthImage, nullptr);
@@ -74,7 +77,7 @@ void EngineVulkan::Cleanup()
 
 void EngineVulkan::InitVulkan(SDL_Window* window)
 {
-    allIndices.push_back(&cubeIndices);
+    //allIndices.push_back(&cubeIndices);
 
     std::cout << "\n------------------------------\n\n";
     std::cout << "Initializing Vulkan...\n";
@@ -144,13 +147,21 @@ void EngineVulkan::InitVulkan(SDL_Window* window)
     CreateTextureSampler();
     std::cout << "Texture Sampler Initialized...\n\n";
 
+    //std::cout << "Loading Models...\n";
+    //LoadModel();
+    //std::cout << "Models Loaded...\n\n";
+
+    std::cout << "Loading Cube...\n";
+    LoadCube();
+    std::cout << "Cube Loaded...\n\n";
+
     std::cout << "Initializing Vertex Buffer...\n";
     CreateVertexBuffer();
     std::cout << "Vertex Buffer Initialized...\n\n";
 
-    std::cout << "Initializing Index Buffers...\n";
-    CreateIndexBuffers(allIndices);
-    std::cout << "Index Buffers Initialized...\n\n";
+    std::cout << "Initializing Index Buffer...\n";
+    CreateIndexBuffer();
+    std::cout << "Index Buffer Initialized...\n\n";
 
     std::cout << "Initializing Uniform Buffers...\n";
     CreateUniformBuffers();
@@ -948,7 +959,7 @@ void EngineVulkan::CreateTextureImage()
     int texWidth, texHeight, texChannels;
     //Load in image and its information
     //If using \ instead of /, make sure to use \\ 
-    stbi_uc* pixels = stbi_load(PAUL_TEXTURE_PATH.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+    stbi_uc* pixels = stbi_load(TEXTURE_PATH.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
     
     //4 bytes per pixel, width x height pixels
     //colors defined in 32 bytes 32 bit color, 8 bits per channel (rgba)
@@ -1045,6 +1056,81 @@ void EngineVulkan::CreateTextureSampler()
 }
 
 
+void EngineVulkan::LoadModel()
+{
+    //Out parameters
+    tinyobj::attrib_t attrib;   //Holds positions, normals,and texture coordinates in the vectors attrib.vertices, .normals, and .texcoords
+    std::vector<tinyobj::shape_t> shapes;   //Vector of all separate objects and their faces, each face is an array of vertices, each vertex has position, normal, and texcoord attributes
+    std::vector<tinyobj::material_t> materials;
+    std::string err;
+
+    if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &err, MODEL_PATH.c_str()))
+    {
+        gpr460::engine->system->ErrorMessage(gpr460::ERROR_LOADING_MODEL_FAILED);
+        gpr460::engine->system->LogToErrorFile(gpr460::ERROR_LOADING_MODEL_FAILED);
+        throw std::runtime_error(err);
+    }
+
+    std::unordered_map<Vertex, uint32_t> uniqueVertices{};
+
+    //For each index in each shape, store its vertices and indices in our own arrays that Vulkan sees
+    for (const auto& shape : shapes)
+    {
+        for (const auto& index : shape.mesh.indices)
+        {
+            Vertex vertex{};
+
+            //(3 vertices per index) * (index) + (index offset)
+            vertex.position = {
+                attrib.vertices[3 * index.vertex_index + 0],
+                attrib.vertices[3 * index.vertex_index + 1],
+                attrib.vertices[3 * index.vertex_index + 2]
+            };
+
+            //Vulkan's 0,0 is top left and tinyobj sees 0,0 as top right, so we invert the y texture coordinate
+            vertex.texCoord = {
+                attrib.texcoords[2 * index.texcoord_index + 0],
+                1.0f - attrib.texcoords[2 * index.texcoord_index + 1]
+            };
+
+            //Pass white as the color, show full color of texture
+            vertex.color = { 1.0, 1.0, 1.0 };
+
+            //If map already has something at vertex location, then this vertex exists and we don't need to store it
+            if (uniqueVertices.count(vertex) == 0)
+            {
+                //Save index of this vertex if it is unique so other indices can use it
+                uniqueVertices[vertex] = static_cast<uint32_t>(vertices.size());
+                vertices.push_back(vertex);
+            }
+            
+            //Store the index of the vertex in uniqueVertices
+            indices.push_back(uniqueVertices[vertex]);
+        }
+    }
+}
+
+
+void EngineVulkan::LoadCube()
+{
+    std::unordered_map<Vertex, uint16_t> uniqueVertices{};
+
+    for (uint16_t index : cubeIndices)
+    {
+        Vertex vertex = cubeVertices[index];
+        if (uniqueVertices.count(vertex) == 0)
+        {
+            uniqueVertices[vertex] = static_cast<uint16_t>(vertices.size());
+            vertices.push_back(vertex);
+        }
+
+        indices.push_back(uniqueVertices[vertex]);
+    }
+
+    std::cout << "Number of Vertices: " << vertices.size() << std::endl;
+}
+
+
 void EngineVulkan::CreateVertexBuffer()
 {
     VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
@@ -1072,34 +1158,31 @@ void EngineVulkan::CreateVertexBuffer()
 }
 
 
-void EngineVulkan::CreateIndexBuffers(std::vector<const std::vector<uint16_t>*> indicesList)
+void EngineVulkan::CreateIndexBuffer()
 {
-    for (const std::vector<uint16_t>* indices : indicesList)
-    {
-        //Byte size of buffer
-        VkDeviceSize bufferSize = sizeof(indices[0]) * indices->size();
+    //Byte size of buffer
+    VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
 
-        //Construct and allocate staging buffer just like you would when creating vertex buffer
-        VkBuffer stagingBuffer;
-        VkDeviceMemory stagingBufferMemory;
-        CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+    //Construct and allocate staging buffer just like you would when creating vertex buffer
+    VkBuffer stagingBuffer;
+    VkDeviceMemory stagingBufferMemory;
+    CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
 
-        //Copy index data into staging buffer
-        void* data;
-        vkMapMemory(logicalDevice, stagingBufferMemory, 0, bufferSize, 0, &data);
-        memcpy(data, indices->data(), (size_t)bufferSize);
-        vkUnmapMemory(logicalDevice, stagingBufferMemory);
+    //Copy index data into staging buffer
+    void* data;
+    vkMapMemory(logicalDevice, stagingBufferMemory, 0, bufferSize, 0, &data);
+    memcpy(data, indices.data(), (size_t)bufferSize);
+    vkUnmapMemory(logicalDevice, stagingBufferMemory);
 
-        //Create index buffer
-        CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, indexBuffer, indexBufferMemory);
+    //Create index buffer
+    CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, indexBuffer, indexBufferMemory);
 
-        //Copy staging buffer into index buffer
-        CopyBuffer(stagingBuffer, indexBuffer, bufferSize);
+    //Copy staging buffer into index buffer
+    CopyBuffer(stagingBuffer, indexBuffer, bufferSize);
 
-        //Free staging memory
-        vkDestroyBuffer(logicalDevice, stagingBuffer, nullptr);
-        vkFreeMemory(logicalDevice, stagingBufferMemory, nullptr);
-    }
+    //Free staging memory
+    vkDestroyBuffer(logicalDevice, stagingBuffer, nullptr);
+    vkFreeMemory(logicalDevice, stagingBufferMemory, nullptr);
 }
 
 
@@ -1639,7 +1722,7 @@ void EngineVulkan::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t i
     vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
 
     //Bind index buffer to command buffer
-    vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT16);
+    vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
     //Not unique to graphics pipeline, specify which pipeline (graphics or compute) to give it to
     vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[currentFrame], 0, nullptr);
@@ -1659,7 +1742,7 @@ void EngineVulkan::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t i
     //Param5 = vertex offset, added to vertex index before indexing into vertex buffer
     //Param6 = first instance, ID of first instance to draw
     //Execute command buffer operations with index array
-    vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(cubeIndices.size()), 1, 0, 0, 0);
+    vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
 
     //End render pass
     vkCmdEndRenderPass(commandBuffer);

@@ -13,19 +13,28 @@
 //Saves us from worrying about data alignment most of the time
 //Does not work on nested structures
 #define GLM_FORCE_DEFAULT_ALIGNED_GENTYPES	
-
+//Force depth to be defined between 0 and 1
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
+
+#define GLM_ENABLE_EXPERIMENTAL
 
 ////////////// STB Defines /////////////////
 #define STB_IMAGE_IMPLEMENTATION
 
+///////// TinyObjLoader Defines ////////////
+#define TINYOBJLOADER_IMPLEMENTATION
+
 #include "vulkan/vulkan.h"
-#include "SDL2/SDL.h"
+//SDL included in cpp
 #include "glm/glm.hpp"
+#include "glm/gtx/hash.hpp"
+//stb included in cpp
+//tinyobjloader included in cpp
 
 const int MAX_FRAMES_IN_FLIGHT = 2;
 
 struct SDL_Window;
+union SDL_Event;
 
 struct QueueFamilyIndices
 {
@@ -83,47 +92,66 @@ struct Vertex
 
 		return attributeDescriptions;
 	}
+
+	//Need overload for using Vertex in a hashmap to make sure we don't load the same vertex more than once
+	bool operator==(const Vertex& other) const
+	{
+		return position == other.position && color == other.color && texCoord == other.texCoord;
+	}
 };
+
+namespace std
+{
+	template<> struct hash<Vertex>
+	{
+		size_t operator()(Vertex const& vertex) const 
+		{
+			return ((hash<glm::vec3>()(vertex.position) ^
+				(hash<glm::vec3>()(vertex.color) << 1)) >> 1) ^
+				(hash<glm::vec2>()(vertex.texCoord) << 1);
+		}
+	};
+}
 
 //Vertex data, position-color, and texture coordinates, don't need repeats
 //Positive Directions: Left, Forward, Up
 //Z is the vertical axis, Y is the front/back axis, z is left/right
-const std::vector<Vertex> vertices = {
+const std::vector<Vertex> cubeVertices = {
 		//Top Face
-		{{-0.5f, -0.5f, 0.5f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},	//0 - Right, Back, Top
-		{{0.5f, -0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},	//1 - Left, Back Top
-		{{0.5f, 0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},		//2 - Left, Front, Top
+		{{-0.5f, -0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f}},	//0 - Right, Back, Top
+		{{0.5f, -0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 0.0f}},	//1 - Left, Back Top
+		{{0.5f, 0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}},		//2 - Left, Front, Top
 		{{-0.5f, 0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}},	//3 - Right, Front, Top
 
 		//Bottom Face
-		{{-0.5f, -0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},	//4 - Right, Back, Bottom
-		{{0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},	//5 - Left, Back, Bottom
-		{{0.5f, 0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},	//6 - Left, Front, Bottom
+		{{-0.5f, -0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 0.0f}},	//4 - Right, Back, Bottom
+		{{0.5f, -0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f}},	//5 - Left, Back, Bottom
+		{{0.5f, 0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}},	//6 - Left, Front, Bottom
 		{{-0.5f, 0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}},	//7 - Right, Front, Bottom
 
 		//Front Face
-		{{0.5f, 0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f}},		//8 - Left, Front, Top
+		{{0.5f, 0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f}},		//8 - Left, Front, Top
 		{{-0.5f, 0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 0.0f}},	//9 - Right, Front, Top
-		{{0.5f, 0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},	//10 - Left, Font, Bottom
+		{{0.5f, 0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}},	//10 - Left, Font, Bottom
 		{{-0.5f, 0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}},	//11 - Right, Front, Bottom
 
 		//Back Face
-		{{0.5f, -0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f}},	//12 - Left, Back, Top
+		{{0.5f, -0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f}},	//12 - Left, Back, Top
 		{{-0.5f, -0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 0.0f}},	//13 - Right, Back, Top
-		{{0.5f, -0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},	//14 - Left, Back, Bottom
+		{{0.5f, -0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}},	//14 - Left, Back, Bottom
 		{{-0.5f, -0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}},	//15 - Right, Back, Bottom
 
 		//Left Face
-		{{0.5f, -0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},	//16 - Left, Back, Top
-		{{0.5f, 0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f}},		//17 - Left, Front, Top
-		{{0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 1.0f}},	//18 - Left, Back, Bottom
-		{{0.5f, 0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},	//19 - Left, Front, Bottom
+		{{0.5f, -0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f}},	//16 - Left, Back, Top
+		{{0.5f, 0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 0.0f}},		//17 - Left, Front, Top
+		{{0.5f, -0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}},	//18 - Left, Back, Bottom
+		{{0.5f, 0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}},	//19 - Left, Front, Bottom
 
 		//Right Face
-		{{-0.5f, -0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},	//20 - Right, Back, Top
-		{{-0.5f, 0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f}},	//21 - Right, Front, Top
-		{{-0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 1.0f}},	//22 - Right, Back, Bottom
-		{{-0.5f, 0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}}	//23 - Right, Front, Bottom
+		{{-0.5f, -0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f}},	//20 - Right, Back, Top
+		{{-0.5f, 0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 0.0f}},	//21 - Right, Front, Top
+		{{-0.5f, -0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}},	//22 - Right, Back, Bottom
+		{{-0.5f, 0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}}	//23 - Right, Front, Bottom
 };
 
 //Index buffer, allows us to take predefined vertices and order them as a standard vertex buffer would be
@@ -175,8 +203,8 @@ struct UniformBufferObject {
 	alignas(16) glm::mat4 proj;
 };
 
-const std::string MODEL_PATH = "Models/viking_room.obj";
-const std::string TEXTURE_PATH = "Images/viking_room.png";
+const std::string MODEL_PATH = "Assets/Models/viking_room.obj";
+const std::string TEXTURE_PATH = "Assets/Images/viking_room.png";
 
 const std::string PAUL_TEXTURE_PATH = "Assets/Images/SquarePaul.png";
 
@@ -200,11 +228,6 @@ public:
 	std::vector <VkSemaphore> imageAvailableSemaphores;
 	std::vector <VkSemaphore> renderFinishedSemaphores;
 	std::vector <VkFence> inFlightFences;		//Pauses CPU until GPU finishes specified process
-
-	VkBuffer vertexBuffer;	//Stores list of each individual vertex in a mesh, no repeats
-	VkDeviceMemory vertexBufferMemory;	//Memory for vertex buffer, sometimes we may want to destroy a buffer, but keep the memory allocated to construct something new in the same location
-	VkBuffer indexBuffer;	//Stores list of indices in vertex array that define triangles
-	VkDeviceMemory indexBufferMemory;	//Memory for index buffer
 
 	//Memory buffers and memory to handle uniform buffers
 	std::vector<VkBuffer> uniformBuffers;
@@ -236,7 +259,7 @@ public:
 private:
 
 	//Holds index array of every model
-	std::vector<const std::vector<uint16_t>*> allIndices;
+	//std::vector<const std::vector<uint16_t>*> allIndices;
 
 	VkDebugUtilsMessengerEXT debugMessenger;
 
@@ -268,10 +291,12 @@ private:
 	VkImageView textureImageView;	//ImageView through which we access the image
 	VkSampler textureSampler;	//Samples values from texture
 
-	/*std::vector<Vertex> vertices;
+	std::vector<Vertex> vertices;
 	std::vector<uint32_t> indices;
-	VkBuffer vertexBuffer;
-	VkDeviceMemory vertexBufferMemory;*/
+	VkBuffer vertexBuffer;	//Stores list of each individual vertex in a mesh, no repeats
+	VkDeviceMemory vertexBufferMemory;	//Memory for vertex buffer, sometimes we may want to destroy a buffer, but keep the memory allocated to construct something new in the same location
+	VkBuffer indexBuffer;	//Stores list of indices in vertex array that define triangles
+	VkDeviceMemory indexBufferMemory;	//Memory for index buffer
 
 	//Validation layers to enable
 	const std::vector<const char*> validationLayers = { "VK_LAYER_KHRONOS_validation" };
@@ -303,8 +328,10 @@ private:
 	void CreateTextureImage();								//Image used for texturing object
 	void CreateTextureImageView();							//Images are accessed through ImageViews
 	void CreateTextureSampler();							//Sample VkImage for colors
+	void LoadModel();										//Load model data
+	void LoadCube();										//Load cube vertices from cubeIndices, ensure there are no repeats
 	void CreateVertexBuffer();								//Buffer of vertices that define mesh
-	void CreateIndexBuffers(std::vector<const std::vector<uint16_t>*> indicesList);	//Buffer of indices corresponding to vertices arrary, 3-tuples of verticies make triangles
+	void CreateIndexBuffer();								//Buffer of indices corresponding to vertex arrary, 3-tuples of verticies make triangles
 	void CreateUniformBuffers();							//Create all uniform buffers, i.e. model-view projection matrix buffer
 	void CreateDescriptorPool();							//Pool that descriptor sets are allocated to
 	void CreateDescriptorSets();							//

@@ -64,6 +64,7 @@ namespace gpr460
 	const gpr460::string ERROR_CREATE_TEXTURE_IMAGE_VIEW_FAILED = L"Error: Failed to create texture image view";
 	const gpr460::string ERROR_CREATE_TEXTURE_SAMPLER_FAILED = L"Error: Failed to create texture sampler";
 	const gpr460::string ERROR_FIND_SUPPORTED_FORMAT_FAILED = L"Error: Failed to find supported format";
+	const gpr460::string ERROR_LOADING_MODEL_FAILED = L"Error: Failed to load model";
 
 	const gpr460::string ERROR_MISSING_GAMEOBJECT_REFERENCE = L"Error: Missing Reference to GameObject";
 	const gpr460::string ERROR_MISSING_TRANSFORM_REFERENCE = L"Error: Missing Reference to Transform Component";

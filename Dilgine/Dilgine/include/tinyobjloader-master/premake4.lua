@@ -1,9 +1,5 @@
-lib_sources = {
-   "tiny_obj_loader.cc"
-}
-
 sources = {
-   "test.cc",
+   "loader_example.cc",
    }
 
 -- premake4.lua
@@ -20,14 +16,14 @@ solution "TinyObjLoaderSolution"
    project "tinyobjloader"
       kind "ConsoleApp"
       language "C++"
-      files { lib_sources, sources }
+      files { sources }
 
       configuration "Debug"
          defines { "DEBUG" } -- -DDEBUG
          flags { "Symbols" }
-         targetname "test_tinyobjloader_debug"
+         targetname "loader_example_debug"
 
       configuration "Release"
          -- defines { "NDEBUG" } -- -NDEBUG
          flags { "Symbols", "Optimize" }
-         targetname "test_tinyobjloader"
+         targetname "loader_example"
