@@ -948,7 +948,7 @@ void EngineVulkan::CreateTextureImage()
     int texWidth, texHeight, texChannels;
     //Load in image and its information
     //If using \ instead of /, make sure to use \\ 
-    stbi_uc* pixels = stbi_load("Assets/Images/SquarePaul.png", &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+    stbi_uc* pixels = stbi_load(PAUL_TEXTURE_PATH.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
     
     //4 bytes per pixel, width x height pixels
     //colors defined in 32 bytes 32 bit color, 8 bits per channel (rgba)

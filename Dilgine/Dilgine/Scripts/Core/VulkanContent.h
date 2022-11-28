@@ -90,10 +90,10 @@ struct Vertex
 //Z is the vertical axis, Y is the front/back axis, z is left/right
 const std::vector<Vertex> vertices = {
 		//Top Face
-		{{-0.5f, -0.5f, 0.5f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},	//0 - Right, Back, Top
-		{{0.5f, -0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},	//1 - Left, Back Top
-		{{0.5f, 0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},		//2 - Left, Front, Top
-		{{-0.5f, 0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}},	//3 - Right, Front, Top
+		{{-0.5f, -0.5f, 0.5f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},	//0 - Right, Back, Top
+		{{0.5f, -0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},	//1 - Left, Back Top
+		{{0.5f, 0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},		//2 - Left, Front, Top
+		{{-0.5f, 0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}},	//3 - Right, Front, Top
 
 		//Bottom Face
 		{{-0.5f, -0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},	//4 - Right, Back, Bottom
@@ -174,6 +174,11 @@ struct UniformBufferObject {
 	alignas(16) glm::mat4 view;
 	alignas(16) glm::mat4 proj;
 };
+
+const std::string MODEL_PATH = "Models/viking_room.obj";
+const std::string TEXTURE_PATH = "Images/viking_room.png";
+
+const std::string PAUL_TEXTURE_PATH = "Assets/Images/SquarePaul.png";
 
 class EngineVulkan
 {
@@ -262,6 +267,11 @@ private:
 	VkDeviceMemory textureImageMemory;	//Memory location for image
 	VkImageView textureImageView;	//ImageView through which we access the image
 	VkSampler textureSampler;	//Samples values from texture
+
+	/*std::vector<Vertex> vertices;
+	std::vector<uint32_t> indices;
+	VkBuffer vertexBuffer;
+	VkDeviceMemory vertexBufferMemory;*/
 
 	//Validation layers to enable
 	const std::vector<const char*> validationLayers = { "VK_LAYER_KHRONOS_validation" };
