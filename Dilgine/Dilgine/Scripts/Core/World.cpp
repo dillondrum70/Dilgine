@@ -292,14 +292,16 @@ void World::UpdateUniformBuffers(uint32_t currentImage)
 
 	VkExtent2D extents = gpr460::engine->vulkanEngine.swapChainExtent;
 
+	float i = 0.0f;
 	for (VulkanObject* obj : vulkan.objects)
 	{
 		UniformBufferObject ubo{};
 		//Calculate model matrix, takes transformation, rotation, and rotation axis, rotates 90 degrees per second
-		ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-		ubo.model = glm::identity<glm::mat4>();
+		//ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+		//ubo.model = glm::identity<glm::mat4>();
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(i));
 		//View matrix (eye position, center look position, up vector), looks from above at a 45 degree angle
-		ubo.view = glm::lookAt(glm::vec3((2 * std::cos(mouseX / 80.0f)) * (2 * std::cos(mouseY / 80.0f)), (2 * std::sin(mouseX / 80.0f)) * (2 * std::cos(mouseY / 80.0f)), (2 * std::sin(mouseY / 80.0f))), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+		ubo.view = glm::lookAt(glm::vec3(5 * (std::cos(mouseX / 80.0f)) * (std::cos(mouseY / 80.0f)), 5 * (std::sin(mouseX / 80.0f)) * (std::cos(mouseY / 80.0f)), 5 * (std::sin(mouseY / 80.0f))), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 
 		//Projection matrix, (Y field of view, aspect ratio, near clip, far clip), 45 degree vertical field of view
 		ubo.proj = glm::perspective(glm::radians(45.0f), extents.width / (float)extents.height, 0.1f, 10.0f);
@@ -307,5 +309,6 @@ void World::UpdateUniformBuffers(uint32_t currentImage)
 
 		//Copy memory to uniform buffers mapped
 		memcpy(obj->uniformBuffersMapped[currentImage], &ubo, sizeof(ubo));
+		i += .5f;
 	}
 }

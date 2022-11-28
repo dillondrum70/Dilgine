@@ -10,6 +10,11 @@ struct VulkanObject
 	VkPipelineLayout pipelineLayout;	//Defines how uniforms are passed to shaders
 	VkPipeline graphicsPipeline;		//Graphics pipeline object
 
+	VkImage textureImage;	//Vulkan image data type for textures
+	VkDeviceMemory textureImageMemory;	//Memory location for image
+	VkImageView textureImageView;	//ImageView through which we access the image
+	VkSampler textureSampler;	//Samples values from texture
+
 	std::vector<Vertex> vertices;	//This object's vertices
 	std::vector<uint32_t> indices;	//This object's indices from verticies
 	VkBuffer vertexBuffer;	//Stores list of each individual vertex in a mesh, no repeats

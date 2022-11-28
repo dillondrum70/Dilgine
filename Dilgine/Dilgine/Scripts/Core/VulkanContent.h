@@ -164,10 +164,10 @@ private:
 	VkDeviceMemory depthImageMemory;	//Memory location of depth image
 	VkImageView depthImageView;	//Image view to access depth image
 
-	VkImage textureImage;	//Vulkan image data type for textures
-	VkDeviceMemory textureImageMemory;	//Memory location for image
-	VkImageView textureImageView;	//ImageView through which we access the image
-	VkSampler textureSampler;	//Samples values from texture
+	//VkImage textureImage;	//Vulkan image data type for textures
+	//VkDeviceMemory textureImageMemory;	//Memory location for image
+	//VkImageView textureImageView;	//ImageView through which we access the image
+	//VkSampler textureSampler;	//Samples values from texture
 
 	//std::vector<Vertex> vertices;
 	//std::vector<uint32_t> indices;
@@ -203,9 +203,9 @@ private:
 	void CreateFramebuffers();								//Render pass attachments are used here, references VkImageView objects
 	void CreateCommandPool();								//Manage command buffer memory and allocate command buffers from here
 	void CreateDepthResources();							//Objects needed to acquire depth in view (Objects that are further away are not rendered on top of closer objects)
-	void CreateTextureImage();								//Image used for texturing object
-	void CreateTextureImageView();							//Images are accessed through ImageViews
-	void CreateTextureSampler();							//Sample VkImage for colors
+	void CreateTextureImage(VulkanObject* obj, std::string filename);								//Image used for texturing object
+	void CreateTextureImageViews();							//Images are accessed through ImageViews
+	void CreateTextureSamplers();							//Sample VkImage for colors
 	void LoadModel(VulkanObject* pVulObject);										//Load model data
 	void LoadCube(VulkanObject* pVulObject);										//Load cube vertices from cubeIndices, ensure there are no repeats
 	void CreateVertexBuffers();								//Buffer of vertices that define mesh

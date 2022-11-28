@@ -31,13 +31,13 @@ void EngineVulkan::Cleanup()
 
     CleanupSwapChain();
 
-    vkDestroySampler(logicalDevice, textureSampler, nullptr);
-    vkDestroyImageView(logicalDevice, textureImageView, nullptr);
-    vkDestroyImage(logicalDevice, textureImage, nullptr);
-    vkFreeMemory(logicalDevice, textureImageMemory, nullptr);
+    
 
     for (VulkanObject* obj : objects)
     {
+        vkDestroyPipeline(logicalDevice, obj->graphicsPipeline, nullptr);
+        vkDestroyPipelineLayout(logicalDevice, obj->pipelineLayout, nullptr);
+
         for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
         {
             vkDestroyBuffer(logicalDevice, obj->uniformBuffers[i], nullptr);
@@ -46,6 +46,11 @@ void EngineVulkan::Cleanup()
 
         vkDestroyDescriptorPool(logicalDevice, obj->descriptorPool, nullptr);
 
+        vkDestroySampler(logicalDevice, obj->textureSampler, nullptr);
+        vkDestroyImageView(logicalDevice, obj->textureImageView, nullptr);
+        vkDestroyImage(logicalDevice, obj->textureImage, nullptr);
+        vkFreeMemory(logicalDevice, obj->textureImageMemory, nullptr);
+
         vkDestroyDescriptorSetLayout(logicalDevice, obj->descriptorSetLayout, nullptr);
 
         vkDestroyBuffer(logicalDevice, obj->indexBuffer, nullptr);
@@ -53,9 +58,6 @@ void EngineVulkan::Cleanup()
 
         vkDestroyBuffer(logicalDevice, obj->vertexBuffer, nullptr);
         vkFreeMemory(logicalDevice, obj->vertexBufferMemory, nullptr);
-
-        vkDestroyPipeline(logicalDevice, obj->graphicsPipeline, nullptr);
-        vkDestroyPipelineLayout(logicalDevice, obj->pipelineLayout, nullptr);
 
         delete obj;
     }
@@ -146,24 +148,32 @@ void EngineVulkan::InitVulkan(SDL_Window* window)
     std::cout << "Frame Buffers Initialized...\n\n";
 
     std::cout << "Initializing Texture Image...\n";
-    CreateTextureImage();
+    CreateTextureImage(objects[0], PAUL_TEXTURE_PATH);
+    std::cout << "Texture Image Initialized...\n\n";
+
+    std::cout << "Initializing Texture Image...\n";
+    CreateTextureImage(objects[1], TEXTURE_PATH);
     std::cout << "Texture Image Initialized...\n\n";
 
     std::cout << "Initializing Texture Image View...\n";
-    CreateTextureImageView();
+    CreateTextureImageViews();
     std::cout << "Texture Image View Initialized...\n\n";
 
     std::cout << "Initializing Texture Sampler...\n";
-    CreateTextureSampler();
+    CreateTextureSamplers();
     std::cout << "Texture Sampler Initialized...\n\n";
 
-    std::cout << "Loading Models...\n";
+    /*std::cout << "Loading Models...\n";
     LoadModel(objects[1]);
-    std::cout << "Models Loaded...\n\n";
+    std::cout << "Models Loaded...\n\n";*/
 
-    std::cout << "Loading Cube...\n";
+    std::cout << "Loading Cube0...\n";
     LoadCube(objects[0]);
-    std::cout << "Cube Loaded...\n\n";
+    std::cout << "Cube0 Loaded...\n\n";
+
+    std::cout << "Loading Cube1...\n";
+    LoadCube(objects[1]);
+    std::cout << "Cube1 Loaded...\n\n";
 
     std::cout << "Initializing Vertex Buffer...\n";
     CreateVertexBuffers();
@@ -964,7 +974,7 @@ void EngineVulkan::CreateDepthResources()
 }
 
 
-void EngineVulkan::CreateTextureImage()
+void EngineVulkan::CreateTextureImage(VulkanObject* obj, std::string filename)
 {
     std::cout << "TO DO:\n";
     std::cout << "\tFilenames listed in an 'Asset Path' file\n";
@@ -974,8 +984,8 @@ void EngineVulkan::CreateTextureImage()
     int texWidth, texHeight, texChannels;
     //Load in image and its information
     //If using \ instead of /, make sure to use \\ 
-    stbi_uc* pixels = stbi_load(PAUL_TEXTURE_PATH.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
-    
+    stbi_uc* pixels = stbi_load(filename.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+
     //4 bytes per pixel, width x height pixels
     //colors defined in 32 bytes 32 bit color, 8 bits per channel (rgba)
     VkDeviceSize imageSize = texWidth * texHeight * 4;
@@ -1006,17 +1016,17 @@ void EngineVulkan::CreateTextureImage()
     //Create texture image
     //NOTE: It is possible that a GPU might not support this format, however it is so popular that for the sake of this system, we will not be checking
     //Same format as stb, VK_FORMAT_R8G8B8A8_SRGB
-    CreateImage(texWidth, texHeight, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, 
-        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage, textureImageMemory);
-    
+    CreateImage(texWidth, texHeight, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, obj->textureImage, obj->textureImageMemory);
+
     //Transition image layout for texture image, TRANSFER_DST_OPTIMAL
-    TransitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+    TransitionImageLayout(obj->textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
     //Copy staging buffer to texture image
-    CopyBufferToImage(stagingBuffer, textureImage, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
+    CopyBufferToImage(stagingBuffer, obj->textureImage, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
 
     //Need to prepare for shader access, SHADER_READ_ONLY_OPTIMAL
-    TransitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    TransitionImageLayout(obj->textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
     //Destroy and free temporary staging values
     vkDestroyBuffer(logicalDevice, stagingBuffer, nullptr);
@@ -1024,49 +1034,55 @@ void EngineVulkan::CreateTextureImage()
 }
 
 
-void EngineVulkan::CreateTextureImageView()
+void EngineVulkan::CreateTextureImageViews()
 {
-    textureImageView = CreateImageView(textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
+    for (VulkanObject* obj : objects)
+    {
+        obj->textureImageView = CreateImageView(obj->textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
+    }
 }
 
 
-void EngineVulkan::CreateTextureSampler()
+void EngineVulkan::CreateTextureSamplers()
 {
-    VkSamplerCreateInfo samplerInfo{};
-    samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-    //Specify how to interpolate texels when magnified or minified (i.e. should it have hard pixels or blur)
-    samplerInfo.magFilter = VK_FILTER_LINEAR;
-    samplerInfo.minFilter = VK_FILTER_LINEAR;
-    //Repeats image when tiling if it's too small
-    samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-    samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-    samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-    //Determine GPU ability for highest anisotropy
-    VkPhysicalDeviceProperties properties{};
-    vkGetPhysicalDeviceProperties(physicalDevice, &properties);
-    samplerInfo.anisotropyEnable = VK_TRUE;
-    samplerInfo.maxAnisotropy = properties.limits.maxSamplerAnisotropy;
-    //Determines base color when sampling past bounds of image
-    samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
-    //Determines if sampling [0, texWidth] or [0, 1)
-    samplerInfo.unnormalizedCoordinates = VK_FALSE;
-    //Mostly used for "percentage-closer filtering"
-    samplerInfo.compareEnable = VK_FALSE;
-    samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
-    //We do not have mipmapping yet
-    samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-    samplerInfo.mipLodBias = 0.0f;
-    samplerInfo.minLod = 0.0f;
-    samplerInfo.maxLod = 0.0f;
-    //We've already checked if device supports anisotropy when it was created
-    samplerInfo.anisotropyEnable = VK_TRUE;
-    samplerInfo.maxAnisotropy = 1.0f;
-
-    if (vkCreateSampler(logicalDevice, &samplerInfo, nullptr, &textureSampler) != VK_SUCCESS)
+    for (VulkanObject* obj : objects)
     {
-        gpr460::engine->system->ErrorMessage(gpr460::ERROR_CREATE_TEXTURE_SAMPLER_FAILED);
-        gpr460::engine->system->LogToErrorFile(gpr460::ERROR_CREATE_TEXTURE_SAMPLER_FAILED);
-        throw std::runtime_error("Failed to create texture sampler");
+        VkSamplerCreateInfo samplerInfo{};
+        samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+        //Specify how to interpolate texels when magnified or minified (i.e. should it have hard pixels or blur)
+        samplerInfo.magFilter = VK_FILTER_LINEAR;
+        samplerInfo.minFilter = VK_FILTER_LINEAR;
+        //Repeats image when tiling if it's too small
+        samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+        samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+        samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+        //Determine GPU ability for highest anisotropy
+        VkPhysicalDeviceProperties properties{};
+        vkGetPhysicalDeviceProperties(physicalDevice, &properties);
+        samplerInfo.anisotropyEnable = VK_TRUE;
+        samplerInfo.maxAnisotropy = properties.limits.maxSamplerAnisotropy;
+        //Determines base color when sampling past bounds of image
+        samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+        //Determines if sampling [0, texWidth] or [0, 1)
+        samplerInfo.unnormalizedCoordinates = VK_FALSE;
+        //Mostly used for "percentage-closer filtering"
+        samplerInfo.compareEnable = VK_FALSE;
+        samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
+        //We do not have mipmapping yet
+        samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+        samplerInfo.mipLodBias = 0.0f;
+        samplerInfo.minLod = 0.0f;
+        samplerInfo.maxLod = 0.0f;
+        //We've already checked if device supports anisotropy when it was created
+        samplerInfo.anisotropyEnable = VK_TRUE;
+        samplerInfo.maxAnisotropy = 1.0f;
+
+        if (vkCreateSampler(logicalDevice, &samplerInfo, nullptr, &obj->textureSampler) != VK_SUCCESS)
+        {
+            gpr460::engine->system->ErrorMessage(gpr460::ERROR_CREATE_TEXTURE_SAMPLER_FAILED);
+            gpr460::engine->system->LogToErrorFile(gpr460::ERROR_CREATE_TEXTURE_SAMPLER_FAILED);
+            throw std::runtime_error("Failed to create texture sampler");
+        }
     }
 }
 
@@ -1293,8 +1309,8 @@ void EngineVulkan::CreateDescriptorSets()
 
             VkDescriptorImageInfo imageInfo{};
             imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-            imageInfo.imageView = textureImageView;
-            imageInfo.sampler = textureSampler;
+            imageInfo.imageView = obj->textureImageView;
+            imageInfo.sampler = obj->textureSampler;
 
             //Need to update descriptor sets,
             std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
