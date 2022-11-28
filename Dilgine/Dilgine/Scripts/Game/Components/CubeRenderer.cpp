@@ -1,4 +1,4 @@
-#include "CubeRendererComponent.h"
+#include "CubeRenderer.h"
 #include "Transform.h"
 #include "GameObject.h"
 #include "System.h"

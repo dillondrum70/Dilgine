@@ -6,7 +6,7 @@
 #include "RectangleCollider.h"
 #include "RectangleRenderer.h"
 #include "Transform.h"
-#include "CubeRendererComponent.h"
+#include "CubeRenderer.h"
 
 #include <vector>
 

@@ -74,7 +74,7 @@ public:
 
 	void Render(SDL_Renderer*& prRenderer);
 
-	void UpdateUniformBuffer(uint32_t currentImage);
+	void UpdateUniformBuffers(uint32_t currentImage);
 };
 
 #endif

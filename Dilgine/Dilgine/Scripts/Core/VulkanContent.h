@@ -1,117 +1,14 @@
 #ifndef VULKAN_CONTENT_H
 #define VULKAN_CONTENT_H
 
-#define DEBUGGING
-
-#include <vector>
-#include <optional>
-#include <fstream>
-#include <array>
-
-////////////// GLM Defines /////////////////
-#define GLM_FORCE_RADIANS
-//Saves us from worrying about data alignment most of the time
-//Does not work on nested structures
-#define GLM_FORCE_DEFAULT_ALIGNED_GENTYPES	
-//Force depth to be defined between 0 and 1
-#define GLM_FORCE_DEPTH_ZERO_TO_ONE
-
-#define GLM_ENABLE_EXPERIMENTAL
-
-////////////// STB Defines /////////////////
-#define STB_IMAGE_IMPLEMENTATION
-
-///////// TinyObjLoader Defines ////////////
-#define TINYOBJLOADER_IMPLEMENTATION
-
-#include "vulkan/vulkan.h"
-//SDL included in cpp
-#include "glm/glm.hpp"
-#include "glm/gtx/hash.hpp"
-//stb included in cpp
-//tinyobjloader included in cpp
-
-const int MAX_FRAMES_IN_FLIGHT = 2;
+#include "VulkanCore.h"
+#include "VulkanObject.h"
 
 struct SDL_Window;
 union SDL_Event;
 
-struct QueueFamilyIndices
-{
-	std::optional<uint32_t> graphicsFamily;
-	std::optional<uint32_t> presentFamily;
-
-	//QueueFamilyIndices is complete if graphics family has a value (not null)
-	bool isComplete() { return graphicsFamily.has_value() && presentFamily.has_value(); }
-};
-
-struct SwapChainSupportDetails
-{
-	VkSurfaceCapabilitiesKHR capabilities;			//Minimum and maximum capabilities of swap chain
-	std::vector<VkSurfaceFormatKHR> formats;		//Surface formats
-	std::vector<VkPresentModeKHR> presentModes;		//Available presentation modes
-};
-
-struct Vertex
-{
-	glm::vec3 position;
-	glm::vec3 color;
-	glm::vec2 texCoord;
-
-	//Defines how to pass Vertex data format
-	static VkVertexInputBindingDescription GetBindingDescription()
-	{
-		//Define rate to load data from memory, bytes  betweend data entries
-		VkVertexInputBindingDescription bindingDescription{};
-		bindingDescription.binding = 0;
-		bindingDescription.stride = sizeof(Vertex);
-		bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;	//Move to next data entry after each vertex
-
-		return bindingDescription;
-	}
-
-	//How to handle vertex input
-	static std::array<VkVertexInputAttributeDescription, 3> GetAttributeDescriptions()
-	{
-		//Two  descriptions tell us how to extract vertex attribute from vertex data in binding description, one for position, one for color
-		std::array<VkVertexInputAttributeDescription, 3> attributeDescriptions{};
-		attributeDescriptions[0].binding = 0;							//Which binding the per-vertex data comes from
-		attributeDescriptions[0].location = 0;							//location directive of input in vertex shader
-		attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;		//Type of data, R32G32 is same as vec2, 2 x 32 bit values
-		attributeDescriptions[0].offset = offsetof(Vertex, position);	//Number of bytes since start of per-vertex data to read from
-
-		attributeDescriptions[1].binding = 0;
-		attributeDescriptions[1].location = 1;
-		attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-		attributeDescriptions[1].offset = offsetof(Vertex, color);
-
-		attributeDescriptions[2].binding = 0;
-		attributeDescriptions[2].location = 2;
-		attributeDescriptions[2].format = VK_FORMAT_R32G32_SFLOAT;
-		attributeDescriptions[2].offset = offsetof(Vertex, texCoord);
-
-		return attributeDescriptions;
-	}
-
-	//Need overload for using Vertex in a hashmap to make sure we don't load the same vertex more than once
-	bool operator==(const Vertex& other) const
-	{
-		return position == other.position && color == other.color && texCoord == other.texCoord;
-	}
-};
-
-namespace std
-{
-	template<> struct hash<Vertex>
-	{
-		size_t operator()(Vertex const& vertex) const 
-		{
-			return ((hash<glm::vec3>()(vertex.position) ^
-				(hash<glm::vec3>()(vertex.color) << 1)) >> 1) ^
-				(hash<glm::vec2>()(vertex.texCoord) << 1);
-		}
-	};
-}
+////////////// STB Defines /////////////////
+#define STB_IMAGE_IMPLEMENTATION
 
 //Vertex data, position-color, and texture coordinates, don't need repeats
 //Positive Directions: Left, Forward, Up
@@ -182,27 +79,6 @@ const std::vector<uint16_t> cubeIndices = {
 	21, 23, 22
 };
 
-//To translate C++ to GLM structures, data must be aligned
-//This is aligned by default
-//N = 4 bytes, 1 x 32 bit float
-//Scalar - aligned by N (4 bytes)
-//Vec2 - aligned by 2N
-//vec3/vec4 - aligned by 4N
-//mat4 - same as vec4
-//Nested Structure - base alignment of members rounded up to multiple of 16
-//Use "alignas(# of bytes)" to align
-//i.e.
-//glm::vec2 foo
-//alignas(16) glm::mat4 bar
-//Safe to always align
-
-//Model-View Projection
-struct UniformBufferObject {
-	alignas(16) glm::mat4 model;
-	alignas(16) glm::mat4 view;
-	alignas(16) glm::mat4 proj;
-};
-
 const std::string MODEL_PATH = "Assets/Models/viking_room.obj";
 const std::string TEXTURE_PATH = "Assets/Images/viking_room.png";
 
@@ -222,6 +98,8 @@ public:
 	VkSwapchainKHR swapChain;		//Swapchain object
 	VkExtent2D swapChainExtent;		//Extents of camera
 
+	std::vector<VulkanObject*> objects;	//Objects that store information (verticies, pipelines, descriptors, etc) about the different models
+
 	std::vector<VkCommandBuffer> commandBuffers;	//Commands to change anything are submitted to this buffer
 
 	//Used to synchronize GPU processes, i.e. can't run render until we have image
@@ -230,12 +108,12 @@ public:
 	std::vector <VkFence> inFlightFences;		//Pauses CPU until GPU finishes specified process
 
 	//Memory buffers and memory to handle uniform buffers
-	std::vector<VkBuffer> uniformBuffers;
-	std::vector<VkDeviceMemory> uniformBuffersMemory;
-	std::vector<void*> uniformBuffersMapped;
+	//std::vector<VkBuffer> uniformBuffers;
+	//std::vector<VkDeviceMemory> uniformBuffersMemory;
+	//std::vector<void*> uniformBuffersMapped;
 
-	VkDescriptorPool descriptorPool;	//Where descriptors are taken from
-	std::vector<VkDescriptorSet> descriptorSets;
+	//VkDescriptorPool descriptorPool;	//Where descriptors are taken from
+	//std::vector<VkDescriptorSet> descriptorSets;
 
 	bool framebufferResized = false;
 
@@ -248,7 +126,7 @@ public:
 	void Cleanup();
 
 	//Sumbit command to command buffer
-	void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
+	void RecordCommandBuffers(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 
 	//Recreate swapchain in the case that it is invalidated, i.e. resized
 	void RecreateSwapChain(SDL_Window* window);
@@ -274,9 +152,9 @@ private:
 	std::vector<VkImageView> swapChainImageViews;
 
 	VkRenderPass renderPass;			//The actual render pass object
-	VkDescriptorSetLayout descriptorSetLayout;	//Layout for descriptor set (model-view projection matrix descriptor)
-	VkPipelineLayout pipelineLayout;	//Defines how uniforms are passed to shaders
-	VkPipeline graphicsPipeline;		//Graphics pipeline object
+	//VkDescriptorSetLayout descriptorSetLayout;	//Layout for descriptor set (model-view projection matrix descriptor)
+	//VkPipelineLayout pipelineLayout;	//Defines how uniforms are passed to shaders
+	//VkPipeline graphicsPipeline;		//Graphics pipeline object
 
 	std::vector<VkFramebuffer> swapChainFramebuffers;	//Frames are submitted to this buffer, how and when they are drawn is defined elsewhere
 
@@ -291,12 +169,12 @@ private:
 	VkImageView textureImageView;	//ImageView through which we access the image
 	VkSampler textureSampler;	//Samples values from texture
 
-	std::vector<Vertex> vertices;
-	std::vector<uint32_t> indices;
-	VkBuffer vertexBuffer;	//Stores list of each individual vertex in a mesh, no repeats
-	VkDeviceMemory vertexBufferMemory;	//Memory for vertex buffer, sometimes we may want to destroy a buffer, but keep the memory allocated to construct something new in the same location
-	VkBuffer indexBuffer;	//Stores list of indices in vertex array that define triangles
-	VkDeviceMemory indexBufferMemory;	//Memory for index buffer
+	//std::vector<Vertex> vertices;
+	//std::vector<uint32_t> indices;
+	//VkBuffer vertexBuffer;	//Stores list of each individual vertex in a mesh, no repeats
+	//VkDeviceMemory vertexBufferMemory;	//Memory for vertex buffer, sometimes we may want to destroy a buffer, but keep the memory allocated to construct something new in the same location
+	//VkBuffer indexBuffer;	//Stores list of indices in vertex array that define triangles
+	//VkDeviceMemory indexBufferMemory;	//Memory for index buffer
 
 	//Validation layers to enable
 	const std::vector<const char*> validationLayers = { "VK_LAYER_KHRONOS_validation" };
@@ -320,20 +198,20 @@ private:
 	void CreateSwapChain(SDL_Window* window);				//Determine and create parameters for drawing
 	void CreateImageViews();								//The view of an image, specifies how and what part of image to access
 	void CreateRenderPass();								//Handles information regarding rendering
-	void CreateDescriptorSetLayout();						//Binding model-view projection matrix
-	void CreateGraphicsPipeline();							//Handles rendering steps like vertex, geometry, and fragment shaders
+	void CreateDescriptorSetLayouts();						//Binding model-view projection matrix
+	void CreateGraphicsPipelines();							//Handles rendering steps like vertex, geometry, and fragment shaders
 	void CreateFramebuffers();								//Render pass attachments are used here, references VkImageView objects
 	void CreateCommandPool();								//Manage command buffer memory and allocate command buffers from here
 	void CreateDepthResources();							//Objects needed to acquire depth in view (Objects that are further away are not rendered on top of closer objects)
 	void CreateTextureImage();								//Image used for texturing object
 	void CreateTextureImageView();							//Images are accessed through ImageViews
 	void CreateTextureSampler();							//Sample VkImage for colors
-	void LoadModel();										//Load model data
-	void LoadCube();										//Load cube vertices from cubeIndices, ensure there are no repeats
-	void CreateVertexBuffer();								//Buffer of vertices that define mesh
-	void CreateIndexBuffer();								//Buffer of indices corresponding to vertex arrary, 3-tuples of verticies make triangles
+	void LoadModel(VulkanObject* pVulObject);										//Load model data
+	void LoadCube(VulkanObject* pVulObject);										//Load cube vertices from cubeIndices, ensure there are no repeats
+	void CreateVertexBuffers();								//Buffer of vertices that define mesh
+	void CreateIndexBuffers();								//Buffer of indices corresponding to vertex arrary, 3-tuples of verticies make triangles
 	void CreateUniformBuffers();							//Create all uniform buffers, i.e. model-view projection matrix buffer
-	void CreateDescriptorPool();							//Pool that descriptor sets are allocated to
+	void CreateDescriptorPools();							//Pool that descriptor sets are allocated to
 	void CreateDescriptorSets();							//
 	void CreateCommandBuffers();							//All operations that are to be done are stored here
 	void CreateSyncObjects();								//Create Semaphores and Fences

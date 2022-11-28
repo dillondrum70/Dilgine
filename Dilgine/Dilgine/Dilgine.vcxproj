@@ -23,10 +23,12 @@
     <ClCompile Include="Scripts\Core\StackAllocator.cpp" />
     <ClCompile Include="Scripts\Core\System\System_Win32.cpp" />
     <ClCompile Include="Scripts\Core\VulkanContent.cpp" />
+    <ClCompile Include="Scripts\Core\VulkanCore.cpp" />
+    <ClCompile Include="Scripts\Core\VulkanObject.cpp" />
     <ClCompile Include="Scripts\Core\World.cpp" />
     <ClCompile Include="Scripts\Game\Components\CollisionColorChanger.cpp" />
     <ClCompile Include="Scripts\Game\Components\Component.cpp" />
-    <ClCompile Include="Scripts\Game\Components\CubeRendererComponent.cpp" />
+    <ClCompile Include="Scripts\Game\Components\CubeRenderer.cpp" />
     <ClCompile Include="Scripts\Game\Components\PlayerController.cpp" />
     <ClCompile Include="Scripts\Game\Components\RectangleCollider.cpp" />
     <ClCompile Include="Scripts\Game\Components\RectangleRenderer.cpp" />
@@ -43,10 +45,12 @@
     <ClInclude Include="Scripts\Core\Vector2.h" />
     <ClInclude Include="Scripts\Core\Vector3.h" />
     <ClInclude Include="Scripts\Core\VulkanContent.h" />
+    <ClInclude Include="Scripts\Core\VulkanCore.h" />
+    <ClInclude Include="Scripts\Core\VulkanObject.h" />
     <ClInclude Include="Scripts\Core\World.h" />
     <ClInclude Include="Scripts\Game\Components\CollisionColorChanger.h" />
     <ClInclude Include="Scripts\Game\Components\Component.h" />
-    <ClInclude Include="Scripts\Game\Components\CubeRendererComponent.h" />
+    <ClInclude Include="Scripts\Game\Components\CubeRenderer.h" />
     <ClInclude Include="Scripts\Game\Components\PlayerController.h" />
     <ClInclude Include="Scripts\Game\Components\RectangleCollider.h" />
     <ClInclude Include="Scripts\Game\Components\RectangleRenderer.h" />
