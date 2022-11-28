@@ -21,6 +21,8 @@ public:
 
 	GameObject* gameObject;
 
+	VulkanObject* vulkanObj;
+
 	enum { compID = 'CREN' };
 
 	static void Deserialize(GameObject& gameObject, std::istream& stream);

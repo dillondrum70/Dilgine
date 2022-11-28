@@ -125,6 +125,9 @@ public:
 	//Destroy relevant items
 	void Cleanup();
 
+	//Create new vulkan object for a cube
+	void AddCubeVulkanObject(std::string textureFilename);
+
 	//Sumbit command to command buffer
 	void RecordCommandBuffers(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 

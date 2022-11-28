@@ -35,22 +35,15 @@ void CubeRenderer::RenderAll(SDL_Renderer*& prRenderer)
 {
 	Components& components = gpr460::engine->world->GetComponents();
 
-	for (int i = 0; i < gpr460::engine->world->activeRectRenderers; i++)
+	for (int i = 0; i < gpr460::engine->world->activeCubeRenderers; i++)
 	{
-		RectangleRenderer& rectRender = components.rectRendererComponents[i];
+		CubeRenderer& cubeRender = components.cubeRendererComponents[i];
 
-		if (rectRender.gameObject && rectRender.gameObject->GetTransform() && prRenderer)
+		if (cubeRender.gameObject && cubeRender.gameObject->GetTransform() && prRenderer)
 		{
-			Transform* trans = rectRender.gameObject->GetTransform();
-			SDL_Rect rect = {
-			trans->position.x - (rectRender.width / 2),
-			trans->position.y - (rectRender.height / 2),
-			rectRender.width,
-			rectRender.height
-			};
+			Transform* trans = cubeRender.gameObject->GetTransform();
 
-			SDL_SetRenderDrawColor(prRenderer, rectRender.color.x, rectRender.color.y, rectRender.color.z, SDL_ALPHA_OPAQUE);
-			SDL_RenderFillRect(prRenderer, &rect);
+			
 		}
 	}
 }

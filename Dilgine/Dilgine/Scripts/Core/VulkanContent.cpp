@@ -208,6 +208,11 @@ void EngineVulkan::InitVulkan(SDL_Window* window)
     std::cout << "\n------------------------------\n\n";
 }
 
+void EngineVulkan::AddCubeVulkanObject(std::string textureFilename)
+{
+    adghah
+}
+
 
 void EngineVulkan::CreateInstance(SDL_Window* window)
 {
