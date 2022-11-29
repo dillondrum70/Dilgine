@@ -20,7 +20,7 @@ struct Components
 	RectangleCollider rectColliderComponents[gpr460::MAX_GAMEOBJECTS];
 	PlayerController playerControllerComponents[gpr460::MAX_GAMEOBJECTS];
 	CollisionColorChanger colorChangeComponents[gpr460::MAX_GAMEOBJECTS];
-	CubeRenderer cubeRendererComponents[gpr460::MAX_GAMEOBJECTS];
+	MeshRenderer meshRendererComponents[gpr460::MAX_GAMEOBJECTS];
 };
 
 class World
@@ -42,7 +42,7 @@ public:
 	int activeRectColliders = 0;
 	int activePlayerControllers = 0;
 	int activeColorChange = 0;
-	int activeCubeRenderers = 0;
+	int activeMeshRenderers = 0;
 
 	/////////////
 	//float lastMouseX = 2;

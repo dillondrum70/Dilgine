@@ -82,6 +82,7 @@ const std::vector<uint16_t> cubeIndices = {
 const std::string MODEL_PATH = "Assets/Models/viking_room.obj";
 const std::string TEXTURE_PATH = "Assets/Images/viking_room.png";
 
+const std::string CUBE_PATH = "Cube";
 const std::string PAUL_TEXTURE_PATH = "Assets/Images/SquarePaul.png";
 
 class EngineVulkan
@@ -98,7 +99,7 @@ public:
 	VkSwapchainKHR swapChain;		//Swapchain object
 	VkExtent2D swapChainExtent;		//Extents of camera
 
-	std::vector<VulkanObject*> objects;	//Objects that store information (verticies, pipelines, descriptors, etc) about the different models
+	std::vector<VulkanObject> objects;	//Objects that store information (verticies, pipelines, descriptors, etc) about the different models
 
 	std::vector<VkCommandBuffer> commandBuffers;	//Commands to change anything are submitted to this buffer
 
@@ -124,9 +125,6 @@ public:
 
 	//Destroy relevant items
 	void Cleanup();
-
-	//Create new vulkan object for a cube
-	void AddCubeVulkanObject(std::string textureFilename);
 
 	//Sumbit command to command buffer
 	void RecordCommandBuffers(VkCommandBuffer commandBuffer, uint32_t imageIndex);
@@ -167,17 +165,17 @@ private:
 	VkDeviceMemory depthImageMemory;	//Memory location of depth image
 	VkImageView depthImageView;	//Image view to access depth image
 
-	//VkImage textureImage;	//Vulkan image data type for textures
-	//VkDeviceMemory textureImageMemory;	//Memory location for image
-	//VkImageView textureImageView;	//ImageView through which we access the image
-	//VkSampler textureSampler;	//Samples values from texture
+	std::unordered_map <std::string, VkImage> textureImages;	//Vulkan image data type for textures
+	std::unordered_map <std::string, VkDeviceMemory> textureImageMemorys;	//Memory location for image
+	std::unordered_map <std::string, VkImageView> textureImageViews;	//ImageView through which we access the image
+	std::unordered_map <std::string, VkSampler> textureSamplers;	//Samples values from texture
 
-	//std::vector<Vertex> vertices;
-	//std::vector<uint32_t> indices;
-	//VkBuffer vertexBuffer;	//Stores list of each individual vertex in a mesh, no repeats
-	//VkDeviceMemory vertexBufferMemory;	//Memory for vertex buffer, sometimes we may want to destroy a buffer, but keep the memory allocated to construct something new in the same location
-	//VkBuffer indexBuffer;	//Stores list of indices in vertex array that define triangles
-	//VkDeviceMemory indexBufferMemory;	//Memory for index buffer
+	std::unordered_map <std::string, std::vector<Vertex>> models;
+	std::unordered_map <std::string, std::vector<uint32_t>> modelIndices;
+	std::unordered_map <std::string, VkBuffer> vertexBuffers;	//Stores list of each individual vertex in a mesh, no repeats
+	std::unordered_map <std::string, VkDeviceMemory> vertexBufferMemorys;	//Memory for vertex buffer, sometimes we may want to destroy a buffer, but keep the memory allocated to construct something new in the same location
+	std::unordered_map <std::string, VkBuffer> indexBuffers;	//Stores list of indices in vertex array that define triangles
+	std::unordered_map <std::string, VkDeviceMemory> indexBufferMemorys;	//Memory for index buffer
 
 	//Validation layers to enable
 	const std::vector<const char*> validationLayers = { "VK_LAYER_KHRONOS_validation" };
@@ -201,21 +199,21 @@ private:
 	void CreateSwapChain(SDL_Window* window);				//Determine and create parameters for drawing
 	void CreateImageViews();								//The view of an image, specifies how and what part of image to access
 	void CreateRenderPass();								//Handles information regarding rendering
-	void CreateDescriptorSetLayouts();						//Binding model-view projection matrix
-	void CreateGraphicsPipelines();							//Handles rendering steps like vertex, geometry, and fragment shaders
+	//void CreateDescriptorSetLayouts();						//Binding model-view projection matrix
+	//void CreateGraphicsPipelines();							//Handles rendering steps like vertex, geometry, and fragment shaders
 	void CreateFramebuffers();								//Render pass attachments are used here, references VkImageView objects
 	void CreateCommandPool();								//Manage command buffer memory and allocate command buffers from here
 	void CreateDepthResources();							//Objects needed to acquire depth in view (Objects that are further away are not rendered on top of closer objects)
-	void CreateTextureImage(VulkanObject* obj, std::string filename);								//Image used for texturing object
+	void CreateTextureImage(std::string filePath);			//Image used for texturing object
 	void CreateTextureImageViews();							//Images are accessed through ImageViews
 	void CreateTextureSamplers();							//Sample VkImage for colors
-	void LoadModel(VulkanObject* pVulObject);										//Load model data
-	void LoadCube(VulkanObject* pVulObject);										//Load cube vertices from cubeIndices, ensure there are no repeats
+	void LoadModel(std::string filePath);					//Load model data
+	void LoadCube();										//Load cube vertices from cubeIndices, ensure there are no repeats
 	void CreateVertexBuffers();								//Buffer of vertices that define mesh
 	void CreateIndexBuffers();								//Buffer of indices corresponding to vertex arrary, 3-tuples of verticies make triangles
-	void CreateUniformBuffers();							//Create all uniform buffers, i.e. model-view projection matrix buffer
-	void CreateDescriptorPools();							//Pool that descriptor sets are allocated to
-	void CreateDescriptorSets();							//
+	//void CreateUniformBuffers();							//Create all uniform buffers, i.e. model-view projection matrix buffer
+	//void CreateDescriptorPools();							//Pool that descriptor sets are allocated to
+	//void CreateDescriptorSets();							//Set of descriptors for a model (i.e. vertex position, color, texCoord
 	void CreateCommandBuffers();							//All operations that are to be done are stored here
 	void CreateSyncObjects();								//Create Semaphores and Fences
 	
@@ -299,6 +297,8 @@ private:
 
 	//Lets us know if depth format contains stencil component
 	bool HasStencilComponent(VkFormat format);
+
+	friend class VulkanObject;
 };
 
 #endif

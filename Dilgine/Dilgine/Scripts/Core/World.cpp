@@ -25,7 +25,13 @@ void World::Init(SDL_Window* pWindow)
 	std::wcout << std::wstring(buffer).substr(0, pos);*/
 	//std::string path = "..\\Dilgine\\Data\\level0.dat";
 	//std::cout << std::endl << path << std::endl;
-	serial.LoadLevel(path);
+	
+	//serial.LoadLevel(path);
+
+	GameObject cube;
+	Transform::Create(cube, Vector3(0, 0, 0));
+	MeshRenderer::Create(cube, CUBE_PATH, PAUL_TEXTURE_PATH);
+	AddGameObject(cube);
 
 	/*GameObject background;
 	//Add Transform component
@@ -293,7 +299,7 @@ void World::UpdateUniformBuffers(uint32_t currentImage)
 	VkExtent2D extents = gpr460::engine->vulkanEngine.swapChainExtent;
 
 	float i = 0.0f;
-	for (VulkanObject* obj : vulkan.objects)
+	for (MeshRenderer& mesh : components.meshRendererComponents)
 	{
 		UniformBufferObject ubo{};
 		//Calculate model matrix, takes transformation, rotation, and rotation axis, rotates 90 degrees per second
@@ -308,7 +314,7 @@ void World::UpdateUniformBuffers(uint32_t currentImage)
 		ubo.proj[1][1] *= -1;	//glm designed for OpenGL where Y clip coordinate is inverted, must undo the invert done by glm, otherwise, image is rendered upside-down
 
 		//Copy memory to uniform buffers mapped
-		memcpy(obj->uniformBuffersMapped[currentImage], &ubo, sizeof(ubo));
+		memcpy(mesh.vulkanObj->uniformBuffersMapped[currentImage], &ubo, sizeof(ubo));
 		i += .5f;
 	}
 }

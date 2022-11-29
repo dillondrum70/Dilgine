@@ -10,7 +10,7 @@ void Serialize::RegisterComponentFunctions()
 	componentCreationMap[RectangleCollider::compID] = RectangleCollider::Deserialize;
 	componentCreationMap[PlayerController::compID] = PlayerController::Deserialize;
 	componentCreationMap[CollisionColorChanger::compID] = CollisionColorChanger::Deserialize;
-	componentCreationMap[CubeRenderer::compID] = CubeRenderer::Deserialize;
+	componentCreationMap[MeshRenderer::compID] = MeshRenderer::Deserialize;
 }
 
 void Serialize::LoadLevel(std::string filename)

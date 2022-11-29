@@ -6,7 +6,7 @@
 #include "RectangleCollider.h"
 #include "RectangleRenderer.h"
 #include "Transform.h"
-#include "CubeRenderer.h"
+#include "MeshRenderer.h"
 
 #include <vector>
 
@@ -22,7 +22,7 @@ public:
         collider = nullptr; 
         player = nullptr;
         colorChanger = nullptr;
-        cubeRenderer = nullptr;
+        meshRenderer = nullptr;
 	}
 
     ~GameObject();
@@ -37,21 +37,21 @@ public:
     RectangleCollider* GetCollider() { return collider; }
     PlayerController* GetPlayer() { return player; }
     CollisionColorChanger* GetColorChanger() { return colorChanger; }
-    CubeRenderer* GetCubeRenderer() { return cubeRenderer; }
+    MeshRenderer* GetMeshRenderer() { return meshRenderer; }
 
     void SetTransform(Transform* vTrans) { transform = vTrans; }
     void SetRectRenderer(RectangleRenderer* vRend) { rectRenderer = vRend; }
     void SetCollider(RectangleCollider* vCol) { collider = vCol; }
     void SetPlayer(PlayerController* vControl) { player = vControl; }
     void SetColorChanger(CollisionColorChanger* vChange) { colorChanger = vChange; }
-    void SetCubeRenderer(CubeRenderer* vRend) { cubeRenderer = vRend; }
+    void SetMeshRenderer(MeshRenderer* vRend) { meshRenderer = vRend; }
 
     void CreateTransform(GameObject& rObj, Vector3 vPos);
     void CreateRectangleRenderer(GameObject& rObj, int vWidth, int vheight, Vector3 vColor);
     void CreateRectangleCollider(GameObject& rObj, int vWidth, int vHeight);
     void CreatePlayerController(GameObject& rObj, int vSpeed);
     void CreateCollisionColorChange(GameObject& rObj, Vector3 vColor);
-    void CreateCubeRenderer(GameObject& rObj, int vWidth, int vheight);
+    void CreateMeshRenderer(GameObject& rObj, std::string modelFilePath, std::string textureFilePath);
 
     //void Update(std::vector<GameObject>& gameObjects);
     //void Render(SDL_Renderer*& prRenderer);
@@ -62,7 +62,7 @@ protected:
     RectangleCollider* collider;
     PlayerController* player;
     CollisionColorChanger* colorChanger;
-    CubeRenderer* cubeRenderer;
+    MeshRenderer* meshRenderer;
 };
 
 #endif

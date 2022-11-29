@@ -121,11 +121,6 @@ void runMainLoop()
 #else
     while (!gpr460::engine->quit)
     {
-        /*Uint32 now = GetTicks();
-        if (now - engine->frameStart >= 16)
-        {
-            frameStep(engine);
-        }*/
         MainLoopProcesses();
     }
 #endif
@@ -152,16 +147,6 @@ void frameStep()
 
         if (event.type == SDL_KEYDOWN)
         {
-            //std::cout << "Key pressed!\n";
-            //if (event.key.keysym.sym == SDLK_k)
-            //{
-            //    std::cout << "K pressed!\n";
-
-            //    // TODO: Add calls to ErrorMessage and LogToErrorFile here
-            //    gpr460::engine->system->ErrorMessage(gpr460::ERROR_PRESSED_K);
-            //    gpr460::engine->system->LogToErrorFile(gpr460::ERROR_PRESSED_K);
-            //    // DONE
-            //}
             if (event.key.keysym.sym == SDLK_ESCAPE)
             {
                 gpr460::engine->quit = true;
@@ -177,21 +162,8 @@ void frameStep()
     }
 
     gpr460::engine->world->Update();
-    //int x = (SDL_sinf(engine->frame / 100.0f) * 100.0f) + 200;
-
-    /*SDL_Rect r = {
-        x,
-        100,
-        50,
-        50
-    };*/
-
-    
 
     gpr460::engine->world->Render(gpr460::engine->renderer);
-    //SDL_SetRenderDrawColor(engine->renderer, 255, 0, 0, SDL_ALPHA_OPAQUE);
-    //SDL_RenderFillRect(engine->renderer, &r);
-    
 }
 
 Uint32 GetTicks()
