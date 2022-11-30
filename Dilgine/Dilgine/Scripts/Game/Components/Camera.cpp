@@ -4,6 +4,32 @@
 #include "SDL2/SDL.h"
 #include "System.h"
 
+Camera::Camera(float vMoveSpeed, float vRotateSpeed, float vZoom, Vector3 lookAt, Vector3 eye, GameObject* vGameObject)
+{
+	moveSpeed = vMoveSpeed; 
+	rotateSpeed = vRotateSpeed; 
+	zoom = vZoom; 
+	lookAtPosition = lookAt; 
+	eyePosition = eye; 
+	gameObject = vGameObject;
+
+	//Get the current mouse drage values from the passed eye position, use inverse trig functions to reverse the process of drag values to eye position
+	//eye.x = cos(mouseDragX) * cos(mouseDragY), eye.z = sin(mouseDragY)
+	//It's all algebra from there
+	mouseDragY = std::asin(eye.z);
+	if (mouseDragY != 0)
+	{
+		mouseDragX = std::acos(eye.x / std::cos(mouseDragY));
+	}
+	else
+	{
+		//If denominator would be zero, just inverse cosine the x
+		mouseDragX = std::acos(eye.x);
+	}
+	
+	std::cout << mouseDragY << "  " << mouseDragX << std::endl;
+}
+
 //CAMR [moveSpeed rotateSpeed zoom (lookAt.x lookAt.y, lookAt.z) (eye.x, eye.y, eye.z)]
 void Camera::Deserialize(GameObject& gameObject, std::istream& stream)
 {
@@ -45,21 +71,25 @@ void Camera::Update()
 
 	MouseState mouseState = gpr460::engine->input.GetMouseState();
 
+	//Orbit the center point, can't move
 	if (mouseState.rightMouse)
 	{
+		orbiting = true;
+
 		//Rotation
 		mouseDragX -= mouseState.mouseXChange * rotateSpeed;
 
 		mouseDragY += mouseState.mouseYChange * rotateSpeed;
 
-		std::cout << mouseState.mouseXChange << "  " << mouseState.mouseYChange << std::endl;
-
 		//80 is an arbitrary number to limit the speed of the camera's movement when you drag the cursor
-		eyeDirection = Vector3((std::cos(mouseDragX)) * (std::cos(mouseDragY)), (std::sin(mouseDragX)) * (std::cos(mouseDragY)), (std::sin(mouseDragY)));
+		eyePosition = Vector3((std::cos(mouseDragX)) * (std::cos(mouseDragY)), (std::sin(mouseDragX)) * (std::cos(mouseDragY)), (std::sin(mouseDragY)));
 	}
-
-	if (mouseState.leftMouse)
+	//Move in local space of camera (i.e. pressing W moves in whatever direction the camera is facing
+	//and center point rotates around camera (allowing camera to look around while remaining stationary)
+	else if (mouseState.leftMouse)
 	{
+		orbiting = false;
+
 		//Movement
 		const Uint8* keyboardState = gpr460::engine->input.GetKeyboardState();
 

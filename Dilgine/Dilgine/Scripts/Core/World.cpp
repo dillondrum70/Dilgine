@@ -73,72 +73,6 @@ void World::Init(SDL_Window* pWindow)
 	}*/
 }
 
-//void World::CreateTransform(GameObject& rObj, Vector2 vPos)
-//{
-//	if (activeTransforms + 1 >= gpr460::MAX_GAMEOBJECTS)
-//	{
-//		gpr460::engine->system->ErrorMessage(gpr460::ERROR_COMPONENT_OVERFLOW);
-//		gpr460::engine->system->LogToErrorFile(gpr460::ERROR_COMPONENT_OVERFLOW);
-//	}
-//
-//	components.transformComponents[activeTransforms] = Transform(vPos);
-//	rObj.SetTransform(&components.transformComponents[activeTransforms]);
-//	activeTransforms++;
-//}
-//
-//void World::CreateRectangleRenderer(GameObject& rObj, int vWidth, int vheight, Vector3 vColor)
-//{
-//	if (activeRectRenderers + 1 >= gpr460::MAX_GAMEOBJECTS)
-//	{
-//		gpr460::engine->system->ErrorMessage(gpr460::ERROR_COMPONENT_OVERFLOW);
-//		gpr460::engine->system->LogToErrorFile(gpr460::ERROR_COMPONENT_OVERFLOW);
-//	}
-//
-//	components.rectRendererComponents[activeRectRenderers] = RectangleRenderer(vWidth, vheight, vColor, &gameObjects[activeGameObjects]);
-//	rObj.SetRenderer(&components.rectRendererComponents[activeRectRenderers]);
-//	activeRectRenderers++;
-//}
-//
-//void World::CreateRectangleCollider(GameObject& rObj, int vWidth, int vHeight)
-//{
-//
-//	if (activeRectColliders + 1 >= gpr460::MAX_GAMEOBJECTS)
-//	{
-//		gpr460::engine->system->ErrorMessage(gpr460::ERROR_COMPONENT_OVERFLOW);
-//		gpr460::engine->system->LogToErrorFile(gpr460::ERROR_COMPONENT_OVERFLOW);
-//	}
-//
-//	components.rectColliderComponents[activeRectColliders] = RectangleCollider(vWidth, vHeight, &gameObjects[activeGameObjects]);
-//	rObj.SetCollider(&components.rectColliderComponents[activeRectColliders]);
-//	activeRectColliders++;
-//}
-//
-//void World::CreatePlayerController(GameObject& rObj, int vSpeed)
-//{
-//	if (activePlayerControllers + 1 >= gpr460::MAX_GAMEOBJECTS)
-//	{
-//		gpr460::engine->system->ErrorMessage(gpr460::ERROR_COMPONENT_OVERFLOW);
-//		gpr460::engine->system->LogToErrorFile(gpr460::ERROR_COMPONENT_OVERFLOW);
-//	}
-//
-//	components.playerControllerComponents[activePlayerControllers] = (PlayerController(vSpeed, &gameObjects[activeGameObjects]));
-//	rObj.SetPlayer(&components.playerControllerComponents[activePlayerControllers]);
-//	activePlayerControllers++;
-//}
-//
-//void World::CreateCollisionColorChange(GameObject& rObj, Vector3 vColor)
-//{
-//	if (activeColorChange + 1 >= gpr460::MAX_GAMEOBJECTS)
-//	{
-//		gpr460::engine->system->ErrorMessage(gpr460::ERROR_COMPONENT_OVERFLOW);
-//		gpr460::engine->system->LogToErrorFile(gpr460::ERROR_COMPONENT_OVERFLOW);
-//	}
-//
-//	components.colorChangeComponents[activeColorChange] = CollisionColorChanger(vColor, &gameObjects[activeGameObjects]);
-//	rObj.SetColorChanger(&components.colorChangeComponents[activeColorChange]);
-//	activeColorChange++;
-//}
-
 void World::AddGameObject(GameObject& rObj)
 {
 	if (activeGameObjects + 1 >= gpr460::MAX_GAMEOBJECTS)
@@ -335,7 +269,7 @@ void World::UpdateUniformBuffers(uint32_t currentImage)
 		//Construct model matrix T * R * S
 		ubo.model = transMat * rotMat * scaleMat;	
 
-		Vector3 eye = mainCamera->GetEyeDirection();
+		Vector3 eye = mainCamera->GetEyePosition();
 		Vector3 lookAt = mainCamera->GetLookAtPosition();
 		//View matrix (eye position, center look position, up vector), looks from above at a 45 degree angle
 		//ubo.view = glm::lookAt(mainCamera->GetZoom() * glm::vec3(eye.x, eye.y, eye.z), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));

@@ -130,7 +130,7 @@ void GameObject::CreateCamera(GameObject& rObj, float vMoveSpeed, float vRotateS
 		gpr460::engine->system->LogToErrorFile(gpr460::ERROR_COMPONENT_OVERFLOW);
 	}
 
-	world->GetComponents().cameraComponents[world->activeCameras] = Camera(vMoveSpeed, vRotateSpeed, vZoom, lookAt, eye.Normalized(), &(world->GetGameObjects()[world->activeGameObjects]));
+	world->GetComponents().cameraComponents[world->activeCameras] = Camera(vMoveSpeed, vRotateSpeed, vZoom, lookAt, eye, &(world->GetGameObjects()[world->activeGameObjects]));
 	rObj.SetCamera(&(world->GetComponents().cameraComponents[world->activeCameras]));
 	world->activeCameras++;
 }

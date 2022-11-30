@@ -18,7 +18,9 @@ private:
 	float rotateSpeed = 1.0f;	//Speed at which the camera moves
 	float zoom = 5.0f;	//Distance from the center in the direction of eyeDirection
 	Vector3 lookAtPosition = Vector3(0.0f);	//Point the camera looks at
-	Vector3 eyeDirection = Vector3(0.0f);	//Independent of transform, unit vector that specifies direction of camera's position
+	Vector3 eyePosition = Vector3(0.0f);	//Independent of transform, unit vector that specifies direction of camera's position
+
+	bool orbiting = true; //If orbiting, right mouse was pressed and camera orbits its center point, otherwise, it moves and looks around freely
 
 public:
 	enum { compID = 'CAMR' };
@@ -28,7 +30,7 @@ public:
 	static void Create(GameObject& gameObject, float vMoveSpeed = 1.0f, float vRotateSpeed = 1.0f, float vZoom = 5.0f, Vector3 lookAt = Vector3(0.0f), Vector3 eye = Vector3(5.0f, 5.0f, 0.0f));
 
 	Camera() { gameObject = nullptr; }
-	Camera(float vMoveSpeed, float vRotateSpeed, float vZoom, Vector3 lookAt, Vector3 eye, GameObject* vGameObject) { moveSpeed = vMoveSpeed; rotateSpeed = vRotateSpeed; zoom = vZoom; lookAtPosition = lookAt; eyeDirection = eye; gameObject = vGameObject; }
+	Camera(float vMoveSpeed, float vRotateSpeed, float vZoom, Vector3 lookAt, Vector3 eye, GameObject* vGameObject);
 	~Camera() { }
 
 	GameObject* GetGameObject() { return gameObject; }
@@ -36,7 +38,8 @@ public:
 	float GetRotateSpeed() { return rotateSpeed; }
 	float GetZoom() { return zoom; }
 	Vector3 GetLookAtPosition() { return lookAtPosition; }
-	Vector3 GetEyeDirection() { return eyeDirection; }
+	Vector3 GetEyePosition() { return eyePosition; }
+	bool GetOrbiting() { return orbiting; }
 
 	void SetMoveSpeed(float vSpeed) { moveSpeed = vSpeed; }
 	void SetRotateSpeed(float vSpeed) { rotateSpeed = vSpeed; }
