@@ -406,5 +406,4 @@ em_start_laptop.bat
 em_start_lab.bat
 
 # Do not exclude obj files in Models folder
-
-!Models/*
+!Models/**
