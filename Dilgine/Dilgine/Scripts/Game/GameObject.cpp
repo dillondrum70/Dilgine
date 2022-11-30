@@ -70,7 +70,7 @@ void GameObject::CreateRectangleCollider(GameObject& rObj, int vWidth, int vHeig
 	world->activeRectColliders++;
 }
 
-void GameObject::CreatePlayerController(GameObject& rObj, int vSpeed)
+void GameObject::CreatePlayerController(GameObject& rObj, float vSpeed)
 {
 	World* world = gpr460::engine->world;
 	if (world->activePlayerControllers + 1 >= gpr460::MAX_GAMEOBJECTS)
@@ -101,20 +101,21 @@ void GameObject::CreateCollisionColorChange(GameObject& rObj, Vector3 vColor)
 void GameObject::CreateMeshRenderer(GameObject& rObj, std::string modelFilePath, std::string textureFilePath)
 {
 	World* world = gpr460::engine->world;
+	EngineVulkan& vulkan = gpr460::engine->vulkanEngine;
+
 	if (world->activeMeshRenderers + 1 >= gpr460::MAX_GAMEOBJECTS)
 	{
 		gpr460::engine->system->ErrorMessage(gpr460::ERROR_COMPONENT_OVERFLOW);
 		gpr460::engine->system->LogToErrorFile(gpr460::ERROR_COMPONENT_OVERFLOW);
 	}
 
+	//Create new MeshRenderer, pass new GameObject made by world
 	world->GetComponents().meshRendererComponents[world->activeMeshRenderers] = MeshRenderer(&(world->GetGameObjects()[world->activeGameObjects]));
-	rObj.SetMeshRenderer(&(world->GetComponents().meshRendererComponents[world->activeMeshRenderers]));
+	//MeshRenderer* meshRend = &world->GetComponents().meshRendererComponents[world->activeMeshRenderers];
 	
-	EngineVulkan& vulkan = gpr460::engine->vulkanEngine;
-	VulkanObject* vulkanObj = world->GetComponents().meshRendererComponents[world->activeMeshRenderers].vulkanObj;
-	vulkan.objects.push_back(VulkanObject());
-	vulkanObj = &vulkan.objects[vulkan.objects.size() - 1];
-	vulkanObj->CreateObject(modelFilePath, textureFilePath);
+	world->GetComponents().meshRendererComponents[world->activeMeshRenderers].vulkanObj = vulkan.AddVulkanObject();;
+	world->GetComponents().meshRendererComponents[world->activeMeshRenderers].vulkanObj->CreateObject(modelFilePath, textureFilePath);
+	rObj.SetMeshRenderer(&world->GetComponents().meshRendererComponents[world->activeMeshRenderers]);
 	//vulkan.objects.push_back((world->GetComponents().meshRendererComponents[world->activeMeshRenderers]).vulkanObj);
 
 	world->activeMeshRenderers++;

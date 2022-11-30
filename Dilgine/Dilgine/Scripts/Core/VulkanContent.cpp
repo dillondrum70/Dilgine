@@ -109,6 +109,12 @@ void EngineVulkan::Cleanup()
 
     vkDestroyCommandPool(logicalDevice, commandPool, nullptr);
 
+    for (int i = 0; i < activeVulkanObjects; i++)
+    {
+        objects[i].DestroyObject();
+    }
+    objects.clear();
+
     vkDestroyDevice(logicalDevice, nullptr);
 
     if (enableValidationLayers) {
@@ -122,6 +128,7 @@ void EngineVulkan::Cleanup()
 
 void EngineVulkan::InitVulkan(SDL_Window* window)
 {
+    objects = std::vector<VulkanObject>(gpr460::MAX_GAMEOBJECTS);
     //allIndices.push_back(&cubeIndices);
     //objects.push_back(DBG_NEW VulkanObject());  //Test cube
     //objects.push_back(DBG_NEW VulkanObject());  //Test model
@@ -187,7 +194,7 @@ void EngineVulkan::InitVulkan(SDL_Window* window)
     std::cout << "Texture Image Initialized...\n\n";
 
     std::cout << "Initializing Texture Image...\n";
-    CreateTextureImage(TEXTURE_PATH);
+    CreateTextureImage(VIKING_TEXTURE_PATH);
     std::cout << "Texture Image Initialized...\n\n";
 
     std::cout << "Initializing Texture Image View...\n";
@@ -198,17 +205,13 @@ void EngineVulkan::InitVulkan(SDL_Window* window)
     CreateTextureSamplers();
     std::cout << "Texture Sampler Initialized...\n\n";
 
-    /*std::cout << "Loading Models...\n";
-    LoadModel(objects[1]);
-    std::cout << "Models Loaded...\n\n";*/
-
-    std::cout << "Loading Cube0...\n";
+    std::cout << "Loading Cube Model...\n";
     LoadCube();
-    std::cout << "Cube0 Loaded...\n\n";
+    std::cout << "Cube Model Loaded...\n\n";
 
-    std::cout << "Loading Cube1...\n";
-    LoadCube();
-    std::cout << "Cube1 Loaded...\n\n";
+    std::cout << "Loading Model...\n";
+    LoadModel(VIKING_MODEL_PATH);
+    std::cout << "Model Loaded...\n\n";
 
     std::cout << "Initializing Vertex Buffer...\n";
     CreateVertexBuffers();
@@ -1137,7 +1140,7 @@ void EngineVulkan::LoadModel(std::string filePath)
     std::vector<tinyobj::material_t> materials;
     std::string err;
 
-    if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &err, MODEL_PATH.c_str()))
+    if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &err, filePath.c_str()))
     {
         gpr460::engine->system->ErrorMessage(gpr460::ERROR_LOADING_MODEL_FAILED);
         gpr460::engine->system->LogToErrorFile(gpr460::ERROR_LOADING_MODEL_FAILED);
@@ -1788,10 +1791,10 @@ void EngineVulkan::RecordCommandBuffers(VkCommandBuffer commandBuffer, uint32_t 
 
     //uint32_t indicesSize = 0;
 
-    for (VulkanObject obj : objects)
+    for (int i = 0; i < activeVulkanObjects; i++)
     {
         //Bind pipeline to command buffer
-        vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, obj.graphicsPipeline);
+        vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, objects[i].graphicsPipeline);
 
         //Set viewport
         VkViewport viewport{};
@@ -1810,15 +1813,15 @@ void EngineVulkan::RecordCommandBuffers(VkCommandBuffer commandBuffer, uint32_t 
         vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
         //Bind vertex buffers to command buffer
-        VkBuffer vertexBuffers[] = { *obj.vertexBuffer };
+        VkBuffer vertexBuffers[] = { *objects[i].vertexBuffer };
         VkDeviceSize offsets[] = { 0 };
         vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
 
         //Bind index buffer to command buffer
-        vkCmdBindIndexBuffer(commandBuffer, *obj.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+        vkCmdBindIndexBuffer(commandBuffer, *objects[i].indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
         //Not unique to graphics pipeline, specify which pipeline (graphics or compute) to give it to
-        vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, obj.pipelineLayout, 0, 1, &obj.descriptorSets[currentFrame], 0, nullptr);
+        vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, objects[i].pipelineLayout, 0, 1, &objects[i].descriptorSets[currentFrame], 0, nullptr);
 
         //Param1 = Command Buffer
         //Param2 = vertex count
@@ -1835,7 +1838,7 @@ void EngineVulkan::RecordCommandBuffers(VkCommandBuffer commandBuffer, uint32_t 
         //Param5 = vertex offset, added to vertex index before indexing into vertex buffer
         //Param6 = first instance, ID of first instance to draw
         //Execute command buffer operations with index array
-        vkCmdDrawIndexed(commandBuffer, obj.indices->size(), 1, 0, 0, 0);
+        vkCmdDrawIndexed(commandBuffer, objects[i].indices->size(), 1, 0, 0, 0);
     }
 
     //End render pass
@@ -1896,6 +1899,26 @@ void EngineVulkan::RecreateSwapChain(SDL_Window* window)
     CreateImageViews();
     CreateDepthResources();
     CreateFramebuffers();
+}
+
+
+VulkanObject* EngineVulkan::AddVulkanObject()
+{
+    VulkanObject* obj = nullptr;
+
+    if (activeVulkanObjects < gpr460::MAX_GAMEOBJECTS)
+    {
+        obj = &objects[activeVulkanObjects];
+        activeVulkanObjects++;
+    }
+    else
+    {
+        gpr460::engine->system->ErrorMessage(gpr460::ERROR_VULKAN_OBJECT_OVERFLOW);
+        gpr460::engine->system->LogToErrorFile(gpr460::ERROR_VULKAN_OBJECT_OVERFLOW);
+        throw std::runtime_error("Too many VulkanObjects to create a new one");
+    }
+   
+    return obj;
 }
 
 

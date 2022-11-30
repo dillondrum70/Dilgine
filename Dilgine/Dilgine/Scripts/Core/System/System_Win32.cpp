@@ -32,6 +32,9 @@ void gpr460::System_Win32::Shutdown()
 void gpr460::System_Win32::ErrorMessage(const gpr460::string& message)
 {
 	MessageBox(NULL, message.c_str(), L"Error", MB_OK | MB_ICONERROR);
+#if _DEBUG
+	__debugbreak();
+#endif
 }
 
 void gpr460::System_Win32::LogToErrorFile(const gpr460::string& message)

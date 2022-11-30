@@ -28,10 +28,16 @@ void World::Init(SDL_Window* pWindow)
 	
 	//serial.LoadLevel(path);
 
-	GameObject cube;
-	Transform::Create(cube, Vector3(0, 0, 0));
-	MeshRenderer::Create(cube, CUBE_PATH, PAUL_TEXTURE_PATH);
-	AddGameObject(cube);
+	GameObject player;
+	Transform::Create(player, Vector3(0.0f, 0.0f, 0.0f));
+	PlayerController::Create(player, 0.05f);
+	MeshRenderer::Create(player, CUBE_PATH, PAUL_TEXTURE_PATH);
+	AddGameObject(player);
+
+	GameObject room;
+	Transform::Create(room, Vector3(0.0f, 0.0f, 0.0f));
+	MeshRenderer::Create(room, VIKING_MODEL_PATH, VIKING_TEXTURE_PATH);
+	AddGameObject(room);
 
 	/*GameObject background;
 	//Add Transform component
@@ -165,13 +171,17 @@ void World::Update()
 	//Call AllCollisions on player and print returned collider addresses
 	{
 		int count;
-		RectangleCollider* colliders = components.rectColliderComponents[0].AllCollisions(count);
-
-		for (int i = 0; i < count; i++)
+		//Basically check if there are any rect collider components before calling AllCollisions
+		if (components.rectColliderComponents[0].GetGameObject() != nullptr)
 		{
-			//std::cout << "Returned Collider: " << &colliders[i] << std::endl;
+			RectangleCollider* colliders = components.rectColliderComponents[0].AllCollisions(count);
+
+			//for (int i = 0; i < count; i++)
+			//{
+			//	std::cout << "Returned Collider: " << &colliders[i] << std::endl;
+			//}
+			//std::cout << std::endl;
 		}
-		//std::cout << std::endl;
 	}
 
 	//PrintFrame();
@@ -298,14 +308,14 @@ void World::UpdateUniformBuffers(uint32_t currentImage)
 
 	VkExtent2D extents = gpr460::engine->vulkanEngine.swapChainExtent;
 
-	float i = 0.0f;
-	for (MeshRenderer& mesh : components.meshRendererComponents)
+	for (int i = 0; i < activeMeshRenderers; i++)
 	{
 		UniformBufferObject ubo{};
 		//Calculate model matrix, takes transformation, rotation, and rotation axis, rotates 90 degrees per second
 		//ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 		//ubo.model = glm::identity<glm::mat4>();
-		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(i));
+		Vector3 pos = components.transformComponents[i].position;
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(pos.x, pos.y, pos.z));
 		//View matrix (eye position, center look position, up vector), looks from above at a 45 degree angle
 		ubo.view = glm::lookAt(glm::vec3(5 * (std::cos(mouseX / 80.0f)) * (std::cos(mouseY / 80.0f)), 5 * (std::sin(mouseX / 80.0f)) * (std::cos(mouseY / 80.0f)), 5 * (std::sin(mouseY / 80.0f))), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 
@@ -314,7 +324,6 @@ void World::UpdateUniformBuffers(uint32_t currentImage)
 		ubo.proj[1][1] *= -1;	//glm designed for OpenGL where Y clip coordinate is inverted, must undo the invert done by glm, otherwise, image is rendered upside-down
 
 		//Copy memory to uniform buffers mapped
-		memcpy(mesh.vulkanObj->uniformBuffersMapped[currentImage], &ubo, sizeof(ubo));
-		i += .5f;
+		memcpy(components.meshRendererComponents[i].vulkanObj->uniformBuffersMapped[currentImage], &ubo, sizeof(ubo));
 	}
 }

@@ -17,7 +17,7 @@ class VulkanObject;
 class MeshRenderer
 {
 public:
-	int width, height;
+	int width = 1, height = 1;
 	//Vector3 baseColor;
 	//Vector3 color;
 

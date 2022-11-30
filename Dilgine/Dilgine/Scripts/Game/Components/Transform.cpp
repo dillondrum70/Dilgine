@@ -6,7 +6,7 @@ void Transform::Deserialize(GameObject& gameObject, std::istream& stream)
 {
 	stream.ignore(100, '[');
 
-	int x = 0, y = 0, z = 0;
+	float x = 0, y = 0, z = 0;
 
 	stream >> x;
 	stream >> y;

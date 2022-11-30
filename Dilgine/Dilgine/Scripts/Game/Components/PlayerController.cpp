@@ -10,7 +10,7 @@ void PlayerController::Deserialize(GameObject& gameObject, std::istream& stream)
 {
 	stream.ignore(100, '[');
 
-	int s = 0;
+	float s = 0;
 
 	stream >> s;
 
@@ -19,7 +19,7 @@ void PlayerController::Deserialize(GameObject& gameObject, std::istream& stream)
 	stream.ignore(100, ']');
 }
 
-void PlayerController::Create(GameObject& gameObject, int vSpeed)
+void PlayerController::Create(GameObject& gameObject, float vSpeed)
 {
 	gameObject.CreatePlayerController(gameObject, vSpeed);
 }
@@ -36,9 +36,18 @@ void PlayerController::UpdateAll()
 		{
 			const Uint8* keyboardState = SDL_GetKeyboardState(NULL);
 
-			Vector2 input = Vector2(keyboardState[SDL_SCANCODE_RIGHT] - keyboardState[SDL_SCANCODE_LEFT], keyboardState[SDL_SCANCODE_DOWN] - keyboardState[SDL_SCANCODE_UP]);
+			//Arrow Keys to move
+			Vector2 input = Vector2(keyboardState[SDL_SCANCODE_LEFT] - keyboardState[SDL_SCANCODE_RIGHT], keyboardState[SDL_SCANCODE_DOWN] - keyboardState[SDL_SCANCODE_UP]);
 			
-			transform->position += Vector3(input.x, input.y, 0) * components.playerControllerComponents[i].speed;
+			transform->position += Vector3(input.x, input.y, 0) * components.playerControllerComponents[i].GetSpeed();
+
+			//Press space to return to origin
+			if (keyboardState[SDL_SCANCODE_SPACE])
+			{
+				transform->position = Vector3(0.0f);
+			}
+
+			std::cout << transform->position << std::endl;
 		}
 		else
 		{

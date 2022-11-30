@@ -49,7 +49,7 @@ public:
     void CreateTransform(GameObject& rObj, Vector3 vPos);
     void CreateRectangleRenderer(GameObject& rObj, int vWidth, int vheight, Vector3 vColor);
     void CreateRectangleCollider(GameObject& rObj, int vWidth, int vHeight);
-    void CreatePlayerController(GameObject& rObj, int vSpeed);
+    void CreatePlayerController(GameObject& rObj, float vSpeed);
     void CreateCollisionColorChange(GameObject& rObj, Vector3 vColor);
     void CreateMeshRenderer(GameObject& rObj, std::string modelFilePath, std::string textureFilePath);
 

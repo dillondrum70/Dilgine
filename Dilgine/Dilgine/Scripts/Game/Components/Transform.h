@@ -17,7 +17,7 @@ public:
 
 	Vector3 position;
 
-	Transform() { position = Vector3(0); }
+	Transform() { position = Vector3(0.0f); }
 	Transform(Vector3 vPos) { position = vPos; }
 
 	friend std::ostream& operator<<(std::ostream& os, const Transform& t) { os << t.position;  return os; }

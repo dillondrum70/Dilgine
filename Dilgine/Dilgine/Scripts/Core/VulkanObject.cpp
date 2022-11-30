@@ -29,8 +29,7 @@ void VulkanObject::DestroyObject()
 {
     EngineVulkan& vulkan = gpr460::engine->vulkanEngine;
 
-    vkDestroyPipeline(vulkan.logicalDevice, graphicsPipeline, nullptr);
-    vkDestroyPipelineLayout(vulkan.logicalDevice, pipelineLayout, nullptr);
+    vkDestroyDescriptorPool(vulkan.logicalDevice, descriptorPool, nullptr);
 
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
     {
@@ -38,7 +37,8 @@ void VulkanObject::DestroyObject()
         vkFreeMemory(vulkan.logicalDevice, uniformBuffersMemory[i], nullptr);
     }
 
-    vkDestroyDescriptorPool(vulkan.logicalDevice, descriptorPool, nullptr);
+    vkDestroyPipeline(vulkan.logicalDevice, graphicsPipeline, nullptr);
+    vkDestroyPipelineLayout(vulkan.logicalDevice, pipelineLayout, nullptr);
 
     vkDestroyDescriptorSetLayout(vulkan.logicalDevice, descriptorSetLayout, nullptr);
 }

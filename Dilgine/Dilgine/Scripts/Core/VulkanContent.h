@@ -79,8 +79,8 @@ const std::vector<uint16_t> cubeIndices = {
 	21, 23, 22
 };
 
-const std::string MODEL_PATH = "Assets/Models/viking_room.obj";
-const std::string TEXTURE_PATH = "Assets/Images/viking_room.png";
+const std::string VIKING_MODEL_PATH = "Assets/Models/viking_room.obj";
+const std::string VIKING_TEXTURE_PATH = "Assets/Images/viking_room.png";
 
 const std::string CUBE_PATH = "Cube";
 const std::string PAUL_TEXTURE_PATH = "Assets/Images/SquarePaul.png";
@@ -99,7 +99,11 @@ public:
 	VkSwapchainKHR swapChain;		//Swapchain object
 	VkExtent2D swapChainExtent;		//Extents of camera
 
+	//Don't use push_back, create new VulkanObject with AddVulkanObject
+	//All objects that need a reference to one of the VulkanObjects should be given a pointer to the specific object
+	//Uses structure of arrays format
 	std::vector<VulkanObject> objects;	//Objects that store information (verticies, pipelines, descriptors, etc) about the different models
+	uint32_t activeVulkanObjects = 0;
 
 	std::vector<VkCommandBuffer> commandBuffers;	//Commands to change anything are submitted to this buffer
 
@@ -131,6 +135,10 @@ public:
 
 	//Recreate swapchain in the case that it is invalidated, i.e. resized
 	void RecreateSwapChain(SDL_Window* window);
+
+	//Ensures that correct object in vector is returned and activeVulkanObjects is incremented AFTER getting object at the top
+	//Also checks if there are enough VulkanObjects to add a new one
+	VulkanObject* AddVulkanObject();	
 
 	//Callback for when framebuffer is resized, data will be an SDL_Window* and sdlEvent will be WINDOW_EVENT type with WINDOWEVENT_RESIZED event
 	static int FramebufferResizeCallback(void* data, SDL_Event* sdlEvent);

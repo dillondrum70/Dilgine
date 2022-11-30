@@ -10,23 +10,23 @@ class PlayerController
 private:
 	GameObject* gameObject;
 
-	int speed = 1;
+	float speed = 1.0f;
 
 public:
 	enum { compID = 'PCTL' };
 
 	static void Deserialize(GameObject& gameObject, std::istream& stream);
 
-	static void Create(GameObject& gameObject, int vSpeed = 1);
+	static void Create(GameObject& gameObject, float vSpeed = 1.0f);
 
 	PlayerController() { gameObject = nullptr; }
-	PlayerController(int vSpeed, GameObject* vGameObject) { speed = vSpeed; gameObject = vGameObject; }
+	PlayerController(float vSpeed, GameObject* vGameObject) { speed = vSpeed; gameObject = vGameObject; }
 	~PlayerController() { }
 
 	GameObject* GetGameObject() { return gameObject; }
-	int GetSpeed() { return speed; }
+	float GetSpeed() { return speed; }
 
-	void SetSpeed(int vSpeed) { speed = vSpeed; }
+	void SetSpeed(float vSpeed) { speed = vSpeed; }
 
 	static void UpdateAll();
 	
