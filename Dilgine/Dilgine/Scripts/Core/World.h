@@ -13,6 +13,12 @@ namespace gpr460
 	static const int MAX_GAMEOBJECTS = 500;
 }
 
+const float VERTICAL_FOV = 45.0f;	//Vertical field of view in degrees
+
+//Positions of near and far planess
+const float NEAR_PLANE = .1f;
+const float FAR_PLANE = 30.f;
+
 struct Components
 {
 	Transform transformComponents[gpr460::MAX_GAMEOBJECTS];
@@ -45,10 +51,12 @@ public:
 	int activeMeshRenderers = 0;
 
 	/////////////
-	//float lastMouseX = 2;
-	//float lastMouseY = 2;
-	float mouseX = 0;
-	float mouseY = 80;
+	//Changed in main by dragging mouse
+	//Arbitrary values, I just like the angle these two make
+	float mouseX = 125;
+	float mouseY = 50;
+	//Changed in main by scrolling scroll wheel
+	float zoom = 5.0f;
 	////////////
 
 	World() { }

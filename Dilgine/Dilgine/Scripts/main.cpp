@@ -153,11 +153,17 @@ void frameStep()
             }
         }
 
-        //Manipulate camera for testing
+        //Click and drag cursor to move camera for testing
         if (event.type == SDL_MOUSEMOTION && event.motion.state && SDL_BUTTON_LMASK)
         {
             gpr460::engine->world->mouseX -= event.motion.xrel;
             gpr460::engine->world->mouseY += event.motion.yrel;
+        }
+
+        //Scroll mouse wheel to zoom camera for testing
+        if (event.type == SDL_MOUSEWHEEL)
+        {
+            gpr460::engine->world->zoom -= event.wheel.preciseY;
         }
     }
 

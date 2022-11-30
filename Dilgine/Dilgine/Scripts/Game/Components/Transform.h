@@ -13,14 +13,18 @@ public:
 
 	static void Deserialize(GameObject& gameObject, std::istream& stream);
 
-	static void Create(GameObject& gameObject, Vector3 pos);
+	static void Create(GameObject& gameObject, Vector3 pos, Vector3 rot, Vector3 scale);
 
 	Vector3 position;
+	Vector3 rotation;
+	Vector3 scale;
 
-	Transform() { position = Vector3(0.0f); }
-	Transform(Vector3 vPos) { position = vPos; }
+	Transform() { position = Vector3(0.0f); rotation = Vector3(0.0f); scale = Vector3(0.0f);}
+	Transform(Vector3 vPos, Vector3 vRot, Vector3 vScale) { position = vPos; rotation = vRot; scale = vScale; }
 
-	friend std::ostream& operator<<(std::ostream& os, const Transform& t) { os << t.position;  return os; }
+	void Reset();
+
+	friend std::ostream& operator<<(std::ostream& os, const Transform& t) { os << t.position << " " << t.rotation << " " << t.scale;  return os; }
 };
 
 #endif

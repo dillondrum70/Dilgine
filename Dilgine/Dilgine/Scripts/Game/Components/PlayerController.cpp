@@ -37,17 +37,41 @@ void PlayerController::UpdateAll()
 			const Uint8* keyboardState = SDL_GetKeyboardState(NULL);
 
 			//Arrow Keys to move
-			Vector2 input = Vector2(keyboardState[SDL_SCANCODE_LEFT] - keyboardState[SDL_SCANCODE_RIGHT], keyboardState[SDL_SCANCODE_DOWN] - keyboardState[SDL_SCANCODE_UP]);
+			Vector3 posInput = Vector3(
+				keyboardState[SDL_SCANCODE_LEFT] - keyboardState[SDL_SCANCODE_RIGHT], 
+				keyboardState[SDL_SCANCODE_DOWN] - keyboardState[SDL_SCANCODE_UP], 
+				keyboardState[SDL_SCANCODE_PAGEUP] - keyboardState[SDL_SCANCODE_PAGEDOWN]
+			);
 			
-			transform->position += Vector3(input.x, input.y, 0) * components.playerControllerComponents[i].GetSpeed();
+			transform->position += Vector3(posInput.x, posInput.y, posInput.z) * components.playerControllerComponents[i].GetSpeed();
 
-			//Press space to return to origin
+			//WASDQE to rotate
+
+			Vector3 rotInput = Vector3(
+				keyboardState[SDL_SCANCODE_A] - keyboardState[SDL_SCANCODE_D], 
+				keyboardState[SDL_SCANCODE_S] - keyboardState[SDL_SCANCODE_W], 
+				keyboardState[SDL_SCANCODE_Q] - keyboardState[SDL_SCANCODE_E]
+			);
+
+			transform->rotation += Vector3(rotInput.x, rotInput.y, rotInput.z) * components.playerControllerComponents[i].GetSpeed();
+
+			//UHJKYI to scale (Same layout as WASDQE, but shifted over)
+
+			Vector3 scaleInput = Vector3(
+				keyboardState[SDL_SCANCODE_H] - keyboardState[SDL_SCANCODE_K], 
+				keyboardState[SDL_SCANCODE_J] - keyboardState[SDL_SCANCODE_U], 
+				keyboardState[SDL_SCANCODE_Y] - keyboardState[SDL_SCANCODE_I]
+			);
+
+			transform->scale += Vector3(scaleInput.x, scaleInput.y, scaleInput.z) * components.playerControllerComponents[i].GetSpeed();
+
+			//Press space to reset transform component (return to origin, set rotation to identity, scale to 1, 1, 1)
 			if (keyboardState[SDL_SCANCODE_SPACE])
 			{
-				transform->position = Vector3(0.0f);
+				transform->Reset();
 			}
 
-			std::cout << transform->position << std::endl;
+			//std::cout << *transform << std::endl;
 		}
 		else
 		{

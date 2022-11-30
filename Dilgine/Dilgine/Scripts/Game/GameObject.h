@@ -46,7 +46,7 @@ public:
     void SetColorChanger(CollisionColorChanger* vChange) { colorChanger = vChange; }
     void SetMeshRenderer(MeshRenderer* vRend) { meshRenderer = vRend; }
 
-    void CreateTransform(GameObject& rObj, Vector3 vPos);
+    void CreateTransform(GameObject& rObj, Vector3 vPos, Vector3 vRot, Vector3 vScale);
     void CreateRectangleRenderer(GameObject& rObj, int vWidth, int vheight, Vector3 vColor);
     void CreateRectangleCollider(GameObject& rObj, int vWidth, int vHeight);
     void CreatePlayerController(GameObject& rObj, float vSpeed);

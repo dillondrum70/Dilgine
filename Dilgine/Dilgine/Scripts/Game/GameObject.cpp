@@ -28,7 +28,7 @@ GameObject::~GameObject()
 	}*/
 }
 
-void GameObject::CreateTransform(GameObject& rObj, Vector3 vPos)
+void GameObject::CreateTransform(GameObject& rObj, Vector3 vPos, Vector3 vRot, Vector3 vScale)
 {
 	World* world = gpr460::engine->world;
 	if (world->activeTransforms + 1 >= gpr460::MAX_GAMEOBJECTS)
@@ -37,7 +37,7 @@ void GameObject::CreateTransform(GameObject& rObj, Vector3 vPos)
 		gpr460::engine->system->LogToErrorFile(gpr460::ERROR_COMPONENT_OVERFLOW);
 	}
 
-	world->GetComponents().transformComponents[world->activeTransforms] = Transform(vPos);
+	world->GetComponents().transformComponents[world->activeTransforms] = Transform(vPos, vRot, vScale);
 	rObj.SetTransform(&world->GetComponents().transformComponents[world->activeTransforms]);
 	world->activeTransforms++;
 }
