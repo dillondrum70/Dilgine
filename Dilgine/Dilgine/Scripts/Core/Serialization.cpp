@@ -11,6 +11,7 @@ void Serialize::RegisterComponentFunctions()
 	componentCreationMap[PlayerController::compID] = PlayerController::Deserialize;
 	componentCreationMap[CollisionColorChanger::compID] = CollisionColorChanger::Deserialize;
 	componentCreationMap[MeshRenderer::compID] = MeshRenderer::Deserialize;
+	componentCreationMap[Camera::compID] = Camera::Deserialize;
 }
 
 void Serialize::LoadLevel(std::string filename)

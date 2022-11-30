@@ -7,6 +7,7 @@
 #include "RectangleRenderer.h"
 #include "Transform.h"
 #include "MeshRenderer.h"
+#include "Camera.h"
 
 #include <vector>
 
@@ -23,6 +24,7 @@ public:
         player = nullptr;
         colorChanger = nullptr;
         meshRenderer = nullptr;
+        camera = nullptr;
 	}
 
     ~GameObject();
@@ -38,6 +40,7 @@ public:
     PlayerController* GetPlayer() { return player; }
     CollisionColorChanger* GetColorChanger() { return colorChanger; }
     MeshRenderer* GetMeshRenderer() { return meshRenderer; }
+    Camera* GetCamera() { return camera; }
 
     void SetTransform(Transform* vTrans) { transform = vTrans; }
     void SetRectRenderer(RectangleRenderer* vRend) { rectRenderer = vRend; }
@@ -45,6 +48,7 @@ public:
     void SetPlayer(PlayerController* vControl) { player = vControl; }
     void SetColorChanger(CollisionColorChanger* vChange) { colorChanger = vChange; }
     void SetMeshRenderer(MeshRenderer* vRend) { meshRenderer = vRend; }
+    void SetCamera(Camera* vCam) { camera = vCam; }
 
     void CreateTransform(GameObject& rObj, Vector3 vPos, Vector3 vRot, Vector3 vScale);
     void CreateRectangleRenderer(GameObject& rObj, int vWidth, int vheight, Vector3 vColor);
@@ -52,6 +56,7 @@ public:
     void CreatePlayerController(GameObject& rObj, float vSpeed);
     void CreateCollisionColorChange(GameObject& rObj, Vector3 vColor);
     void CreateMeshRenderer(GameObject& rObj, std::string modelFilePath, std::string textureFilePath);
+    void CreateCamera(GameObject& rObj, float vMoveSpeed, float vRotateSpeed, float vZoom, Vector3 lookAt, Vector3 eye);
 
     //void Update(std::vector<GameObject>& gameObjects);
     //void Render(SDL_Renderer*& prRenderer);
@@ -63,6 +68,7 @@ protected:
     PlayerController* player;
     CollisionColorChanger* colorChanger;
     MeshRenderer* meshRenderer;
+    Camera* camera;
 };
 
 #endif

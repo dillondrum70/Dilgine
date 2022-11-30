@@ -121,6 +121,20 @@ void GameObject::CreateMeshRenderer(GameObject& rObj, std::string modelFilePath,
 	world->activeMeshRenderers++;
 }
 
+void GameObject::CreateCamera(GameObject& rObj, float vMoveSpeed, float vRotateSpeed, float vZoom, Vector3 lookAt, Vector3 eye)
+{
+	World* world = gpr460::engine->world;
+	if (world->activeCameras + 1 >= gpr460::MAX_GAMEOBJECTS)
+	{
+		gpr460::engine->system->ErrorMessage(gpr460::ERROR_COMPONENT_OVERFLOW);
+		gpr460::engine->system->LogToErrorFile(gpr460::ERROR_COMPONENT_OVERFLOW);
+	}
+
+	world->GetComponents().cameraComponents[world->activeCameras] = Camera(vMoveSpeed, vRotateSpeed, vZoom, lookAt, eye.Normalized(), &(world->GetGameObjects()[world->activeGameObjects]));
+	rObj.SetCamera(&(world->GetComponents().cameraComponents[world->activeCameras]));
+	world->activeCameras++;
+}
+
 /*RectangleRenderer* GameObject::CreateRenderer(int vWidth, int vHeight, Vector3 vColor)
 {
 	if (!renderer)

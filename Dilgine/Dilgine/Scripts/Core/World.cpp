@@ -40,6 +40,12 @@ void World::Init(SDL_Window* pWindow)
 	MeshRenderer::Create(room, VIKING_MODEL_PATH, VIKING_TEXTURE_PATH);
 	AddGameObject(room);
 
+	GameObject camera;
+	Camera::Create(camera, 0.05f, 0.01f, 5.0f, Vector3(0.0f), Vector3(1.0f, 1.0f, 1.0f).Normalized());
+	AddGameObject(camera);
+
+	mainCamera = &components.cameraComponents[0];
+
 	/*GameObject background;
 	//Add Transform component
 	Transform::Create(background, Vector2(width / 2, height / 2));
@@ -162,6 +168,8 @@ void World::PrintFrame()
 
 void World::Update()
 {
+	Camera::UpdateMain();	//Update just main camera, there is also a function to update all cameras
+
 	PlayerController::UpdateAll();
 
 	//Checks each collider against each other collider once
@@ -327,9 +335,12 @@ void World::UpdateUniformBuffers(uint32_t currentImage)
 		//Construct model matrix T * R * S
 		ubo.model = transMat * rotMat * scaleMat;	
 
+		Vector3 eye = mainCamera->GetEyeDirection();
+		Vector3 lookAt = mainCamera->GetLookAtPosition();
 		//View matrix (eye position, center look position, up vector), looks from above at a 45 degree angle
-		ubo.view = glm::lookAt(glm::vec3(zoom * (std::cos(mouseX / 80.0f)) * (std::cos(mouseY / 80.0f)), zoom * (std::sin(mouseX / 80.0f)) * (std::cos(mouseY / 80.0f)), zoom * (std::sin(mouseY / 80.0f))), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-		
+		//ubo.view = glm::lookAt(mainCamera->GetZoom() * glm::vec3(eye.x, eye.y, eye.z), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+		ubo.view = glm::lookAt((mainCamera->GetZoom() * glm::vec3(eye.x, eye.y, eye.z)) + glm::vec3(lookAt.x, lookAt.y, lookAt.z), glm::vec3(lookAt.x, lookAt.y, lookAt.z), glm::vec3(0.0f, 0.0f, 1.0f));
+
 		//Projection matrix, (Y field of view, aspect ratio, near clip, far clip), 45 degree vertical field of view
 		ubo.proj = glm::perspective(glm::radians(VERTICAL_FOV), extents.width / (float)extents.height, NEAR_PLANE, FAR_PLANE);
 		ubo.proj[1][1] *= -1;	//glm designed for OpenGL where Y clip coordinate is inverted, must undo the invert done by glm, otherwise, image is rendered upside-down

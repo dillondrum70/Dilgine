@@ -131,40 +131,46 @@ void runMainLoop()
 void frameStep()
 {
     //gpr460::EngineState* engine = (gpr460::EngineState*)arg;
-    SDL_Event event;
+    //SDL_Event event;
 
     Uint32 now = GetTicks();
 
     gpr460::engine->frame++;
     gpr460::engine->frameStart = now;
 
-    while (SDL_PollEvent(&event))
+    //while (SDL_PollEvent(&event))
+    //{
+    //    if (event.type == SDL_QUIT)
+    //    {
+    //        gpr460::engine->quit = true;
+    //    }
+
+    //    if (event.type == SDL_KEYDOWN)
+    //    {
+    //        if (event.key.keysym.sym == SDLK_ESCAPE)
+    //        {
+    //            gpr460::engine->quit = true;
+    //        }
+    //    }
+
+    //    //Click and drag cursor to move camera for testing
+    //    if (event.type == SDL_MOUSEMOTION && event.motion.state && SDL_BUTTON_LMASK)
+    //    {
+    //        gpr460::engine->world->mouseX -= event.motion.xrel;
+    //        gpr460::engine->world->mouseY += event.motion.yrel;
+    //    }
+
+    //    //Scroll mouse wheel to zoom camera for testing
+    //    if (event.type == SDL_MOUSEWHEEL)
+    //    {
+    //        gpr460::engine->world->zoom -= event.wheel.preciseY;
+    //    }
+    //}
+    gpr460::engine->input.UpdateInput();
+
+    if (gpr460::engine->input.GetKeyDown(SDL_SCANCODE_ESCAPE))
     {
-        if (event.type == SDL_QUIT)
-        {
-            gpr460::engine->quit = true;
-        }
-
-        if (event.type == SDL_KEYDOWN)
-        {
-            if (event.key.keysym.sym == SDLK_ESCAPE)
-            {
-                gpr460::engine->quit = true;
-            }
-        }
-
-        //Click and drag cursor to move camera for testing
-        if (event.type == SDL_MOUSEMOTION && event.motion.state && SDL_BUTTON_LMASK)
-        {
-            gpr460::engine->world->mouseX -= event.motion.xrel;
-            gpr460::engine->world->mouseY += event.motion.yrel;
-        }
-
-        //Scroll mouse wheel to zoom camera for testing
-        if (event.type == SDL_MOUSEWHEEL)
-        {
-            gpr460::engine->world->zoom -= event.wheel.preciseY;
-        }
+        gpr460::engine->quit = true;
     }
 
     gpr460::engine->world->Update();

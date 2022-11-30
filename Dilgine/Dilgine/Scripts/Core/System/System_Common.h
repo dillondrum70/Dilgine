@@ -22,6 +22,7 @@
 #include "World.h"
 #include "VulkanContent.h"
 #include "StackAllocator.h"
+#include "Input.h"
 
 namespace gpr460 {
 
@@ -110,6 +111,7 @@ namespace gpr460 {
 		bool quit;
 		int frame;
 		StackAllocator stack;
+		Input input;
 	};
 
 	extern EngineState* engine;

@@ -34,7 +34,7 @@ void PlayerController::UpdateAll()
 
 		if (transform)
 		{
-			const Uint8* keyboardState = SDL_GetKeyboardState(NULL);
+			const Uint8* keyboardState = gpr460::engine->input.GetKeyboardState();
 
 			//Arrow Keys to move
 			Vector3 posInput = Vector3(
@@ -45,22 +45,22 @@ void PlayerController::UpdateAll()
 			
 			transform->position += Vector3(posInput.x, posInput.y, posInput.z) * components.playerControllerComponents[i].GetSpeed();
 
-			//WASDQE to rotate
+			//YGHJTU to rotate (Same pattern as WASDQE)
 
 			Vector3 rotInput = Vector3(
-				keyboardState[SDL_SCANCODE_A] - keyboardState[SDL_SCANCODE_D], 
-				keyboardState[SDL_SCANCODE_S] - keyboardState[SDL_SCANCODE_W], 
-				keyboardState[SDL_SCANCODE_Q] - keyboardState[SDL_SCANCODE_E]
+				keyboardState[SDL_SCANCODE_G] - keyboardState[SDL_SCANCODE_J], 
+				keyboardState[SDL_SCANCODE_H] - keyboardState[SDL_SCANCODE_Y], 
+				keyboardState[SDL_SCANCODE_T] - keyboardState[SDL_SCANCODE_U]
 			);
 
 			transform->rotation += Vector3(rotInput.x, rotInput.y, rotInput.z) * components.playerControllerComponents[i].GetSpeed();
 
-			//UHJKYI to scale (Same layout as WASDQE, but shifted over)
+			//OKL;IP to scale (Same layout as WASDQE, but shifted over)
 
 			Vector3 scaleInput = Vector3(
-				keyboardState[SDL_SCANCODE_H] - keyboardState[SDL_SCANCODE_K], 
-				keyboardState[SDL_SCANCODE_J] - keyboardState[SDL_SCANCODE_U], 
-				keyboardState[SDL_SCANCODE_Y] - keyboardState[SDL_SCANCODE_I]
+				keyboardState[SDL_SCANCODE_K] - keyboardState[SDL_SCANCODE_SEMICOLON], 
+				keyboardState[SDL_SCANCODE_L] - keyboardState[SDL_SCANCODE_O], 
+				keyboardState[SDL_SCANCODE_I] - keyboardState[SDL_SCANCODE_P]
 			);
 
 			transform->scale += Vector3(scaleInput.x, scaleInput.y, scaleInput.z) * components.playerControllerComponents[i].GetSpeed();

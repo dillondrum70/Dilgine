@@ -27,6 +27,7 @@ struct Components
 	PlayerController playerControllerComponents[gpr460::MAX_GAMEOBJECTS];
 	CollisionColorChanger colorChangeComponents[gpr460::MAX_GAMEOBJECTS];
 	MeshRenderer meshRendererComponents[gpr460::MAX_GAMEOBJECTS];
+	Camera cameraComponents[gpr460::MAX_GAMEOBJECTS];
 };
 
 class World
@@ -49,17 +50,20 @@ public:
 	int activePlayerControllers = 0;
 	int activeColorChange = 0;
 	int activeMeshRenderers = 0;
+	int activeCameras = 0;
 
 	/////////////
 	//Changed in main by dragging mouse
 	//Arbitrary values, I just like the angle these two make
-	float mouseX = 125;
-	float mouseY = 50;
+	//float mouseX = 125;
+	//float mouseY = 50;
 	//Changed in main by scrolling scroll wheel
-	float zoom = 5.0f;
+	//float zoom = 5.0f;
 	////////////
 
-	World() { }
+	Camera* mainCamera;
+
+	World() { mainCamera = nullptr; }
 	~World() { CleanUp(); }
 	
 	void Init(SDL_Window* pWindow);

@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Scripts\Core\Input.cpp" />
     <ClCompile Include="Scripts\Core\Serialization.cpp" />
     <ClCompile Include="Scripts\Core\StackAllocator.cpp" />
     <ClCompile Include="Scripts\Core\System\System_Win32.cpp" />
@@ -26,6 +27,7 @@
     <ClCompile Include="Scripts\Core\VulkanCore.cpp" />
     <ClCompile Include="Scripts\Core\VulkanObject.cpp" />
     <ClCompile Include="Scripts\Core\World.cpp" />
+    <ClCompile Include="Scripts\Game\Components\Camera.cpp" />
     <ClCompile Include="Scripts\Game\Components\CollisionColorChanger.cpp" />
     <ClCompile Include="Scripts\Game\Components\Component.cpp" />
     <ClCompile Include="Scripts\Game\Components\MeshRenderer.cpp" />
@@ -37,6 +39,7 @@
     <ClCompile Include="Scripts\main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Scripts\Core\Input.h" />
     <ClInclude Include="Scripts\Core\Serialization.h" />
     <ClInclude Include="Scripts\Core\StackAllocator.h" />
     <ClInclude Include="Scripts\Core\System\System.h" />
@@ -48,6 +51,7 @@
     <ClInclude Include="Scripts\Core\VulkanCore.h" />
     <ClInclude Include="Scripts\Core\VulkanObject.h" />
     <ClInclude Include="Scripts\Core\World.h" />
+    <ClInclude Include="Scripts\Game\Components\Camera.h" />
     <ClInclude Include="Scripts\Game\Components\CollisionColorChanger.h" />
     <ClInclude Include="Scripts\Game\Components\Component.h" />
     <ClInclude Include="Scripts\Game\Components\MeshRenderer.h" />
