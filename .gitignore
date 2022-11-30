@@ -401,9 +401,9 @@ GameErrors.txt
 # Engine Emscripten Builds
 build/
 
-#Laptop-Specific Batch Files
+#Device-Specific Batch Files for starting Emscripten
 em_start_laptop.bat
 em_start_lab.bat
 
 # Do not exclude obj files in Models folder
-!Models/**
+!Dilgine/Dilgine/Assets/Models/**
