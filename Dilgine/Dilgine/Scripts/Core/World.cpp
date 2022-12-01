@@ -41,7 +41,7 @@ void World::Init(SDL_Window* pWindow)
 	AddGameObject(room);
 
 	GameObject camera;
-	Camera::Create(camera, .3f, 0.05f, 0.01f, Vector3(0.0f), Vector3(5.0f, 5.0f, 5.0f));
+	Camera::Create(camera, .3f, 0.05f, 0.02f, Vector3(0.0f), Vector3(5.0f, 5.0f, 5.0f));
 	AddGameObject(camera);
 
 	mainCamera = &components.cameraComponents[0];
@@ -269,7 +269,7 @@ void World::UpdateUniformBuffers(uint32_t currentImage)
 		//Construct model matrix T * R * S
 		ubo.model = transMat * rotMat * scaleMat;	
 
-		Vector3 eye = mainCamera->CalculateEyePosition();
+		Vector3 eye = mainCamera->GetEyePosition();
 		Vector3 lookAt = mainCamera->GetLookAtPosition();
 		//View matrix (eye position, center look position, up vector), looks from above at a 45 degree angle
 		//ubo.view = glm::lookAt(mainCamera->GetZoom() * glm::vec3(eye.x, eye.y, eye.z), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));

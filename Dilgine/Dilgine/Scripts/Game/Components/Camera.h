@@ -11,9 +11,6 @@ class Camera
 private:
 	GameObject* gameObject;
 
-	float mouseDragX = 0;
-	float mouseDragY = 0;
-
 	float zoomSpeed = 1.0f;	//Speed at which camera zooms when using scroll wheel
 	float moveSpeed = 1.0f;	//Speed at which the camera moves
 	float rotateSpeed = 1.0f;	//Speed at which the camera moves
@@ -43,9 +40,7 @@ public:
 	bool GetOrbiting() { return orbiting; }
 
 	void SetMoveSpeed(float vSpeed) { moveSpeed = vSpeed; }
-	void SetRotateSpeed(float vSpeed) { rotateSpeed = vSpeed; }
-
-	Vector3 CalculateEyePosition();//We might do extra changes to eye position if we are orbiting
+	void SetRotateSpeed(float vSpeed) { rotateSpeed = vSpeed; }\
 
 	void Update();
 	static void UpdateMain();

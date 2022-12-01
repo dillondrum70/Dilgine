@@ -12,29 +12,6 @@ Camera::Camera(float vZoomSpeed, float vMoveSpeed, float vRotateSpeed, Vector3 l
 	lookAtPosition = lookAt; 
 	eyePosition = eye; 
 	gameObject = vGameObject;
-
-	//Get the current mouse drage values from the passed eye position, use inverse trig functions to reverse the process of drag values to eye position
-	//eye.x = cos(mouseDragX) * cos(mouseDragY), eye.z = sin(mouseDragY)
-	//It's all algebra from there
-	Vector3 normEye = eye.Normalized();
-	if (std::abs(normEye.z) > 1)
-	{
-		mouseDragY = 0;
-	}
-	else
-	{
-		mouseDragY = std::asin(normEye.z);
-	}
-	
-	if (mouseDragY != 0)
-	{
-		mouseDragX = std::acos(normEye.x / std::cos(mouseDragY));
-	}
-	else
-	{
-		//If denominator would be zero, just inverse cosine the x
-		mouseDragX = std::acos(normEye.x);
-	}
 }
 
 //CAMR [moveSpeed rotateSpeed zoom (lookAt.x lookAt.y, lookAt.z) (eye.x, eye.y, eye.z)]
@@ -77,11 +54,15 @@ void Camera::Update()
 	Vector3 lookDirForward = (eyePosition - lookAtPosition).Normalized();
 	Vector3 lookDirRight = Vector3::Cross(lookDirForward, Vector3::Up()).Normalized();
 	Vector3 lookDirUp = Vector3::Cross(lookDirForward, lookDirRight).Normalized();
+	float dist = (lookAtPosition - eyePosition).Magnitude();	//Calculates distance between lookAt and eye so we can maintain that distance when orbiting for example
 
 	//Zoom
 	eyePosition -= lookDirForward * gpr460::engine->input.GetMouseState().mouseWheelYChange * zoomSpeed;
 
 	MouseState mouseState = gpr460::engine->input.GetMouseState();
+
+	float mouseDragX = mouseState.mouseXChange * rotateSpeed;
+	float mouseDragY = mouseState.mouseYChange * rotateSpeed;
 
 	//Orbit the center point, can't move
 	if (mouseState.rightMouse)
@@ -89,12 +70,13 @@ void Camera::Update()
 		orbiting = true;
 
 		//Rotation
-		mouseDragX -= mouseState.mouseXChange * rotateSpeed;
+		//mouseDragX -= mouseState.mouseXChange * rotateSpeed;
 
-		mouseDragY += mouseState.mouseYChange * rotateSpeed;
+		//mouseDragY += mouseState.mouseYChange * rotateSpeed;
 
-		float dist = (lookAtPosition - eyePosition).Magnitude();
-		eyePosition = (Vector3((std::cos(mouseDragX)) * (std::cos(mouseDragY)), (std::sin(mouseDragX)) * (std::cos(mouseDragY)), (std::sin(mouseDragY))) * dist) + lookAtPosition;
+		eyePosition += (lookDirRight * mouseDragX) + (lookDirUp * -mouseDragY);
+		Vector3 diff = (eyePosition - lookAtPosition).Normalized() * dist;
+		eyePosition = lookAtPosition + diff;
 	}
 	//Move in local space of camera (i.e. pressing W moves in whatever direction the camera is facing
 	//and center point rotates around camera (allowing camera to look around while remaining stationary)
@@ -115,21 +97,19 @@ void Camera::Update()
 		Vector3 move = ((lookDirRight * posInput.x) + (lookDirForward * posInput.y) + (lookDirUp * posInput.z)) * moveSpeed;
 
 		eyePosition += move;
+
+		//Rotation
+		//mouseDragX -= mouseState.mouseXChange * rotateSpeed;
+
+		//mouseDragY -= mouseState.mouseYChange * rotateSpeed;
+
 		lookAtPosition += move;
+		lookAtPosition -= (lookDirRight * mouseDragX) + (lookDirUp * -mouseDragY);
+		Vector3 diff = (lookAtPosition - eyePosition).Normalized() * dist;
+		lookAtPosition = eyePosition + diff;
 	}
 	
 	std::cout << eyePosition << "  " << lookAtPosition << std::endl;
-}
-
-Vector3 Camera::CalculateEyePosition() 
-{ 
-	if (orbiting)
-	{
-
-		return eyePosition/* + lookAtPosition*/;
-	}
-
-	return eyePosition;
 }
 
 void Camera::UpdateMain()
