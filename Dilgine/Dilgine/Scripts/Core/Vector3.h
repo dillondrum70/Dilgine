@@ -11,13 +11,19 @@ struct Vector3
 	Vector3(float val) { x = val; y = val; z = val; }
 	Vector3(float valX, float valY, float valZ) { x = valX; y = valY; z = valZ; }
 
-	float Magnitude() { return sqrt((x * x) + (y * y) + (z * z)); }
+	inline float Magnitude() { return sqrt((x * x) + (y * y) + (z * z)); }
 	Vector3 Normalized() {
 		float mag = Magnitude();
 		if (mag == 0)
 			return Vector3(0);
 		return Vector3(x / mag, y / mag, z / mag);
 	}
+
+	static inline Vector3 Cross(Vector3 a, Vector3 b) { return Vector3((a.y * b.z) - (a.z * b.y), (a.z * b.x) - (a.x * b.z), (a.x * b.y) - (a.y * b.x)); }
+
+	const static inline Vector3 Forward() { return Vector3(0, 1, 0); }
+	const static inline Vector3 Right() { return Vector3(1, 0, 0); }
+	const static inline Vector3 Up() { return Vector3(0, 0, 1); }
 
 	Vector3 operator+(const Vector3& rhs) { return Vector3(x + rhs.x, y + rhs.y, z + rhs.z); }
 	Vector3 operator-(const Vector3& rhs) { return Vector3(x - rhs.x, y - rhs.y, z - rhs.z); }

@@ -4,11 +4,11 @@
 #include "SDL2/SDL.h"
 #include "System.h"
 
-Camera::Camera(float vMoveSpeed, float vRotateSpeed, float vZoom, Vector3 lookAt, Vector3 eye, GameObject* vGameObject)
+Camera::Camera(float vZoomSpeed, float vMoveSpeed, float vRotateSpeed, Vector3 lookAt, Vector3 eye, GameObject* vGameObject)
 {
+	zoomSpeed = vZoomSpeed;
 	moveSpeed = vMoveSpeed; 
-	rotateSpeed = vRotateSpeed; 
-	zoom = vZoom; 
+	rotateSpeed = vRotateSpeed;
 	lookAtPosition = lookAt; 
 	eyePosition = eye; 
 	gameObject = vGameObject;
@@ -16,18 +16,25 @@ Camera::Camera(float vMoveSpeed, float vRotateSpeed, float vZoom, Vector3 lookAt
 	//Get the current mouse drage values from the passed eye position, use inverse trig functions to reverse the process of drag values to eye position
 	//eye.x = cos(mouseDragX) * cos(mouseDragY), eye.z = sin(mouseDragY)
 	//It's all algebra from there
-	mouseDragY = std::asin(eye.z);
+	Vector3 normEye = eye.Normalized();
+	if (std::abs(normEye.z) > 1)
+	{
+		mouseDragY = 0;
+	}
+	else
+	{
+		mouseDragY = std::asin(normEye.z);
+	}
+	
 	if (mouseDragY != 0)
 	{
-		mouseDragX = std::acos(eye.x / std::cos(mouseDragY));
+		mouseDragX = std::acos(normEye.x / std::cos(mouseDragY));
 	}
 	else
 	{
 		//If denominator would be zero, just inverse cosine the x
-		mouseDragX = std::acos(eye.x);
+		mouseDragX = std::acos(normEye.x);
 	}
-	
-	std::cout << mouseDragY << "  " << mouseDragX << std::endl;
 }
 
 //CAMR [moveSpeed rotateSpeed zoom (lookAt.x lookAt.y, lookAt.z) (eye.x, eye.y, eye.z)]
@@ -35,12 +42,13 @@ void Camera::Deserialize(GameObject& gameObject, std::istream& stream)
 {
 	stream.ignore(100, '[');
 
-	float ms = 0, rs = 0, z = 0;
+	float ms = 0, rs = 0, zs = 0;
 	Vector3 l = Vector3(0.0f), e = Vector3(0.0f);
 
+	stream >> zs;
 	stream >> ms;
 	stream >> rs;
-	stream >> z;
+	
 
 	stream.ignore(100, '(');
 	stream >> l.x;
@@ -54,20 +62,24 @@ void Camera::Deserialize(GameObject& gameObject, std::istream& stream)
 
 	//e = e.Normalized();
 
-	gameObject.CreateCamera(gameObject, ms, rs, z, l, e);
+	gameObject.CreateCamera(gameObject, zs, ms, rs, l, e);
 
 	stream.ignore(100, ']');
 }
 
-void Camera::Create(GameObject& gameObject, float vMoveSpeed, float vRotateSpeed, float vZoom, Vector3 lookAt, Vector3 eye)
+void Camera::Create(GameObject& gameObject, float vZoomSpeed, float vMoveSpeed, float vRotateSpeed, Vector3 lookAt, Vector3 eye)
 {
-	gameObject.CreateCamera(gameObject, vMoveSpeed, vRotateSpeed, vZoom, lookAt, eye);
+	gameObject.CreateCamera(gameObject, vZoomSpeed, vMoveSpeed, vRotateSpeed, lookAt, eye);
 }
 
 void Camera::Update()
 {
+	Vector3 lookDirForward = (eyePosition - lookAtPosition).Normalized();
+	Vector3 lookDirRight = Vector3::Cross(lookDirForward, Vector3::Up()).Normalized();
+	Vector3 lookDirUp = Vector3::Cross(lookDirForward, lookDirRight).Normalized();
+
 	//Zoom
-	zoom -= gpr460::engine->input.GetMouseState().mouseWheelYChange;
+	eyePosition -= lookDirForward * gpr460::engine->input.GetMouseState().mouseWheelYChange * zoomSpeed;
 
 	MouseState mouseState = gpr460::engine->input.GetMouseState();
 
@@ -81,8 +93,8 @@ void Camera::Update()
 
 		mouseDragY += mouseState.mouseYChange * rotateSpeed;
 
-		//80 is an arbitrary number to limit the speed of the camera's movement when you drag the cursor
-		eyePosition = Vector3((std::cos(mouseDragX)) * (std::cos(mouseDragY)), (std::sin(mouseDragX)) * (std::cos(mouseDragY)), (std::sin(mouseDragY)));
+		float dist = (lookAtPosition - eyePosition).Magnitude();
+		eyePosition = (Vector3((std::cos(mouseDragX)) * (std::cos(mouseDragY)), (std::sin(mouseDragX)) * (std::cos(mouseDragY)), (std::sin(mouseDragY))) * dist) + lookAtPosition;
 	}
 	//Move in local space of camera (i.e. pressing W moves in whatever direction the camera is facing
 	//and center point rotates around camera (allowing camera to look around while remaining stationary)
@@ -100,9 +112,24 @@ void Camera::Update()
 			keyboardState[SDL_SCANCODE_Q] - keyboardState[SDL_SCANCODE_E]
 		);
 
-		lookAtPosition += posInput * moveSpeed;
+		Vector3 move = ((lookDirRight * posInput.x) + (lookDirForward * posInput.y) + (lookDirUp * posInput.z)) * moveSpeed;
+
+		eyePosition += move;
+		lookAtPosition += move;
 	}
 	
+	std::cout << eyePosition << "  " << lookAtPosition << std::endl;
+}
+
+Vector3 Camera::CalculateEyePosition() 
+{ 
+	if (orbiting)
+	{
+
+		return eyePosition/* + lookAtPosition*/;
+	}
+
+	return eyePosition;
 }
 
 void Camera::UpdateMain()

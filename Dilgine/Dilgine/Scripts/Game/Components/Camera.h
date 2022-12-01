@@ -14,6 +14,7 @@ private:
 	float mouseDragX = 0;
 	float mouseDragY = 0;
 
+	float zoomSpeed = 1.0f;	//Speed at which camera zooms when using scroll wheel
 	float moveSpeed = 1.0f;	//Speed at which the camera moves
 	float rotateSpeed = 1.0f;	//Speed at which the camera moves
 	float zoom = 5.0f;	//Distance from the center in the direction of eyeDirection
@@ -27,10 +28,10 @@ public:
 
 	static void Deserialize(GameObject& gameObject, std::istream& stream);
 
-	static void Create(GameObject& gameObject, float vMoveSpeed = 1.0f, float vRotateSpeed = 1.0f, float vZoom = 5.0f, Vector3 lookAt = Vector3(0.0f), Vector3 eye = Vector3(5.0f, 5.0f, 0.0f));
+	static void Create(GameObject& gameObject, float vZoomSpeed = 1.0f, float vMoveSpeed = 1.0f, float vRotateSpeed = 1.0f, Vector3 lookAt = Vector3(0.0f), Vector3 eye = Vector3(5.0f, 5.0f, 0.0f));
 
 	Camera() { gameObject = nullptr; }
-	Camera(float vMoveSpeed, float vRotateSpeed, float vZoom, Vector3 lookAt, Vector3 eye, GameObject* vGameObject);
+	Camera(float vZoomSpeed, float vMoveSpeed, float vRotateSpeed, Vector3 lookAt, Vector3 eye, GameObject* vGameObject);
 	~Camera() { }
 
 	GameObject* GetGameObject() { return gameObject; }
@@ -38,11 +39,13 @@ public:
 	float GetRotateSpeed() { return rotateSpeed; }
 	float GetZoom() { return zoom; }
 	Vector3 GetLookAtPosition() { return lookAtPosition; }
-	Vector3 GetEyePosition() { return eyePosition; }
+	Vector3 GetEyePosition() { return eyePosition; }	
 	bool GetOrbiting() { return orbiting; }
 
 	void SetMoveSpeed(float vSpeed) { moveSpeed = vSpeed; }
 	void SetRotateSpeed(float vSpeed) { rotateSpeed = vSpeed; }
+
+	Vector3 CalculateEyePosition();//We might do extra changes to eye position if we are orbiting
 
 	void Update();
 	static void UpdateMain();

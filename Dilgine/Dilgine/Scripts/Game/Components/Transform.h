@@ -22,6 +22,11 @@ public:
 	Transform() { position = Vector3(0.0f); rotation = Vector3(0.0f); scale = Vector3(0.0f);}
 	Transform(Vector3 vPos, Vector3 vRot, Vector3 vScale) { position = vPos; rotation = vRot; scale = vScale; }
 
+	////////// UNTESTED /////////////
+	Vector3 GetForward();
+	Vector3 GetRight();
+	Vector3 GetUp();
+
 	void Reset();
 
 	friend std::ostream& operator<<(std::ostream& os, const Transform& t) { os << t.position << " " << t.rotation << " " << t.scale;  return os; }
