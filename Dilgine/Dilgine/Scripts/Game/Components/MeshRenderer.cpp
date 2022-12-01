@@ -14,21 +14,12 @@ void MeshRenderer::Deserialize(GameObject& gameObject, std::istream& stream)
 	std::string model, texture;
 
 	stream >> model;
-	stream >> texture;
-	//int w = 0, h = 0;
-	//Vector3 col;
+	stream.ignore(100, ' ');
+	std::getline(stream, texture, ']');	//Read texture path until you reach the closing bracket of component in data file
 
-	//stream >> w;
-	//stream >> h;
-
-	/*stream.ignore(100, '(');
-	stream >> col.x;
-	stream >> col.y;
-	stream >> col.z;*/
-	//stream.ignore(100, ')');
 	gameObject.CreateMeshRenderer(gameObject, model, texture);
 
-	stream.ignore(100, ']');
+	//stream.ignore(100, ']');	//Don't need to ignore, getline handled that
 }
 
 void MeshRenderer::Create(GameObject& gameObject, std::string modelFilePath, std::string textureFilePath)

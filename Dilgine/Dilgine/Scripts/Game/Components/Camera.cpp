@@ -4,7 +4,7 @@
 #include "SDL2/SDL.h"
 #include "System.h"
 
-Camera::Camera(float vZoomSpeed, float vMoveSpeed, float vRotateSpeed, Vector3 lookAt, Vector3 eye, GameObject* vGameObject)
+Camera::Camera(float vZoomSpeed, float vMoveSpeed, float vRotateSpeed, Vector3 lookAt, Vector3 eye, bool vAttachToTransform, GameObject* vGameObject)
 {
 	zoomSpeed = vZoomSpeed;
 	moveSpeed = vMoveSpeed; 
@@ -12,41 +12,91 @@ Camera::Camera(float vZoomSpeed, float vMoveSpeed, float vRotateSpeed, Vector3 l
 	lookAtPosition = lookAt; 
 	eyePosition = eye; 
 	gameObject = vGameObject;
+	attachToTransform = vAttachToTransform;
 }
 
-//CAMR [moveSpeed rotateSpeed zoom (lookAt.x lookAt.y, lookAt.z) (eye.x, eye.y, eye.z)]
+//attachToTransform stored as 0 or 1
+//CAMR [zoomSpeed moveSpeed rotateSpeed (lookAt.x lookAt.y, lookAt.z) (eye.x, eye.y, eye.z) attachToTransform]
 void Camera::Deserialize(GameObject& gameObject, std::istream& stream)
 {
 	stream.ignore(100, '[');
 
-	float ms = 0, rs = 0, zs = 0;
-	Vector3 l = Vector3(0.0f), e = Vector3(0.0f);
+	float mSpeed = 0, rSpeed = 0, zSpeed = 0;
+	Vector3 lookAt = Vector3(0.0f), eye = Vector3(0.0f);
+	std::string checkInput = "";
+	bool attach = true;
 
-	stream >> zs;
-	stream >> ms;
-	stream >> rs;
+	stream >> zSpeed;
+	stream >> mSpeed;
+	stream >> rSpeed;
 	
 
 	stream.ignore(100, '(');
-	stream >> l.x;
-	stream >> l.y;
-	stream >> l.z;
+	stream >> lookAt.x;
+	stream >> lookAt.y;
+	stream >> lookAt.z;
 
 	stream.ignore(100, '(');
-	stream >> e.x;
-	stream >> e.y;
-	stream >> e.z;
+	stream >> eye.x;
+	stream >> eye.y;
+	stream >> eye.z;
+
+	stream.ignore(100, ' ');
+	std::getline(stream, checkInput, ']');	//Read until character before ]
+
+	if (checkInput == "0" || checkInput == "false")
+	{
+		attach = false;
+	}
 
 	//e = e.Normalized();
 
-	gameObject.CreateCamera(gameObject, zs, ms, rs, l, e);
+	gameObject.CreateCamera(gameObject, zSpeed, mSpeed, rSpeed, lookAt, eye, attach);
 
-	stream.ignore(100, ']');
+	//stream.ignore(100, ']'); //Don't need to ignore, getline handled that
 }
 
-void Camera::Create(GameObject& gameObject, float vZoomSpeed, float vMoveSpeed, float vRotateSpeed, Vector3 lookAt, Vector3 eye)
+void Camera::Create(GameObject& gameObject, float vZoomSpeed, float vMoveSpeed, float vRotateSpeed, Vector3 lookAt, Vector3 eye, bool vAttachToTransform)
 {
-	gameObject.CreateCamera(gameObject, vZoomSpeed, vMoveSpeed, vRotateSpeed, lookAt, eye);
+	gameObject.CreateCamera(gameObject, vZoomSpeed, vMoveSpeed, vRotateSpeed, lookAt, eye, vAttachToTransform);
+}
+
+Vector3 Camera::CalculateLookAtPosition()
+{
+	if (attachToTransform)
+	{
+		Transform* transform = gameObject->GetTransform();
+
+		Vector3 positionOffset = Vector3(0.0f);
+
+		if (transform)
+		{
+			//TODO: Add transform->rotation to this calculation
+			Vector3 transEye = (transform->position + lookAtPosition);
+			return transEye;
+		}
+	}
+
+	return lookAtPosition;
+}
+
+Vector3 Camera::CalculateEyePosition()
+{
+	if (attachToTransform)
+	{
+		Transform* transform = gameObject->GetTransform();
+
+		Vector3 positionOffset = Vector3(0.0f);
+
+		if (transform)
+		{
+			//TODO: Add transform->rotation to this calculation
+			Vector3 transEye = (transform->position + eyePosition);
+			return transEye;
+		}
+	}
+
+	return eyePosition;
 }
 
 void Camera::Update()

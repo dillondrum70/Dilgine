@@ -19,58 +19,36 @@ void World::Init(SDL_Window* pWindow)
 	SDL_GetWindowSize(pWindow, &width, &height);
 
 	window = pWindow;
-
-	/*TCHAR buffer[MAX_PATH] = { 0 };
-	GetModuleFileName(NULL, buffer, MAX_PATH);
-	std::wstring::size_type pos = std::wstring(buffer).find_last_of(L"\\/");
-	std::wcout << std::wstring(buffer).substr(0, pos);*/
-	//std::string path = "..\\Dilgine\\Data\\level0.dat";
-	//std::cout << std::endl << path << std::endl;
 	
-	//serial.LoadLevel(path);
+	serial.LoadLevel(path);
 
-	GameObject player;
-	Transform::Create(player, Vector3(0.0f), Vector3(0.0f), Vector3(1.0f));
-	PlayerController::Create(player, 0.05f);
-	MeshRenderer::Create(player, CUBE_PATH, PAUL_TEXTURE_PATH);
-	AddGameObject(player);
-
-	GameObject room;
-	Transform::Create(room, Vector3(0.0f), Vector3(0.0f), Vector3(3.0f));
-	MeshRenderer::Create(room, VIKING_MODEL_PATH, VIKING_TEXTURE_PATH);
-	AddGameObject(room);
-
-	GameObject camera;
-	Camera::Create(camera, .3f, 0.05f, 0.02f, Vector3(0.0f), Vector3(5.0f, 5.0f, 5.0f));
-	AddGameObject(camera);
+	//Create a camera gameobject if it wasn't in serialization
+	if (activeCameras == 0)
+	{
+		GameObject camera;
+		Camera::Create(camera, .3f, 0.05f, 0.02f, Vector3(0.0f), Vector3(5.0f, 5.0f, 5.0f), true);
+		AddGameObject(camera);
+	}
 
 	mainCamera = &components.cameraComponents[0];
 
-	/*GameObject background;
-	//Add Transform component
-	Transform::Create(background, Vector2(width / 2, height / 2));
-	//Add RectangleRenderer component
-	RectangleRenderer::Create(background, width, height, Vector3(150, 150, 150));
-	AddGameObject(background);
+	//GameObject player;
+	//Transform::Create(player, Vector3(0.0f), Vector3(0.0f), Vector3(1.0f));
+	//PlayerController::Create(player, 0.05f);
+	//MeshRenderer::Create(player, CUBE_PATH, PAUL_TEXTURE_PATH);
+	////Camera::Create(player, .3f, 0.05f, 0.02f, Vector3(0.0f), Vector3(5.0f, 5.0f, 5.0f));
+	//AddGameObject(player);
 
-	GameObject player;
-	Transform::Create(player, Vector2(width / 4, height / 2));
-	RectangleRenderer::Create(player, 50, 50, Vector3(0, 255, 255));
-	RectangleCollider::Create(player, 50, 50);
-	PlayerController::Create(player, 1);
-	CollisionColorChanger::Create(player, Vector3(0, 0, 255));
-	AddGameObject(player);
+	//GameObject room;
+	//Transform::Create(room, Vector3(0.0f), Vector3(0.0f), Vector3(3.0f));
+	//MeshRenderer::Create(room, VIKING_MODEL_PATH, VIKING_TEXTURE_PATH);
+	//AddGameObject(room);
 
-	int wallCount = 20;
-	for (int i = 0; i < wallCount; i++)
-	{
-		GameObject wall;
-		Transform::Create(wall, Vector2(rand() % width, rand() % height));
-		RectangleRenderer::Create(wall, 50, 50, Vector3(255, 150, 0));
-		RectangleCollider::Create(wall, 50, 50);
-		CollisionColorChanger::Create(wall, Vector3(0, 0, 255));
-		AddGameObject(wall);
-	}*/
+	//GameObject camera;
+	//Camera::Create(camera, .3f, 0.05f, 0.02f, Vector3(0.0f), Vector3(5.0f, 5.0f, 5.0f), true);
+	//AddGameObject(camera);
+
+	//mainCamera = &components.cameraComponents[0];
 }
 
 void World::AddGameObject(GameObject& rObj)
@@ -269,8 +247,8 @@ void World::UpdateUniformBuffers(uint32_t currentImage)
 		//Construct model matrix T * R * S
 		ubo.model = transMat * rotMat * scaleMat;	
 
-		Vector3 eye = mainCamera->GetEyePosition();
-		Vector3 lookAt = mainCamera->GetLookAtPosition();
+		Vector3 eye = mainCamera->CalculateEyePosition();
+		Vector3 lookAt = mainCamera->CalculateLookAtPosition();
 		//View matrix (eye position, center look position, up vector), looks from above at a 45 degree angle
 		//ubo.view = glm::lookAt(mainCamera->GetZoom() * glm::vec3(eye.x, eye.y, eye.z), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 		ubo.view = glm::lookAt((/*((float)mainCamera->GetOrbiting() ? mainCamera->GetZoom() : 1) **/ glm::vec3(eye.x, eye.y, eye.z)), glm::vec3(lookAt.x, lookAt.y, lookAt.z), glm::vec3(0.0f, 0.0f, 1.0f));

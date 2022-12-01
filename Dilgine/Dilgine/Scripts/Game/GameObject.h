@@ -56,7 +56,7 @@ public:
     void CreatePlayerController(GameObject& rObj, float vSpeed);
     void CreateCollisionColorChange(GameObject& rObj, Vector3 vColor);
     void CreateMeshRenderer(GameObject& rObj, std::string modelFilePath, std::string textureFilePath);
-    void CreateCamera(GameObject& rObj, float vZoomSpeed, float vMoveSpeed, float vRotateSpeed, Vector3 lookAt, Vector3 eye);
+    void CreateCamera(GameObject& rObj, float vZoomSpeed, float vMoveSpeed, float vRotateSpeed, Vector3 lookAt, Vector3 eye, bool vAttachToTransform);
 
     //void Update(std::vector<GameObject>& gameObjects);
     //void Render(SDL_Renderer*& prRenderer);

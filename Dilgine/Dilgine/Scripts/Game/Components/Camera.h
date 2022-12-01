@@ -23,12 +23,14 @@ private:
 public:
 	enum { compID = 'CAMR' };
 
+	bool attachToTransform = true;	//If a transform exists, we modify the values of cameras position, for example, based on transform's position so it moves with the transform
+
 	static void Deserialize(GameObject& gameObject, std::istream& stream);
 
-	static void Create(GameObject& gameObject, float vZoomSpeed = 1.0f, float vMoveSpeed = 1.0f, float vRotateSpeed = 1.0f, Vector3 lookAt = Vector3(0.0f), Vector3 eye = Vector3(5.0f, 5.0f, 0.0f));
+	static void Create(GameObject& gameObject, float vZoomSpeed = 1.0f, float vMoveSpeed = 1.0f, float vRotateSpeed = 1.0f, Vector3 lookAt = Vector3(0.0f), Vector3 eye = Vector3(5.0f, 5.0f, 0.0f), bool vAttachToTransform = true);
 
 	Camera() { gameObject = nullptr; }
-	Camera(float vZoomSpeed, float vMoveSpeed, float vRotateSpeed, Vector3 lookAt, Vector3 eye, GameObject* vGameObject);
+	Camera(float vZoomSpeed, float vMoveSpeed, float vRotateSpeed, Vector3 lookAt, Vector3 eye, bool vAttachToTransform, GameObject* vGameObject);
 	~Camera() { }
 
 	GameObject* GetGameObject() { return gameObject; }
@@ -36,11 +38,15 @@ public:
 	float GetRotateSpeed() { return rotateSpeed; }
 	float GetZoom() { return zoom; }
 	Vector3 GetLookAtPosition() { return lookAtPosition; }
-	Vector3 GetEyePosition() { return eyePosition; }	
+	Vector3 GetEyePosition() { return eyePosition; }
 	bool GetOrbiting() { return orbiting; }
 
 	void SetMoveSpeed(float vSpeed) { moveSpeed = vSpeed; }
-	void SetRotateSpeed(float vSpeed) { rotateSpeed = vSpeed; }\
+	void SetRotateSpeed(float vSpeed) { rotateSpeed = vSpeed; }
+
+	//Handles adding transform's position
+	Vector3 CalculateLookAtPosition();
+	Vector3 CalculateEyePosition();
 
 	void Update();
 	static void UpdateMain();
