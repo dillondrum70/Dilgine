@@ -159,7 +159,7 @@ void Camera::Update()
 		lookAtPosition = eyePosition + diff;
 	}
 	
-	std::cout << eyePosition << "  " << lookAtPosition << std::endl;
+	//std::cout << eyePosition << "  " << lookAtPosition << std::endl;
 }
 
 void Camera::UpdateMain()
