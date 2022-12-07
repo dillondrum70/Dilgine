@@ -9,7 +9,7 @@
 namespace gpr460 {
 
 	//error constants
-	const gpr460::string ERROR_ERROR_LOGGING_FAILED = L"Error: Error logging failed";
+	const gpr460::string ERROR_ERROR_LOGGING_FAILED = "Error: Error logging failed";
 	const gpr460::string FILENAME_LEVEL0 = "level0.dat";
 
 	const gpr460::string ERROR_MISSING_ENGINE_RENDERER = "Error: Could not get SDL_Renderer* renderer on engine";
@@ -73,6 +73,9 @@ namespace gpr460 {
 		~System_Emscripten() override {}
 
 		void Init() override;
+
+		void TrackMemory() override;
+		void LogMemory() override;
 
 		void Shutdown() override;
 

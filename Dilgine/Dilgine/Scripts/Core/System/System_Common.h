@@ -88,10 +88,12 @@ namespace gpr460 {
 
 		virtual void Init() = 0;
 
+		virtual void TrackMemory() = 0;
+		virtual void LogMemory() = 0;
+
 		virtual void Shutdown() = 0;
 
 		virtual void ErrorMessage(const gpr460::string& message) = 0;
-
 		virtual void LogToErrorFile(const gpr460::string& message) = 0;
 
 		static System* Create();

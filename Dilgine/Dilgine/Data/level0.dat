@@ -1,3 +1,3 @@
 0 : TRNS [(0 0 0) (0 0 0) (3 3 3)] MREN [Assets/Models/viking_room.obj Assets/Images/viking_room.png] 
-1 : TRNS [(0 0 0) (0 0 0) (1 1 1)] MREN [Cube Assets/Images/SquarePaul.png] PCTL [0.05]
+1 : TRNS [(0 0 0) (0 0 0) (1 1 1)] MREN [Cube Assets/Images/SquarePaul.png] PCTL [0.05] 
 3 : CAMR [0.3 0.05 0.02 (0.0  0.0  0.0) (5.0  5.0  5.0) false]

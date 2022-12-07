@@ -43,38 +43,38 @@ jobs:
       # See https://docs.microsoft.com/visualstudio/msbuild/msbuild-command-line-reference
       run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} /p:Platform=x64 ${{env.SOLUTION_FILE_PATH}}
       
-    - name: Setup Emscripten toolchain
-      uses: mymindstorm/setup-emsdk@v11
+#    - name: Setup Emscripten toolchain
+#      uses: mymindstorm/setup-emsdk@v11
       
-    - run: mkdir build
+#    - run: mkdir build
 
-    - name: Build Emscripten
-      run: emcc Dilgine\Dilgine\Scripts\main.cpp Dilgine\Dilgine\Scripts\Core\System\System_Emscripten.cpp Dilgine\Dilgine\Scripts\Core\Serialization.cpp Dilgine\Dilgine\Scripts\Game\GameObject.cpp Dilgine\Dilgine\Scripts\Game\Components\CollisionColorChanger.cpp Dilgine\Dilgine\Scripts\Game\Components\PlayerController.cpp Dilgine\Dilgine\Scripts\Game\Components\RectangleCollider.cpp Dilgine\Dilgine\Scripts\Game\Components\RectangleRenderer.cpp Dilgine\Dilgine\Scripts\Game\Components\Transform.cpp Dilgine\Dilgine\Scripts\Core\World.cpp Dilgine\Dilgine\Scripts\Core\StackAllocator.cpp -sUSE_SDL=2 -sLLD_REPORT_UNDEFINED -IDilgine\Dilgine\Scripts\Core -IDilgine\Dilgine\Scripts\Core\System -IDilgine\Dilgine\Scripts\Game -IDilgine\Dilgine\Scripts\Game\Components -IDilgine\Dilgine\Scripts\Core\World -o .\build\index.html
+#    - name: Build Emscripten
+#      run: emcc Dilgine\Dilgine\Scripts\main.cpp Dilgine\Dilgine\Scripts\Core\System\System_Emscripten.cpp Dilgine\Dilgine\Scripts\Core\Serialization.cpp Dilgine\Dilgine\Scripts\Game\GameObject.cpp Dilgine\Dilgine\Scripts\Game\Components\CollisionColorChanger.cpp Dilgine\Dilgine\Scripts\Game\Components\PlayerController.cpp Dilgine\Dilgine\Scripts\Game\Components\RectangleCollider.cpp Dilgine\Dilgine\Scripts\Game\Components\RectangleRenderer.cpp Dilgine\Dilgine\Scripts\Game\Components\Transform.cpp Dilgine\Dilgine\Scripts\Core\World.cpp Dilgine\Dilgine\Scripts\Core\StackAllocator.cpp Dilgine\Dilgine\Scripts\Core\Input.cpp Dilgine\Dilgine\Scripts\Core\VulkanContent.cpp Dilgine\Dilgine\Scripts\Core\VulkanCore.cpp Dilgine\Dilgine\Scripts\Core\VulkanObject.cpp Dilgine\Dilgine\Scripts\Game\Components\Camera.cpp Dilgine\Dilgine\Scripts\Game\Components\MeshRenderer.cpp -sUSE_SDL=2 -sLLD_REPORT_UNDEFINED -IDilgine\Dilgine\include -IDilgine\Dilgine\Scripts -IDilgine\Dilgine\Scripts\Core -IDilgine\Dilgine\Scripts\Core\System -IDilgine\Dilgine\Scripts\Game -IDilgine\Dilgine\Scripts\Game\Components -IDilgine\Dilgine\VulkanSDK\1.3.231.1\Include -IDilgine\Dilgine\Data -IDilgine\Dilgine\shaders -IDilgine\Dilgine\Assets -IDilgine\Dilgine\include\stb-master -IDilgine\Dilgine\include\tinyobjloader-master -o .\build\index.html
       
-    - uses: actions/upload-artifact@v3
-      with:
-        name: page
-        path: build
-        if-no-files-found: error
+#    - uses: actions/upload-artifact@v3
+#      with:
+#        name: page
+#        path: build
+#        if-no-files-found: error
 
-  deploy:
-    runs-on: ubuntu-latest
-    needs: build
-    environment:
-      name: github-pages
-      url: ${{steps.deployment.outputs.page_url}}
+#  deploy:
+#    runs-on: ubuntu-latest
+#    needs: build
+#    environment:
+#      name: github-pages
+#      url: ${{steps.deployment.outputs.page_url}}
       
-    steps:
-    - uses: actions/checkout@v2
-    - uses: actions/download-artifact@v3
-      with:
-        name: page
-        path: build
-    - uses: actions/configure-pages@v1
-    - uses: actions/upload-pages-artifact@v1
-      with:
-        path: build
-    - id: deployment
-      uses: actions/deploy-pages@v1
+#    steps:
+#    - uses: actions/checkout@v2
+#    - uses: actions/download-artifact@v3
+#      with:
+#        name: page
+#        path: build
+#    - uses: actions/configure-pages@v1
+#    - uses: actions/upload-pages-artifact@v1
+#     with:
+#        path: build
+#    - id: deployment
+#      uses: actions/deploy-pages@v1
       
       

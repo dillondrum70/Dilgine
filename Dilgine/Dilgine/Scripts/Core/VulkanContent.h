@@ -89,14 +89,14 @@ class EngineVulkan
 {
 public:
 	
-	VkInstance vInstance;		//Vulkan Instance
-	VkDevice logicalDevice;		//Logical device interface
+	VkInstance vInstance = nullptr;		//Vulkan Instance
+	VkDevice logicalDevice = nullptr;		//Logical device interface
 
 	//Use vkGetDeviceQueue(device, indices.graphicsFamily.value(), 0, &graphicsQueue); to get device queue
-	VkQueue graphicsQueue;								//Graphics queue, accepts command buffer to run on GPU
-	VkQueue presentQueue;								//Presentation queue
+	VkQueue graphicsQueue = nullptr;								//Graphics queue, accepts command buffer to run on GPU
+	VkQueue presentQueue = nullptr;								//Presentation queue
 
-	VkSwapchainKHR swapChain;		//Swapchain object
+	VkSwapchainKHR swapChain = nullptr;		//Swapchain object
 	VkExtent2D swapChainExtent;		//Extents of camera
 
 	//Don't use push_back, create new VulkanObject with AddVulkanObject
@@ -148,12 +148,12 @@ private:
 	//Holds index array of every model
 	//std::vector<const std::vector<uint16_t>*> allIndices;
 
-	VkDebugUtilsMessengerEXT debugMessenger;
+	VkDebugUtilsMessengerEXT debugMessenger = nullptr;
 
 	
 	VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;	//Physical graphics card Vulkan will use
 
-	VkSurfaceKHR surface;	//Represents SDL window, Vulkan is platform agnostic and this allows it to interface with an abstract surface that can render images
+	VkSurfaceKHR surface = nullptr;	//Represents SDL window, Vulkan is platform agnostic and this allows it to interface with an abstract surface that can render images
 	
 	
 	std::vector<VkImage> swapChainImages;	//Images in swap chain that are referenced during rendering
@@ -167,11 +167,11 @@ private:
 
 	std::vector<VkFramebuffer> swapChainFramebuffers;	//Frames are submitted to this buffer, how and when they are drawn is defined elsewhere
 
-	VkCommandPool commandPool;	//Manage memory used to store command buffers
+	VkCommandPool commandPool = nullptr;	//Manage memory used to store command buffers
 
-	VkImage depthImage;	//Image of depth information
-	VkDeviceMemory depthImageMemory;	//Memory location of depth image
-	VkImageView depthImageView;	//Image view to access depth image
+	VkImage depthImage = nullptr;	//Image of depth information
+	VkDeviceMemory depthImageMemory = nullptr;	//Memory location of depth image
+	VkImageView depthImageView = nullptr;	//Image view to access depth image
 
 	std::unordered_map <std::string, VkImage> textureImages;	//Vulkan image data type for textures
 	std::unordered_map <std::string, VkDeviceMemory> textureImageMemorys;	//Memory location for image

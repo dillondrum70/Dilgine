@@ -86,6 +86,9 @@ namespace gpr460
 
 		void Init() override;
 
+		void TrackMemory() override;
+		void LogMemory() override;
+
 		void Shutdown() override;
 
 		void ErrorMessage(const gpr460::string& message) override;

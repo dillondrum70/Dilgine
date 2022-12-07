@@ -12,6 +12,16 @@ void gpr460::System_Emscripten::Shutdown()
 
 }
 
+void gpr460::System_Emscripten::TrackMemory()
+{
+
+}
+
+void gpr460::System_Emscripten::LogMemory()
+{
+
+}
+
 void gpr460::System_Emscripten::ErrorMessage(const gpr460::string& message)
 {
 	gpr460::string pass = "alert('" + message + "')";

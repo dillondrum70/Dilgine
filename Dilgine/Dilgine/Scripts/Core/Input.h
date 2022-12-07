@@ -22,7 +22,7 @@ struct MouseState
 class Input
 {
 private:
-	const Uint8* keyboardState;
+	const Uint8* keyboardState = nullptr;
 
 	MouseState mouseState;
 

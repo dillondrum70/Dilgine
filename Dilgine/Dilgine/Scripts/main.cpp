@@ -81,8 +81,10 @@ void Run()
     SDL_AddEventWatch(gpr460::engine->vulkanEngine.FramebufferResizeCallback, window);  //Add framebuffer resize event, will tell vulkan when SDL_Window resized
 
     world->Init(window);
-
+    
+    system->TrackMemory();  //Start memory checkpoint
     runMainLoop();
+    system->LogMemory();    //Check memory leaks from checkpoint
 
     //delete and cleanup world first
     world->CleanUp();

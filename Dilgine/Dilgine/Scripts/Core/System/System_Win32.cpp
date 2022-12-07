@@ -3,10 +3,6 @@
 #ifdef _WIN32
 void gpr460::System_Win32::Init()
 {
-	//_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-	//_CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_DEBUG);
-	_CrtMemCheckpoint(&memState);
-
 	if (!AllocConsole())
 	{
 		ErrorMessage(L"Console Failed to Open");
@@ -19,14 +15,24 @@ void gpr460::System_Win32::Init()
 	errorFile = CreateFileW(FILENAME_ERROR.c_str(), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_FLAG_OVERLAPPED, NULL);
 }
 
+void gpr460::System_Win32::TrackMemory()
+{
+	//_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+	//_CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_DEBUG);
+	_CrtMemCheckpoint(&memState);
+}
+
+void gpr460::System_Win32::LogMemory()
+{
+	_CrtMemDumpAllObjectsSince(&memState);
+}
+
 void gpr460::System_Win32::Shutdown()
 {
 	if (errorFile != INVALID_HANDLE_VALUE)
 	{
 		CloseHandle(errorFile);
 	}
-
-	_CrtMemDumpAllObjectsSince(&memState);
 }
 
 void gpr460::System_Win32::ErrorMessage(const gpr460::string& message)
